@@ -56,7 +56,8 @@ Lai salīdzinātu līdzīgos risinājumus sabalansētu ēdienkaršu plānošanā
 2. **Algoritms**  
 3. **Konceptu modelis**
 
-'''@startuml
+'''plantuml
+@startuml
 skinparam linetype ortho
 
 class Lietotajs {
@@ -121,6 +122,7 @@ Recepte "1" -- "1" Uzturvertiba
 Veikals "*" -- "*" Produkts
 
 @enduml
+'''
 
 4. **Tehnoloģiju steks**  
 5. **Programmatūras apraksts**
