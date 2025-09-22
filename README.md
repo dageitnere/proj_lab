@@ -59,7 +59,6 @@ Lai salīdzinātu līdzīgos risinājumus sabalansētu ēdienkaršu plānošanā
 ![UML Diagram](https://i.ibb.co/Rk2Rzv3J/asd.png)
 
 ```plantuml
-@startuml
 skinparam linetype ortho
 
 class Lietotajs {
@@ -116,13 +115,19 @@ class Veikals {
 
 ' Relācijas
 Lietotajs "1" -- "*" Edienkarte
+' Vienam lietotājam var būt vairākas ēdienkartes, bet katra ēdienkarte pieder tieši vienam lietotājam
 Edienkarte "1" -- "*" Edienreize
+' Vienā ēdienkartē var būt vairākas ēdienreizes, bet katra ēdienreize pieder konkrētajai ēdienkartei
 Edienreize "*" -- "*" Recepte
+' Vienā ēdienreizē var izmantot vairākas receptes un viena recepte var parādīties vairākās ēdienreizēs
 Recepte "*" -- "*" Produkts
+' Vienā receptē var izmantot vairākus produktus un viens produkts var parādīties vairākās receptēs
 Edienkarte "1" -- "1" Uzturvertiba
+' Katrai ēdienkartei ir sava uzturvērtība
 Recepte "1" -- "1" Uzturvertiba
+' Katrai receptei ir sava uzturvērtība
 Veikals "*" -- "*" Produkts
-
+' Viens produkts var būt pieejams vairākos veikalos un vienā veikalā ir vairāki produkti
 @enduml
 ```
 
