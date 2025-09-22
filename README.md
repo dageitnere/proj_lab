@@ -56,7 +56,7 @@ Lai salīdzinātu līdzīgos risinājumus sabalansētu ēdienkaršu plānošanā
 2. **Algoritms**  
 3. **Konceptu modelis**
 
-@startuml
+'''@startuml
 skinparam linetype ortho
 
 class Lietotajs {
