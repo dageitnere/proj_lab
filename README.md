@@ -56,8 +56,71 @@ Lai salīdzinātu līdzīgos risinājumus sabalansētu ēdienkaršu plānošanā
 2. **Algoritms**  
 3. **Konceptu modelis**
 
-| @startuml EdienkartesPlanotajsskinparam linetype orthoclass Lietotajs {  \+id : String  \+epasts : String  \+parolesHash : String  \+augums : Float  \+svars : Float  \+vecums : Int  \+dzivesVietasValsts : String  \+edienkartesMerkis : String}class Edienkarte {  \+id : String  \+datums : Date  \+kopejasKalorijas : Int}class Edienreize {  \+id : String  \+nosaukums : String  \+kalorijuSkaits : Int}class Recepte {  \+id : String  \+nosaukums : String  \+recepte : String  \+bildesUrl : String}class Produkts {  \+id : String  \+nosaukums : String  \+svarsGrami: Float  \+kalorijasGrama : Float  \+cena :  Float}class Uzturvertiba {  \+kalorijas : Int  \+proteins : Float  \+tauki : Float  \+oglhidrati : Float  \+skiedrvielas : Float  \+cukurs : Float}class Veikals { \+id : String \+nosaukums : String}' RelācijasLietotajs "1" \-- "\*" Edienkarte ' Vienam lietotājam var būt vairākas ēdienkartes, bet katra ēdienkarte pieder tieši vienam lietotājamEdienkarte "1" \-- "\*" Edienreize ' Vienā ēdienkartē var būt vairākas ēdienreizes, bet katra ēdienreize pieder konkrētajai ēdienkarteiEdienreize "\*" \-- "\*" Recepte ' Vienā ēdienreizē var izmantot vairākas receptes un viena recepte var parādīties vairākās ēdienreizēsRecepte "\*" \-- "\*" Produkts ' Vienā receptē var izmantot vairākus produktus un viens produkts var parādīties vairākās receptēs Edienkarte "1" \-- "1" Uzturvertiba ' Katrai ēdienkartei ir sava uzturvērtībaRecepte "1" \-- "1" Uzturvertiba ' Katrai receptei ir sava uzturvērtībaVeikals "\*" \-- "\*" Produkts' Viens produkts var būt pieejams vairākos veikalos un vienā veikalā ir vairāki produkti@enduml |
-| :---- |
+@startuml
+skinparam linetype ortho
+
+class Lietotajs {
+  +id : String
+  +epasts : String
+  +parolesHash : String
+  +augums : Float
+  +svars : Float
+  +vecums : Int
+  +dzivesVietasValsts : String
+  +edienkartesMerkis : String
+}
+
+class Edienkarte {
+  +id : String
+  +datums : Date
+  +kopejasKalorijas : Int
+}
+
+class Edienreize {
+  +id : String
+  +nosaukums : String
+  +kalorijuSkaits : Int
+}
+
+class Recepte {
+  +id : String
+  +nosaukums : String
+  +recepte : String
+  +bildesUrl : String
+}
+
+class Produkts {
+  +id : String
+  +nosaukums : String
+  +svarsGrami: Float
+  +kalorijasGrama : Float
+  +cena :  Float
+}
+
+class Uzturvertiba {
+  +kalorijas : Int
+  +proteins : Float
+  +tauki : Float
+  +oglhidrati : Float
+  +skiedrvielas : Float
+  +cukurs : Float
+}
+
+class Veikals {
+ +id : String
+ +nosaukums : String
+}
+
+' Relācijas
+Lietotajs "1" -- "*" Edienkarte
+Edienkarte "1" -- "*" Edienreize
+Edienreize "*" -- "*" Recepte
+Recepte "*" -- "*" Produkts
+Edienkarte "1" -- "1" Uzturvertiba
+Recepte "1" -- "1" Uzturvertiba
+Veikals "*" -- "*" Produkts
+
+@enduml
 
 4. **Tehnoloģiju steks**  
 5. **Programmatūras apraksts**
