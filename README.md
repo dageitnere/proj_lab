@@ -1,7 +1,7 @@
 **Ievads**
 
-Diētas optimizācijas problēma ir viena no klasiskākajiem lineārās programmēšanas piemēriem, kas pirmo reizi formulēts 20\. Gadsimta vidū ar mērķi atrast lētako risinājumu uzturam, kas vienlaikus spētu nodrošināt cilvēkam nepieciešamo uzturvielu daudzumu. Sākotnējais uzdevums tika izstrādāts ASV armijas vajadzībām (https://pmc.ncbi.nlm.nih.gov/articles/PMC6021504/\#abstract1), taču vēlāk šis mdelis ieguva plašāku pielietojumu dažados uztura plānošanas un sabiedrības veselības kontekstos. Līdz ar tehnoloģiju attīstību un lineārās programmēšanas rīku pieejamību, diētas problēmas risināšana kļuvusi efektīvāka (https://www.nature.com/articles/ejcn201556), un ar tās palīdzību iespējams ieviest papildus ierobežojumus, piemēram, ekoloģiskās ilgtspējības aspektus, uztura dažādības pieejamību vai sabiedrības ēšanas paradumus.  
-Šobrīd diētas optimizācijas problēma ir aktuāla ne tikai individuāla uztura sabalansēšanā, bet arī plašākā kontekstā, piemēram, pārtikas palīdzības atbalsta programmās, ilgstpējīgas pārtikas politikas izstrādē vai valsts uztura vadlīnijās. Pētījumi rāda, ka uztura modeļus bieži ir grūti izveidot tā, lai tie vienlaikus būtu gan uzturvērtīgi, gan izmaksu ziņā efektīvi, gan videi draudzīgi, tāpēc lineārās programmēšanas pieejas kļūst par nozīmīgu instrumentu optimāliem risinājumiem. (https://www.slideshare.net/slideshow/the-diet-problem/32900458)
+Diētas optimizācijas problēma ir viena no klasiskākajiem lineārās programmēšanas piemēriem, kas pirmo reizi formulēts 20\. Gadsimta vidū ar mērķi atrast lētako risinājumu uzturam, kas vienlaikus spētu nodrošināt cilvēkam nepieciešamo uzturvielu daudzumu. Sākotnējais uzdevums tika izstrādāts ASV armijas vajadzībām (https://pmc.ncbi.nlm.nih.gov/articles/PMC6021504/\#abstract1), taču vēlāk šis mdelis ieguva plašāku pielietojumu dažados uztura plānošanas un sabiedrības veselības kontekstos. Līdz ar tehnoloģiju attīstību un lineārās programmēšanas rīku pieejamību, diētas problēmas risināšana kļuvusi efektīvāka (https://www.nature.com/articles/ejcn201556).  
+Šobrīd diētas optimizācijas problēma ir aktuāla ne tikai individuāla uztura sabalansēšanā, bet arī plašākā kontekstā, piemēram, pārtikas palīdzības atbalsta programmās, ilgstpējīgas pārtikas politikas izstrādē vai valsts uztura vadlīnijās. Pētījumi rāda, ka uztura modeļus bieži ir grūti izveidot tā, lai tie vienlaikus būtu gan uzturvērtīgi, gan izmaksu ziņā efektīvi, tāpēc lineārās programmēšanas pieejas kļūst par nozīmīgu instrumentu optimāliem risinājumiem. (https://www.slideshare.net/slideshow/the-diet-problem/32900458)
 
 1. **Problēmas nostādne**
 
@@ -9,9 +9,9 @@ Ikdienā cilvēkam nepieciešams uzturs, kas nodrošina visas organismam nepieci
 
 2. **Darbs un novērtēšanas mērķis**
 
-Darba mērķis ir izveidot tādu lineārās programmēšanas modelis, kas atrisinātu iepriekš minēto diētas problēmu, lai spētu noskaidrot tā praktisko pielietojumu uztura plānošanā. Modeļa izstrāde un tā rezultāti ļaus analizēt, kā dažādi modeļa ierobežojumi, piemēram, izmaksas vai uzturvielu daudzumi, ietekmēs gala risinājumu.
+Darba mērķis ir izveidot tādu lineārās programmēšanas modeli tīmekļa vietnes veidā, kas atrisinātu iepriekš minēto diētas problēmu, lai spētu noskaidrot tā praktisko pielietojumu uztura plānošanā. Modeļa izstrāde un tā rezultāti ļaus analizēt, kā dažādi modeļa ierobežojumi, piemēram, izmaksas vai uzturvielu daudzumi, ietekmēs gala risinājumu.
 
-Novērtēšanas mērķis ir salīdzināt iegūtos rezultātus ar teorētiskajiem un izvērtēt, cik efektīvi optimizācijas pieeja spēj nodrošināt sabalansētu, izmaksu ziņā izdevīgu un praktiski pielietojamu uztura risinājumu.
+Novērtēšanas mērķis ir... ( pagaidu versija: salīdzināt iegūtos rezultātus ar teorētiskajiem un izvērtēt, cik efektīvi optimizācijas pieeja spēj nodrošināt sabalansētu, izmaksu ziņā izdevīgu un praktiski pielietojamu uztura risinājumu).
 
 **Līdzīgo risinājumu pārskats**
 
