@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env
+.env.*
+
+# IDE files
+.idea/
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Byte-compiled / optimized / DLL files
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Logs
+*.log
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Supabase keys or other credentials
+*.key
+*.pem
