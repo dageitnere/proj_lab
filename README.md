@@ -1,19 +1,22 @@
-**Ievads**
+## Ievads
+
 
 Diētas optimizācijas problēma ir viena no klasiskākajiem lineārās programmēšanas piemēriem, kas pirmo reizi formulēts 20\. Gadsimta vidū ar mērķi atrast lētako risinājumu uzturam, kas vienlaikus spētu nodrošināt cilvēkam nepieciešamo uzturvielu daudzumu. Sākotnējais uzdevums tika izstrādāts ASV armijas vajadzībām (https://pmc.ncbi.nlm.nih.gov/articles/PMC6021504/\#abstract1), taču vēlāk šis mdelis ieguva plašāku pielietojumu dažados uztura plānošanas un sabiedrības veselības kontekstos. Līdz ar tehnoloģiju attīstību un lineārās programmēšanas rīku pieejamību, diētas problēmas risināšana kļuvusi efektīvāka (https://www.nature.com/articles/ejcn201556), un ar tās palīdzību iespējams ieviest papildus ierobežojumus, piemēram, ekoloģiskās ilgtspējības aspektus, uztura dažādības pieejamību vai sabiedrības ēšanas paradumus.  
 Šobrīd diētas optimizācijas problēma ir aktuāla ne tikai individuāla uztura sabalansēšanā, bet arī plašākā kontekstā, piemēram, pārtikas palīdzības atbalsta programmās, ilgstpējīgas pārtikas politikas izstrādē vai valsts uztura vadlīnijās. Pētījumi rāda, ka uztura modeļus bieži ir grūti izveidot tā, lai tie vienlaikus būtu gan uzturvērtīgi, gan izmaksu ziņā efektīvi, gan videi draudzīgi, tāpēc lineārās programmēšanas pieejas kļūst par nozīmīgu instrumentu optimāliem risinājumiem. (https://www.slideshare.net/slideshow/the-diet-problem/32900458)
 
-1. **Problēmas nostādne**
+## Problēmas nostādne
+
 
 Ikdienā cilvēkam nepieciešams uzturs, kas nodrošina visas organismam nepieciešamās uzturvielas, taču bieži šāda uztura nodrošināšanu ierobežo gan pārtikas pieejamība, gan pārtikas cenas, gan uztura ieradumi. Bez sistemātiskas pieejas ir sarežģīti sasniegt tādu produktu komibnāciju ēdienreizei, kas vienlaikus atbilstu visiem kritērijiem. Tādēļ nepieciešams matemātisks modelis, kas spēj efektīvi optimizēt ēdienreizes sastāvu, ievērojot gan uzturvielu ierobežojumus, gan naudas patēriņu.
 
-2. **Darbs un novērtēšanas mērķis**
+## Darbs un novērtēšanas mērķis
+
 
 Darba mērķis ir izveidot tādu lineārās programmēšanas modelis, kas atrisinātu iepriekš minēto diētas problēmu, lai spētu noskaidrot tā praktisko pielietojumu uztura plānošanā. Modeļa izstrāde un tā rezultāti ļaus analizēt, kā dažādi modeļa ierobežojumi, piemēram, izmaksas vai uzturvielu daudzumi, ietekmēs gala risinājumu.
 
 Novērtēšanas mērķis ir salīdzināt iegūtos rezultātus ar teorētiskajiem un izvērtēt, cik efektīvi optimizācijas pieeja spēj nodrošināt sabalansētu, izmaksu ziņā izdevīgu un praktiski pielietojamu uztura risinājumu.
 
-**Līdzīgo risinājumu pārskats**
+## Līdzīgo risinājumu pārskats
 
 Lai salīdzinātu līdzīgos risinājumus sabalansētu ēdienkaršu plānošanā, tika noteikti vienoti vērtēšanas kritēriji: 
 
@@ -53,8 +56,10 @@ Lai salīdzinātu līdzīgos risinājumus sabalansētu ēdienkaršu plānošanā
       3. Lietotājs vēlas automātiski pasūtīt produktu grozu no veikala, jo tā var ietaupīt laiku;  
       4. Lietotājs vēlas saglabāt iecienītākos ēdienus vai receptes, jo tas paātrina nākotnes ēdienkaršu veidošanu;  
       5. Lietotājs vēlas ģenerēt nedēļas vai mēneša pārskatus par lietotāja uztura paradumiem, jo tas palīdz lietotājam sekot līdzi savam progresam un veselības mērķiem.  
-2. **Algoritms**  
-3. **Konceptu modelis**
+
+## Algoritms
+
+## Konceptu modelis
 
 ![UML Diagram](https://i.ibb.co/Rk2Rzv3J/asd.png)
 
@@ -126,12 +131,74 @@ Veikals "*" -- "*" Produkts
 @enduml
 ```
 
-4. **Tehnoloģiju steks**  
-5. **Programmatūras apraksts**
+## Tehnoloģiju steks
 
-**Novērtējums**
 
-1. **Novērtēšanas plāns**  
-2. **Novērtēšanas rezultāti**
+### Frontend
 
-**Secinājumi**
+
+*   **React + Tailwind CSS** – nodrošina modernu, reaģējošu un interaktīvu lietotāja saskarni (piemērots sarežģītākām un dinamiskām funkcijām).
+
+    **VAI**
+*   **Jinja2 + Tailwind CSS** – vienkāršāks, statisks risinājums, ko var paplašināt ar **HTMX**, lai pievienotu daļēju dinamiku bez pilnas JavaScript infrastruktūras.
+        
+
+### Backend
+
+*   **FastAPI** – ātrs Python tīmekļa ietvars, kas nodrošina REST API izveidi ar automātisku dokumentāciju.
+    
+*   **PuLP** vai **OR-Tools (Google)** – izmanto optimizācijas algoritmu realizācijai.
+    
+
+### Datu bāze
+
+
+*   **PostgreSQL** – relāciju datu bāzes pārvaldības sistēma ar augstu veiktspēju un paplašināmību.
+    
+*   **SQLAlchemy ORM** – Python ORM rīks datu modeļu definēšanai un manipulācijai.
+* **Papildu risinājums:**
+    
+    *   **Supabase** – mākoņbāzēta PostgreSQL platforma ar iebūvētu API un autentifikācijas iespējām.
+        
+
+### Datu apstrāde
+
+
+*   **Pandas** – datu matriču manipulācijai un analīzei.
+    
+*   **NumPy** – skaitliskai analīzei un matemātiskām operācijām.
+    
+*   **API integrācija** – datu saņemšana un apstrāde caur FastAPI backend.
+    
+
+### Datu vizualizācija
+
+
+*   **React komponentes** – datu attēlošanai frontend vidē.
+    
+    **VAI**
+*   **Plotly** – interaktīvu grafiku ģenerēšanai, īpaši, ja tiek izmantota Jinja2 frontenda struktūra.
+    
+
+### Operētājsistēma
+
+
+*   **Linux (Ubuntu)** – galvenā izvietošanas vide.
+    
+
+### Servera infrastruktūra
+
+
+*   **Microsoft Azure** – galvenā hostinga platforma (nodrošināta ar RTU finansējumu).
+    
+    **VAI**
+*   **Virtuālā mašīna (VM)** – alternatīva izvietošanas vide ar Ubuntu serveri.
+
+## Programmatūras apraksts
+
+## Novērtējums
+
+### 1. **Novērtēšanas plāns**  
+### 2. **Novērtēšanas rezultāti**
+
+## Secinājumi
