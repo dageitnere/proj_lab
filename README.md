@@ -61,7 +61,7 @@ Lai salīdzinātu līdzīgos risinājumus sabalansētu ēdienkaršu plānošanā
 
 ## Konceptu modelis
 
-![UML Diagram](https://i.ibb.co/Rk2Rzv3J/asd.png)
+![UML Diagram](https://i.ibb.co/ZzR31nhp/image.png)
 
 ```plantuml
 skinparam linetype ortho
@@ -75,12 +75,12 @@ class Lietotajs {
   +vecums : Int
   +dzivesVietasValsts : String
   +edienkartesMerkis : String
+  +produktiKoNegirbEst: List
 }
 
 class Edienkarte {
   +id : String
   +datums : Date
-  +kopejasKalorijas : Int
 }
 
 class Edienreize {
@@ -129,7 +129,7 @@ Recepte "*" -- "*" Produkts
 ' Vienā receptē var izmantot vairākus produktus un viens produkts var parādīties vairākās receptēs
 Edienkarte "1" -- "1" Uzturvertiba
 ' Katrai ēdienkartei ir sava uzturvērtība
-Recepte "1" -- "1" Uzturvertiba
+Produkts "1" -- "1" Uzturvertiba
 ' Katrai receptei ir sava uzturvērtība
 Veikals "*" -- "*" Produkts
 ' Viens produkts var būt pieejams vairākos veikalos un vienā veikalā ir vairāki produkti
