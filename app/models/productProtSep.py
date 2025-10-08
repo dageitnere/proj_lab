@@ -3,19 +3,19 @@ from app.database import Base
 
 
 class ProductProtSep(Base):
-    __tablename__ = "ProductsProtSep"
+    __tablename__ = "productsProtSep"
 
-    ID = Column(BigInteger, primary_key=True)
-    Produkts = Column(String)
-    kcal = Column(Float)
-    Tauki = Column(Float)
-    Piesat_Tauki = Column("Piesat. Tauki", Float)
-    Oglh = Column("Oglh.", Float)
-    Cukuri = Column(Float)
-    Olb_v = Column("Olb.v", Float, nullable=True)
-    Piena_olb_v = Column("Piena olb.v", Float)
-    Dzivnieku_olb_v = Column("Dzīvnieku olb.v", Float)
-    Augu_olb_v = Column("Augu olb.v", Float)
-    Sals = Column(Float)
-    Cena_1kg = Column("Cena 1kg", Float)
-    Cena_100g = Column("Cena 100g", Float)
+    id = Column(BigInteger, primary_key=True, index=True)
+    produkts = Column(String, nullable=True)
+    kcal = Column(BigInteger, nullable=True)
+    tauki = Column(Float, nullable=True)
+    piesatTauki = Column(Float, nullable=True)
+    oglh = Column(Float, nullable=True)
+    cukuri = Column(Float, nullable=True)
+    olbv = Column(Float, nullable=True)
+    pienaOlbv = Column(Float, nullable=True)
+    dzivOlbv = Column(Float, nullable=True)
+    auguOlbv = Column(Float, nullable=True)
+    sals = Column(BigInteger, nullable=True)
+    cena1kg = Column(Float, nullable=True)
+    cena100g = Column(Float, nullable=True)

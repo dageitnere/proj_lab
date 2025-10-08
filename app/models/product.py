@@ -2,16 +2,16 @@ from sqlalchemy import Column, BigInteger, String, Float
 from app.database import Base
 
 class Product(Base):
-    __tablename__ = "Products"
+    __tablename__ = "products"
 
-    ID = Column(BigInteger, primary_key=True, index=True)
-    Produkts = Column(String, nullable=True)
+    id = Column(BigInteger, primary_key=True, index=True)
+    produkts = Column(String, nullable=True)
     kcal = Column(BigInteger, nullable=True)
-    Tauki = Column(Float, nullable=True)
-    Piesat_Tauki = Column("Piesat. Tauki", Float, nullable=True)
-    Oglh = Column("Oglh.", Float, nullable=True)
-    Cukuri = Column(Float, nullable=True)
-    Olb_v = Column("Olb.v", Float, nullable=True)
-    Sals = Column(BigInteger, nullable=True)
-    Cena_1kg = Column("Cena 1kg", Float, nullable=True)
-    Cena_100g = Column("Cena 100g", Float, nullable=True)
+    tauki = Column(Float, nullable=True)
+    piesatTauki = Column(Float, nullable=True)
+    oglh = Column(Float, nullable=True)
+    cukuri = Column(Float, nullable=True)
+    olbv = Column(Float, nullable=True)
+    sals = Column(BigInteger, nullable=True)
+    cena1kg = Column(Float, nullable=True)
+    cena100g = Column(Float, nullable=True)
