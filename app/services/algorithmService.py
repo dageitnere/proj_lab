@@ -1,6 +1,6 @@
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
-from app.models.product import Product
+from app.models.productProtSep import ProductProtSep
 
 def normalize(s: str):
     return s.strip().lower()
@@ -18,7 +18,7 @@ def generate_diet_plan(
     restrictions: list[dict] = None
 ):
     # 1. Fetch products
-    products = db.query(Product).all()
+    products = db.query(ProductProtSep).all()
     if not products:
         return {"error": "No products found in database."}
 
@@ -34,21 +34,37 @@ def generate_diet_plan(
     # 4. Objective: minimize total cost
     problem += lpSum([x[p.ID] * p.Cena_100g / 100 for p in products])
 
+    # --- Protein category breakdown ---
+    animal_target = 0.4 * proteinTarget
+    dairy_target = 0.3 * proteinTarget
+    plant_target = 0.3 * proteinTarget
+
     # 5. Nutritional constraints
-    problem += lpSum([x[p.ID] * p.kcal / 100 for p in products]) >= kcalTarget, "caloriesMin"
-    problem += lpSum([x[p.ID] * p.kcal / 100 for p in products]) <= kcalTarget * 1.5, "caloriesMax"
-    problem += lpSum([x[p.ID] * p.Olb_v / 100 for p in products]) >= proteinTarget, "proteinMin"
-    problem += lpSum([x[p.ID] * p.Olb_v / 100 for p in products]) <= proteinTarget * 1.8, "proteinMax"
-    problem += lpSum([x[p.ID] * p.Tauki / 100 for p in products]) >= fatTarget * 0.5, "fatMin"
-    problem += lpSum([x[p.ID] * p.Tauki / 100 for p in products]) <= fatTarget, "fatMax"
-    problem += lpSum([x[p.ID] * p.Oglh / 100 for p in products]) >= carbsTarget * 0.5, "carbsMin"
-    problem += lpSum([x[p.ID] * p.Oglh / 100 for p in products]) <= carbsTarget, "carbsMax"
+    problem += lpSum([x[p.ID] * p.kcal / 100 for p in products]) >= kcalTarget * 0.9, "caloriesMin"
+    problem += lpSum([x[p.ID] * p.kcal / 100 for p in products]) <= kcalTarget * 1.3, "caloriesMax"
+
+    problem += lpSum([x[p.ID] * p.Olb_v / 100 for p in products]) >= proteinTarget * 0.9, "proteinMin"
+    problem += lpSum([x[p.ID] * p.Olb_v / 100 for p in products]) <= proteinTarget * 1.6, "proteinMax"
+
+    problem += lpSum([x[p.ID] * (p.Dzivnieku_olb_v or 0) / 100 for p in products]) >= animal_target * 0.7, "animalProtMin"
+    problem += lpSum([x[p.ID] * (p.Dzivnieku_olb_v or 0) / 100 for p in products]) <= animal_target * 1.1, "animalProtMax"
+
+    problem += lpSum([x[p.ID] * (p.Piena_olb_v or 0) / 100 for p in products]) >= dairy_target * 0.7, "dairyProtMin"
+    problem += lpSum([x[p.ID] * (p.Piena_olb_v or 0) / 100 for p in products]) <= dairy_target * 1.1, "dairyProtMax"
+
+    problem += lpSum([x[p.ID] * (p.Augu_olb_v or 0) / 100 for p in products]) >= plant_target * 0.7, "plantProtMin"
+    problem += lpSum([x[p.ID] * (p.Augu_olb_v or 0) / 100 for p in products]) <= plant_target * 1.1, "plantProtMax"
+
+    problem += lpSum([x[p.ID] * p.Tauki / 100 for p in products]) >= fatTarget * 0.6, "fatMin"
+    problem += lpSum([x[p.ID] * p.Tauki / 100 for p in products]) <= fatTarget * 1.1, "fatMax"
+    problem += lpSum([x[p.ID] * p.Oglh / 100 for p in products]) >= carbsTarget * 0.6, "carbsMin"
+    problem += lpSum([x[p.ID] * p.Oglh / 100 for p in products]) <= carbsTarget * 1.1, "carbsMax"
     problem += lpSum([x[p.ID] * p.Cukuri / 100 for p in products]) >= sugarTarget * 0.6, "sugarsMin"
-    problem += lpSum([x[p.ID] * p.Cukuri / 100 for p in products]) <= sugarTarget, "sugarsMax"
+    problem += lpSum([x[p.ID] * p.Cukuri / 100 for p in products]) <= sugarTarget * 1.1, "sugarsMax"
     problem += lpSum([x[p.ID] * p.Piesat_Tauki / 100 for p in products]) >= satFatTarget * 0.6, "saturatedFatMin"
-    problem += lpSum([x[p.ID] * p.Piesat_Tauki / 100 for p in products]) <= satFatTarget, "saturatedFatMax"
+    problem += lpSum([x[p.ID] * p.Piesat_Tauki / 100 for p in products]) <= satFatTarget * 1.1, "saturatedFatMax"
     problem += lpSum([x[p.ID] * p.Sals / 100 for p in products]) >= saltTarget * 0.6, "saltMin"
-    problem += lpSum([x[p.ID] * p.Sals / 100 for p in products]) <= saltTarget, "saltMax"
+    problem += lpSum([x[p.ID] * p.Sals / 100 for p in products]) <= saltTarget * 1.1, "saltMax"
 
 
     # Big-M constraint: link x and y
