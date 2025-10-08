@@ -38,3 +38,5 @@ htmlcov/
 # Supabase keys or other credentials
 *.key
 *.pem
+
+test.http
