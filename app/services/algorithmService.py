@@ -6,21 +6,42 @@ def normalize(s: str):
     return s.strip().lower()
 
 
-def generate_diet_plan(
-    db: Session,
-    kcalTarget: float,
-    proteinTarget: float,
-    fatTarget: float,
-    satFatTarget: float,
-    carbsTarget: float,
-    sugarTarget: float,
-    saltTarget: float,
-    restrictions: list[dict] = None
-):
+def generate_diet_plan(db: Session, request):
+
+    # Unpack directly from request object
+    kcalTarget = request.kcal
+    proteinTarget = request.protein
+    fatTarget = request.fat
+    satFatTarget = request.satFat
+    carbsTarget = request.carbs
+    sugarTarget = request.sugars
+    saltTarget = request.salt
+    vegan = request.vegan
+    vegetarian = request.vegetarian
+    dairyFree = request.dairyFree
+    restrictions = request.restrictions
+
+
+    if vegan and not dairyFree:
+        return {"error": "Vegan diets are always dairy-free — please set dairyFree=True."}
+
     # 1. Fetch products
     products = db.query(ProductProtSep).all()
+
     if not products:
         return {"error": "No products found in database."}
+
+    # 1.1 Filter based on user preferences
+    if vegan:
+        products = [p for p in products if p.vegan]
+    elif vegetarian:
+        products = [p for p in products if p.vegetarian or p.vegan]
+
+    if dairyFree:
+        products = [p for p in products if p.dairyFree]
+
+    if not products:
+        return {"error": "No products match dietary preferences."}
 
     # 2. Create PuLP problem
     problem = LpProblem("Balanced_Diet", LpMinimize)
@@ -43,17 +64,24 @@ def generate_diet_plan(
     problem += lpSum([x[p.id] * p.kcal / 100 for p in products]) >= kcalTarget * 0.9, "caloriesMin"
     problem += lpSum([x[p.id] * p.kcal / 100 for p in products]) <= kcalTarget * 1.3, "caloriesMax"
 
-    problem += lpSum([x[p.id] * p.olbv / 100 for p in products]) >= proteinTarget * 0.9, "proteinMin"
-    problem += lpSum([x[p.id] * p.olbv / 100 for p in products]) <= proteinTarget * 1.6, "proteinMax"
+    problem += lpSum([x[p.id] * p.olbv / 100 for p in products]) >= proteinTarget * 0.9
+    problem += lpSum([x[p.id] * p.olbv / 100 for p in products]) <= proteinTarget * 1.6
 
-    problem += lpSum([x[p.id] * (p.dzivOlbv or 0) / 100 for p in products]) >= animal_target * 0.7, "animalProtMin"
-    problem += lpSum([x[p.id] * (p.dzivOlbv or 0) / 100 for p in products]) <= animal_target * 1.1, "animalProtMax"
+    # Protein source constraints (conditional)
+    if not vegan and not vegetarian:
+        # Omnivore
+        problem += lpSum([x[p.id] * (p.dzivOlbv or 0) / 100 for p in products]) >= animal_target * 0.7
+        problem += lpSum([x[p.id] * (p.dzivOlbv or 0) / 100 for p in products]) <= animal_target * 1.1
 
-    problem += lpSum([x[p.id] * (p.pienaOlbv or 0) / 100 for p in products]) >= dairy_target * 0.7, "dairyProtMin"
-    problem += lpSum([x[p.id] * (p.pienaOlbv or 0) / 100 for p in products]) <= dairy_target * 1.1, "dairyProtMax"
+    if not vegan and not dairyFree:
+        # Dairy allowed
+        problem += lpSum([x[p.id] * (p.pienaOlbv or 0) / 100 for p in products]) >= dairy_target * 0.7
+        problem += lpSum([x[p.id] * (p.pienaOlbv or 0) / 100 for p in products]) <= dairy_target * 1.1
 
-    problem += lpSum([x[p.id] * (p.auguOlbv or 0) / 100 for p in products]) >= plant_target * 0.7, "plantProtMin"
-    problem += lpSum([x[p.id] * (p.auguOlbv or 0) / 100 for p in products]) <= plant_target * 1.1, "plantProtMax"
+    # Always include plant protein constraints (everyone can eat plants)
+    problem += lpSum([x[p.id] * (p.auguOlbv or 0) / 100 for p in products]) >= plant_target * 0.7
+    problem += lpSum([x[p.id] * (p.auguOlbv or 0) / 100 for p in products]) <= plant_target * 1.1
+
 
     problem += lpSum([x[p.id] * p.tauki / 100 for p in products]) >= fatTarget * 0.6, "fatMin"
     problem += lpSum([x[p.id] * p.tauki / 100 for p in products]) <= fatTarget * 1.1, "fatMax"

@@ -8,15 +8,5 @@ router = APIRouter()
 
 @router.post("/menu/generate")
 def generate_menu(request: DietRequest, db: Session = Depends(get_db)):
-    result = generate_diet_plan(
-        db,
-        request.kcal,
-        request.protein,
-        request.fat,
-        request.satFat,
-        request.carbs,
-        request.sugars,
-        request.salt,
-        request.restrictions
-    )
-    return result
+    # just pass the whole request to service
+    return generate_diet_plan(db, request)

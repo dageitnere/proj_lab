@@ -8,4 +8,7 @@ class DietRequest(BaseModel):
     carbs: float
     sugars: float
     salt: float
+    vegan: bool = False
+    vegetarian: bool = False
+    dairyFree: bool = False
     restrictions: list[dict] = []

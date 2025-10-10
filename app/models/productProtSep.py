@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, Float
+from sqlalchemy import Column, BigInteger, String, Float, Boolean
 from app.database import Base
 
 
@@ -19,3 +19,6 @@ class ProductProtSep(Base):
     sals = Column(BigInteger, nullable=True)
     cena1kg = Column(Float, nullable=True)
     cena100g = Column(Float, nullable=True)
+    vegan = Column(Boolean, nullable=True)
+    vegetarian = Column(Boolean, nullable=True)
+    dairyFree = Column(Boolean, nullable=True)
