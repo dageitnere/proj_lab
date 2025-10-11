@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <title>Lietotāja Produkti</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #eee;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .meta {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #555;
+        }
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 14px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <a class="back" href="/">← Atpakaļ</a>
+    <h1>Lietotāja Produktu Saraksts</h1>
+    <div class="meta">
+        Lietotāja UUID: {{ request.path_params.user_uuid }}
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Produkts</th>
+                <th>Kcal</th>
+                <th>Tauki</th>
+                <th>Piesāt. tauki</th>
+                <th>Oglhidrāti</th>
+                <th>Cukuri</th>
+                <th>Olbaltumvielas</th>
+                <th>Piena olb.v.</th>
+                <th>Dzīv. olb.v.</th>
+                <th>Augu olb.v.</th>
+                <th>Sāls</th>
+                <th>Cena (1kg)</th>
+                <th>Cena (100g)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if products %}
+                {% for p in products %}
+                <tr>
+                    <td>{{ p.id }}</td>
+                    <td>{{ p.produkts }}</td>
+                    <td>{{ p.kcal }}</td>
+                    <td>{{ p.tauki }}</td>
+                    <td>{{ p.piesatTauki }}</td>
+                    <td>{{ p.oglh }}</td>
+                    <td>{{ p.cukuri }}</td>
+                    <td>{{ p.olbv }}</td>
+                    <td>{{ p.pienaOlbv }}</td>
+                    <td>{{ p.dzivOlbv }}</td>
+                    <td>{{ p.auguOlbv }}</td>
+                    <td>{{ p.sals }}</td>
+                    <td>{{ p.cena1kg }}</td>
+                    <td>{{ p.cena100g }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="14" style="text-align:center; color:#999;">Nav atrastu produktu šim lietotājam.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</body>
+</html>
