@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.productProtSep import ProductProtSep
+from app.models.productsProtSep import ProductProtSep
 
 
 def getAllProducts(db: Session):

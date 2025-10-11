@@ -1,6 +1,6 @@
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
-from app.models.productProtSep import ProductProtSep
+from app.models.productsProtSep import ProductProtSep
 
 def normalize(s: str):
     return s.strip().lower()
