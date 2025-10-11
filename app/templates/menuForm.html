@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Generate Menu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      max-width: 1400px; /* Increased for 8 columns */
+    }
+    .container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+    .main-content {
+      flex: 1;
+      min-width: 300px;
+    }
+    .products-table {
+      flex: 0 0 600px; /* Increased width for 8 columns */
+      min-width: 300px;
+    }
+    form {
+      display: grid;
+      gap: 10px;
+    }
+    label { font-weight: bold; }
+    input[type="number"] { width: 150px; }
+    .restriction {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 5px;
+      position: relative;
+    }
+    button {
+      padding: 6px 12px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background-color: #4287f5;
+      color: white;
+      font-weight: bold;
+    }
+    button:hover { background-color: #2f6ad9; }
+    .product-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      max-height: 150px;
+      overflow-y: auto;
+      width: 100%;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      margin-top: 2px;
+      display: none;
+    }
+    .suggestions div {
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+    .suggestions div:hover { background-color: #f0f0f0; }
+    .warning {
+      color: red;
+      font-size: 0.9em;
+    }
+    #resultTable, #productsTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    #resultTable th, #resultTable td, #productsTable th, #productsTable td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+    }
+    #resultTable th, #productsTable th {
+      background-color: #f2f2f2;
+    }
+    #resultTable {
+      display: none;
+    }
+    #productsTable td {
+      width: 12.5%; /* Equal width for eight columns */
+    }
+    #summary {
+      margin-top: 15px;
+    }
+    #summary p { margin: 4px 0; }
+    .error-box {
+      background-color: #fee;
+      border: 2px solid #f44;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      display: none;
+    }
+    .error-box.show {
+      display: block;
+    }
+    .error-box h3 {
+      color: #c00;
+      margin: 0 0 10px 0;
+      font-size: 1.1em;
+    }
+    .error-box ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    .error-box li {
+      color: #d00;
+      margin: 5px 0;
+    }
+    .error-box button {
+      background-color: #f44;
+      margin-top: 10px;
+    }
+    .error-box button:hover {
+      background-color: #c00;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main-content">
+      <h1>Generate Diet Menu</h1>
+
+      <div id="errorBox" class="error-box">
+        <h3>❌ Validation Error</h3>
+        <p id="errorMessage"></p>
+        <ul id="errorList"></ul>
+        <button type="button" onclick="document.getElementById('errorBox').classList.remove('show')">Close</button>
+      </div>
+
+      <form id="dietForm">
+        <label>Kcal Target: <input type="number" name="kcal" step="1" required></label>
+        <label>Protein (g): <input type="number" name="protein" step="0.1" required></label>
+        <label>Fat (g): <input type="number" name="fat" step="0.1" required></label>
+        <label>Sat Fat (g): <input type="number" name="satFat" step="0.1" required></label>
+        <label>Carbs (g): <input type="number" name="carbs" step="0.1" required></label>
+        <label>Sugars (g): <input type="number" name="sugars" step="0.1" required></label>
+        <label>Salt (mg): <input type="number" name="salt" step="0.1" required></label>
+
+        <div>
+          <label><input type="checkbox" name="vegan"> Vegan</label>
+          <label><input type="checkbox" name="vegetarian"> Vegetarian</label>
+          <label><input type="checkbox" name="dairyFree"> Dairy Free</label>
+        </div>
+
+        <h3>Restrictions</h3>
+        <div id="restrictions"></div>
+        <button type="button" id="addRestriction">+ Add Restriction</button>
+
+        <button type="submit">Generate Menu</button>
+      </form>
+
+      <h3>Result</h3>
+      <div id="summary"></div>
+      <table id="resultTable">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Grams</th>
+            <th>Kcal</th>
+            <th>Cost (€)</th>
+            <th>Fat (g)</th>
+            <th>Carbs (g)</th>
+            <th>Protein (g)</th>
+            <th>Sugar (g)</th>
+            <th>Sat. Fat (g)</th>
+            <th>Salt (mg)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="products-table">
+      <h3>All Products</h3>
+      <table id="productsTable">
+        <thead>
+          <tr>
+            <th>Product Name</th>
+            <th>Product Name</th>
+            <th>Product Name</th>
+            <th>Product Name</th>
+            <th>Product Name</th>
+            <th>Product Name</th>
+            <th>Product Name</th>
+            <th>Product Name</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let productNames = [];
+
+    async function loadProductNames() {
+      try {
+        const res = await fetch("/products/productsNames");
+        const data = await res.json();
+        productNames = data.products || [];
+        console.log("Loaded product names:", productNames); // Debug log
+        renderProductsTable(); // Populate the products table
+      } catch (err) {
+        console.error("Failed to load product names:", err);
+        const tbody = document.getElementById("productsTable").querySelector("tbody");
+        tbody.innerHTML = '<tr><td colspan="8">Error loading products</td></tr>';
+      }
+    }
+
+    function renderProductsTable() {
+      const tbody = document.getElementById("productsTable").querySelector("tbody");
+      tbody.innerHTML = ""; // Clear existing content
+      if (productNames.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8">No products available</td></tr>';
+        return;
+      }
+
+      // Calculate number of rows needed (ceiling of productNames.length / 8)
+      const numColumns = 8;
+      const numRows = Math.ceil(productNames.length / numColumns);
+
+      // Create rows
+      for (let row = 0; row < numRows; row++) {
+        const tr = document.createElement("tr");
+        // Add cells for each column
+        for (let col = 0; col < numColumns; col++) {
+          // Calculate index: column-major order (row + col * numRows)
+          const index = row + col * numRows;
+          const name = productNames[index] || ""; // Empty string for out-of-bounds
+          const td = document.createElement("td");
+          td.textContent = name;
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    loadProductNames();
+
+    document.getElementById("addRestriction").addEventListener("click", () => {
+      const container = document.createElement("div");
+      container.className = "restriction";
+
+      container.innerHTML = `
+        <select name="type">
+          <option value="exclude">Exclude</option>
+          <option value="max_weight">Max. weight</option>
+          <option value="min_weight">Min. weight</option>
+        </select>
+        <div class="product-input-wrapper">
+          <input type="text" name="product" placeholder="Product name" required autocomplete="off" />
+          <div class="suggestions"></div>
+        </div>
+        <input type="number" name="value" placeholder="Value (g)" step="0.1" style="display:none;" />
+        <span class="warning"></span>
+        <button type="button" onclick="this.parentElement.remove()">✖</button>
+      `;
+
+      const typeSelect = container.querySelector('[name="type"]');
+      const valueInput = container.querySelector('[name="value"]');
+      const productInput = container.querySelector('[name="product"]');
+      const suggestionsDiv = container.querySelector('.suggestions');
+      const warning = container.querySelector('.warning');
+
+      typeSelect.addEventListener("change", () => {
+        valueInput.style.display = typeSelect.value === "exclude" ? "none" : "inline-block";
+        if (typeSelect.value === "exclude") valueInput.value = "";
+      });
+
+      // Show suggestions on focus or click
+      productInput.addEventListener("focus", () => showSuggestions(productInput, suggestionsDiv));
+      productInput.addEventListener("click", () => showSuggestions(productInput, suggestionsDiv));
+
+      // Filter suggestions as user types
+      productInput.addEventListener("input", () => {
+        warning.textContent = ""; // Clear warnings
+        showSuggestions(productInput, suggestionsDiv);
+      });
+
+      // Hide suggestions on blur, but allow time for clicking
+      productInput.addEventListener("blur", () => {
+        setTimeout(() => {
+          suggestionsDiv.innerHTML = "";
+          suggestionsDiv.style.display = "none";
+        }, 200);
+      });
+
+      // Function to show and filter suggestions
+      function showSuggestions(input, suggestionsDiv) {
+        const query = input.value.trim().toLowerCase();
+        suggestionsDiv.innerHTML = "";
+
+        // Filter products based on query
+        const matches = query
+          ? productNames.filter((p) => p.toLowerCase().includes(query))
+          : productNames; // Show all if query is empty
+
+        // Limit to 10 suggestions for performance
+        matches.slice(0, 10).forEach((name) => {
+          const div = document.createElement("div");
+          div.textContent = name;
+          div.addEventListener("click", () => {
+            input.value = name;
+            suggestionsDiv.innerHTML = "";
+            suggestionsDiv.style.display = "none";
+            warning.textContent = "";
+          });
+          // Prevent blur when clicking a suggestion
+          div.addEventListener("mousedown", (e) => e.preventDefault());
+          suggestionsDiv.appendChild(div);
+        });
+
+        // Show suggestions only if there are matches
+        suggestionsDiv.style.display = matches.length > 0 ? "block" : "none";
+      }
+
+      document.getElementById("restrictions").appendChild(container);
+    });
+
+    document.getElementById("dietForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+
+      // Clear all previous warnings
+      document.querySelectorAll(".restriction .warning").forEach(w => w.textContent = "");
+
+      const restrictionElements = Array.from(document.querySelectorAll(".restriction"));
+
+      const restrictions = restrictionElements.map(r => {
+        const type = r.querySelector('[name="type"]').value;
+        const product = r.querySelector('[name="product"]').value.trim();
+        const value = r.querySelector('[name="value"]').value;
+
+        const restriction = { type, product };
+        if (type !== "exclude" && value) {
+          restriction.value = parseFloat(value);
+        }
+        return restriction;
+      });
+
+      const body = {
+        kcal: parseFloat(formData.get("kcal")),
+        protein: parseFloat(formData.get("protein")),
+        fat: parseFloat(formData.get("fat")),
+        satFat: parseFloat(formData.get("satFat")),
+        carbs: parseFloat(formData.get("carbs")),
+        sugars: parseFloat(formData.get("sugars")),
+        salt: parseFloat(formData.get("salt")),
+        vegan: formData.has("vegan"),
+        vegetarian: formData.has("vegetarian"),
+        dairyFree: formData.has("dairyFree"),
+        restrictions: restrictions
+      };
+
+      const res = await fetch("/menu/generateMenu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      const result = await res.json();
+
+      // Handle backend validation errors
+      if (result.error) {
+        const errorBox = document.getElementById('errorBox');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorList = document.getElementById('errorList');
+
+        if (result.invalid_products) {
+          errorMessage.textContent = 'The following products were not found in the database:';
+          errorList.innerHTML = '';
+          result.invalid_products.forEach(product => {
+            const li = document.createElement('li');
+            li.textContent = product;
+            errorList.appendChild(li);
+          });
+
+          // Highlight invalid products in the UI
+          restrictionElements.forEach(r => {
+            const product = r.querySelector('[name="product"]').value.trim();
+            const warning = r.querySelector('.warning');
+            if (result.invalid_products.includes(product)) {
+              warning.textContent = "⚠ Not in database!";
+            }
+          });
+        } else {
+          // Other errors (like dietary preferences mismatch)
+          errorMessage.textContent = result.error;
+          errorList.innerHTML = '';
+        }
+
+        errorBox.classList.add('show');
+        errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      // Clear error box if submission is successful
+      document.getElementById('errorBox').classList.remove('show');
+
+      renderResult(result);
+    });
+
+    function renderResult(result) {
+      const summaryDiv = document.getElementById("summary");
+      const table = document.getElementById("resultTable");
+      const tbody = table.querySelector("tbody");
+
+      if (!result || !result.plan) {
+        summaryDiv.innerHTML = `<p style="color:red;">No results found or an error occurred.</p>`;
+        table.style.display = "none";
+        return;
+      }
+
+      summaryDiv.innerHTML = `
+        <h4>Menu Summary</h4>
+        <p><strong>Status:</strong> ${result.status}</p>
+        <p>
+          <strong>Total Kcal:</strong> ${result.totalKcal.toFixed(1)} |
+          <strong>Total Cost:</strong> €${result.totalCost.toFixed(2)} |
+          <strong>Total Protein:</strong> ${result.totalProtein.toFixed(1)}g |
+          <strong>Total Fat:</strong> ${result.totalFat.toFixed(1)}g |
+          <strong>Total Carbs:</strong> ${result.totalCarbs.toFixed(1)}g
+        </p>
+      `;
+
+      tbody.innerHTML = "";
+      result.plan.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.product}</td>
+          <td>${item.grams.toFixed(1)}</td>
+          <td>${item.kcal.toFixed(1)}</td>
+          <td>${item.cost.toFixed(2)}</td>
+          <td>${item.fat.toFixed(1)}</td>
+          <td>${item.carbs.toFixed(1)}</td>
+          <td>${item.protein.toFixed(1)}</td>
+          <td>${item.sugar.toFixed(1)}</td>
+          <td>${item.sat_fat.toFixed(1)}</td>
+          <td>${item.salt.toFixed(1)}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      table.style.display = "table";
+    }
+  </script>
+</body>
+</html>

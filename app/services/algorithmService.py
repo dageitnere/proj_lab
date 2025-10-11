@@ -43,6 +43,24 @@ def generate_diet_plan(db: Session, request):
     if not products:
         return {"error": "No products match dietary preferences."}
 
+    # 1.2 Validate restrictions BEFORE creating the optimization problem
+    if restrictions:
+        # Create a set of normalized product names for fast lookup
+        valid_product_names = {normalize(str(p.produkts)) for p in products}
+        invalid_products = []
+
+        for r in restrictions:
+            r_product = normalize(r.get("product", ""))
+            if r_product and r_product not in valid_product_names:
+                invalid_products.append(r.get("product", ""))
+
+        if invalid_products:
+            return {
+                "error": "Invalid products in restrictions",
+                "invalid_products": invalid_products,
+                "message": f"The following products were not found in the database: {', '.join(invalid_products)}"
+            }
+
     # 2. Create PuLP problem
     problem = LpProblem("Balanced_Diet", LpMinimize)
 
@@ -105,7 +123,7 @@ def generate_diet_plan(db: Session, request):
     # Require at least 15 different products
     problem += lpSum([y[p.id] for p in products]) >= 15, "Min_15_Products"
 
-    # 7. Apply custom restrictions
+    # 7. Apply custom restrictions (we already validated these exist)
     if restrictions:
         for r in restrictions:
             r_type = r.get("type")
@@ -116,12 +134,12 @@ def generate_diet_plan(db: Session, request):
                 name = normalize(str(p.produkts))
                 if name == r_product:
                     if r_type == "max_weight" and r_value is not None:
-                        problem += x[p.id] <= r_value, f"Limit_{p.produkts}"
+                        problem += x[p.id] <= r_value, f"Limit_{p.id}"
                     elif r_type == "min_weight" and r_value is not None:
-                        problem += x[p.id] >= r_value, f"Min_{p.produkts}"
+                        problem += x[p.id] >= r_value, f"Min_{p.id}"
                     elif r_type == "exclude":
-                        problem += x[p.id] == 0, f"Exclude_{p.produkts}"
-                        problem += y[p.id] == 0
+                        problem += x[p.id] == 0, f"Exclude_{p.id}"
+                        problem += y[p.id] == 0, f"Exclude_y_{p.id}"
 
     # 8. Solve problem
     problem.solve()

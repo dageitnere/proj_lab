@@ -1,12 +1,21 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services.algorithmService import generate_diet_plan
 from app.schemas.dietRequest import DietRequest
 
-router = APIRouter()
+templates = Jinja2Templates(directory="app/templates")
 
-@router.post("/menu/generate")
-def generate_menu(request: DietRequest, db: Session = Depends(get_db)):
+generateMenu = APIRouter()
+showMenuForm = APIRouter()
+
+@generateMenu.post("/generateMenu", response_class=JSONResponse)
+def generate_Menu(request: DietRequest, db: Session = Depends(get_db)):
     # just pass the whole request to service
     return generate_diet_plan(db, request)
+
+@showMenuForm.get("/form", response_class=HTMLResponse)
+def show_Menu_Form(request: Request):
+    return templates.TemplateResponse("menuForm.html", {"request": request})
