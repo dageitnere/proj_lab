@@ -19,12 +19,15 @@
             <tr>
                 <th>ID</th>
                 <th>Produkts</th>
-                <th>kcal</th>
+                <th>Kcal</th>
                 <th>Tauki</th>
                 <th>Piesat. Tauki</th>
                 <th>Oglh.</th>
                 <th>Cukuri</th>
                 <th>Olb.v</th>
+                <th>Piena Olb.v</th>
+                <th>Dziv Olb.v</th>
+                <th>Augu Olb.v</th>
                 <th>Sals</th>
                 <th>Cena 1kg</th>
                 <th>Cena 100g</th>
@@ -33,17 +36,20 @@
         <tbody>
             {% for p in products %}
             <tr>
-                <td>{{ p.ID }}</td>
-                <td>{{ p.Produkts }}</td>
+                <td>{{ p.id }}</td>
+                <td>{{ p.produkts }}</td>
                 <td>{{ p.kcal }}</td>
-                <td>{{ p.Tauki }}</td>
-                <td>{{ p.Piesat_Tauki }}</td>
-                <td>{{ p.Oglh }}</td>
-                <td>{{ p.Cukuri }}</td>
-                <td>{{ p.Olb_v }}</td>
-                <td>{{ p.Sals }}</td>
-                <td>{{ p.Cena_1kg }}</td>
-                <td>{{ p.Cena_100g }}</td>
+                <td>{{ p.tauki }}</td>
+                <td>{{ p.piesatTauki }}</td>
+                <td>{{ p.oglh }}</td>
+                <td>{{ p.cukuri }}</td>
+                <td>{{ p.olbv }}</td>
+                <td>{{ p.pienaOlbv }}</td>
+                <td>{{ p.dzivOlbv }}</td>
+                <td>{{ p.auguOlbv }}</td>
+                <td>{{ p.sals }}</td>
+                <td>{{ p.cena1kg }}</td>
+                <td>{{ p.cena100g }}</td>
             </tr>
             {% endfor %}
         </tbody>
