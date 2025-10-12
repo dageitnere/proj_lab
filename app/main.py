@@ -17,6 +17,7 @@ app.include_router(algorithmRouter.showMenuForm, prefix="/menu", tags=["menu"])
 app.include_router(mainPageRouter.showMainPage, tags=["main_page"])
 app.include_router(userProductRouter.showUserProducts, prefix="/userProducts", tags=["userProducts"])
 app.include_router(userProductRouter.userProductsNames, prefix="/userProducts", tags=["userProducts"])
+app.include_router(userProductRouter.addUserProduct, prefix="/userProducts", tags=["userProducts"])
 
 @app.get("/")
 def root():
