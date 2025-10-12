@@ -2,10 +2,49 @@ from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
 from app.models.productsProtSep import ProductProtSep
 from app.schemas.responses.generateMenuResponse import GenerateMenuResponse, ProductItem
+from app.services.userProductService import getAllUserProducts
 
 def normalize(s: str):
     return s.strip().lower()
 
+def make_product_key(p):
+    # Key based on all distinguishing attributes
+    # Convert floats to rounded values for stable comparison
+    return (
+        p.id,
+        round(p.kcal or 0, 2),
+        round(p.tauki or 0, 2),
+        round(p.piesatTauki or 0, 2),
+        round(p.oglh or 0, 2),
+        round(p.cukuri or 0, 2),
+        round(p.olbv or 0, 2),
+        round(p.sals or 0, 2),
+        round(p.cena1kg or 0, 2),
+        getattr(p, "vegan", False),
+        getattr(p, "vegetarian", False),
+        getattr(p, "dairyFree", False),
+    )
+
+def combine_products(db: Session, request):
+    # 1. Fetch all general products
+    all_products = db.query(ProductProtSep).all()
+
+    # 2. Fetch user's products
+    user_products = getAllUserProducts(db, request.userUuid)
+
+    for p in user_products:
+        p.id = f"user_{p.id}"
+
+    # 3. Combine and deduplicate by full product data (not just name)
+    combined_dict = {}
+    for p in all_products + user_products:
+        key = make_product_key(p)
+        if key not in combined_dict:
+            combined_dict[key] = p
+
+    # 4. Result list
+    products = list(combined_dict.values())
+    return products
 
 def generate_diet_plan(db: Session, request):
 
@@ -26,8 +65,7 @@ def generate_diet_plan(db: Session, request):
     if vegan and not dairyFree:
         return {"error": "Vegan diets are always dairy-free — please set dairyFree=True."}
 
-    # 1. Fetch products
-    products = db.query(ProductProtSep).all()
+    products = combine_products(db, request)
 
     if not products:
         return {"error": "No products found in database."}
@@ -132,7 +170,7 @@ def generate_diet_plan(db: Session, request):
             r_value = r.get("value", None)
 
             for p in products:
-                name = normalize(str(p.produkts))
+                name = p.id
                 if name == r_product:
                     if r_type == "max_weight" and r_value is not None:
                         problem += x[p.id] <= r_value, f"Limit_{p.id}"
