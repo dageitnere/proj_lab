@@ -1,6 +1,7 @@
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
 from app.models.productsProtSep import ProductProtSep
+from app.schemas.responses.generateMenuResponse import GenerateMenuResponse, ProductItem
 
 def normalize(s: str):
     return s.strip().lower()
@@ -47,19 +48,19 @@ def generate_diet_plan(db: Session, request):
     if restrictions:
         # Create a set of normalized product names for fast lookup
         valid_product_names = {normalize(str(p.produkts)) for p in products}
-        invalid_products = []
+        invalidProducts = []
 
         for r in restrictions:
             r_product = normalize(r.get("product", ""))
             if r_product and r_product not in valid_product_names:
-                invalid_products.append(r.get("product", ""))
+                invalidProducts.append(r.get("product", ""))
 
-        if invalid_products:
-            return {
-                "error": "Invalid products in restrictions",
-                "invalid_products": invalid_products,
-                "message": f"The following products were not found in the database: {', '.join(invalid_products)}"
-            }
+        if invalidProducts:
+            return GenerateMenuResponse(
+                status="InvalidProducts",
+                invalidProducts=invalidProducts,
+                message=f"The following products were not found in the database: {', '.join(invalidProducts)}"
+            )
 
     # 2. Create PuLP problem
     problem = LpProblem("Balanced_Diet", LpMinimize)
@@ -144,42 +145,41 @@ def generate_diet_plan(db: Session, request):
     # 8. Solve problem
     problem.solve()
 
-    # 10. Handle result
     if LpStatus[problem.status] != "Optimal":
-        return {"status": LpStatus[problem.status], "message": "No optimal solution found."}
+        return GenerateMenuResponse(status=LpStatus[problem.status], message="No optimal solution found.", plan=[])
 
     result = []
     for p in products:
         grams = x[p.id].varValue
         if grams and grams > 0:
-            result.append({
-                "product": p.produkts,
-                "grams": round(grams, 1),
-                "kcal": round(p.kcal * grams / 100, 1),
-                "cost": round(p.cena100g * grams / 100, 2),
-                "fat": round(p.tauki * grams / 100, 1),
-                "carbs": round(p.oglh * grams / 100, 1),
-                "protein": round(p.olbv * grams / 100, 1),
-                "dairyProtein": round((p.pienaOlbv or 0) * grams / 100, 1),
-                "animalProtein": round((p.dzivOlbv or 0) * grams / 100, 1),
-                "plantProtein": round((p.auguOlbv or 0) * grams / 100, 1),
-                "sugar": round(p.cukuri * grams / 100, 1),
-                "sat_fat": round(p.piesatTauki * grams / 100, 1),
-                "salt": round(p.sals * grams / 100, 1)
-            })
+            result.append(ProductItem(
+                product=str(p.produkts),
+                grams=round(grams, 1),
+                kcal=round(p.kcal * grams / 100, 1),
+                cost=round(p.cena100g * grams / 100, 2),
+                fat=round(p.tauki * grams / 100, 1),
+                carbs=round(p.oglh * grams / 100, 1),
+                protein=round(p.olbv * grams / 100, 1),
+                dairyProtein=round((p.pienaOlbv or 0) * grams / 100, 1),
+                animalProtein=round((p.dzivOlbv or 0) * grams / 100, 1),
+                plantProtein=round((p.auguOlbv or 0) * grams / 100, 1),
+                sugar=round(p.cukuri * grams / 100, 1),
+                sat_fat=round(p.piesatTauki * grams / 100, 1),
+                salt=round(p.sals * grams / 100, 1)
+            ))
 
     totals = {
-        "totalKcal": round(sum(r["kcal"] for r in result), 1),
-        "totalCost": round(sum(r["cost"] for r in result), 2),
-        "totalFat": round(sum(r["fat"] for r in result), 1),
-        "totalCarbs": round(sum(r["carbs"] for r in result), 1),
-        "totalProtein": round(sum(r["protein"] for r in result), 1),
-        "totalDairyProtein": round(sum(r["dairyProtein"] for r in result), 1),
-        "totalAnimalProtein": round(sum(r["animalProtein"] for r in result), 1),
-        "totalPlantProtein": round(sum(r["plantProtein"] for r in result), 1),
-        "totalSugar": round(sum(r["sugar"] for r in result), 1),
-        "totalSatFat": round(sum(r["sat_fat"] for r in result), 1),
-        "totalSalt": round(sum(r["salt"] for r in result), 1)
+        "totalKcal": round(sum(r.kcal for r in result), 1),
+        "totalCost": round(sum(r.cost for r in result), 2),
+        "totalFat": round(sum(r.fat for r in result), 1),
+        "totalCarbs": round(sum(r.carbs for r in result), 1),
+        "totalProtein": round(sum(r.protein for r in result), 1),
+        "totalDairyProtein": round(sum(r.dairyProtein for r in result), 1),
+        "totalAnimalProtein": round(sum(r.animalProtein for r in result), 1),
+        "totalPlantProtein": round(sum(r.plantProtein for r in result), 1),
+        "totalSugar": round(sum(r.sugar for r in result), 1),
+        "totalSatFat": round(sum(r.sat_fat for r in result), 1),
+        "totalSalt": round(sum(r.salt for r in result), 1)
     }
 
-    return {"status": "Optimal", **totals, "plan": result}
+    return GenerateMenuResponse(status="Optimal", plan=result, **totals)
