@@ -1,8 +1,14 @@
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
 from app.models.productsProtSep import ProductProtSep
+from app.models.userMenu import UserMenu
+from app.schemas.requests.dietPlanSaveRequest import DietPlanSaveRequest
+from app.schemas.responses.dietPlanResponse import DietPlanListResponse, DietPlanResponse
 from app.schemas.responses.generateMenuResponse import GenerateMenuResponse, ProductItem
 from app.services.userProductService import getAllUserProducts
+from fastapi import HTTPException, status
+from typing import Optional
+from datetime import datetime
 
 def normalize(s: str):
     return s.strip().lower()
@@ -46,7 +52,7 @@ def combine_products(db: Session, request):
     products = list(combined_dict.values())
     return products
 
-def generate_diet_plan(db: Session, request):
+def generate_diet_menu(db: Session, request):
 
     # Unpack directly from request object
     kcalTarget = request.kcal
@@ -221,3 +227,104 @@ def generate_diet_plan(db: Session, request):
     }
 
     return GenerateMenuResponse(status="Optimal", plan=result, **totals)
+
+
+def save_user_diet_menu(db: Session, plan_data: DietPlanSaveRequest):
+    new_plan = UserMenu(
+        userUuid=plan_data.userUuid,
+        name=plan_data.name,  # <-- Save plan name
+        totalKcal=plan_data.totalKcal,
+        totalCost=plan_data.totalCost,
+        totalFat=plan_data.totalFat,
+        totalCarbs=plan_data.totalCarbs,
+        totalProtein=plan_data.totalProtein,
+        totalDairyProtein=plan_data.totalDairyProtein,
+        totalAnimalProtein=plan_data.totalAnimalProtein,
+        totalPlantProtein=plan_data.totalPlantProtein,
+        totalSugar=plan_data.totalSugar,
+        totalSatFat=plan_data.totalSatFat,
+        totalSalt=plan_data.totalSalt,
+        date=datetime.now(),
+        plan=[p.model_dump() for p in plan_data.plan]
+    )
+
+    existing = (
+        db.query(UserMenu)
+        .filter(UserMenu.userUuid == plan_data.userUuid)  # optional, check only this user's menus
+        .filter(UserMenu.name.ilike(plan_data.name.strip()))  # <-- strip the input string, not the column
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Menu '{plan_data.name}' already exists in your list - choose different name."
+        )
+
+    db.add(new_plan)
+    db.commit()
+    db.refresh(new_plan)
+    return "Diet plan saved successfully."
+
+
+def get_all_user_menus(db: Session, user_uuid: int) -> DietPlanListResponse:
+    """
+    Retrieve all diet plans for a given user.
+    """
+    plans = db.query(UserMenu).filter(UserMenu.userUuid == int(user_uuid)).all()
+
+    response: DietPlanListResponse = []
+    for plan in plans:
+        response.append(
+            DietPlanResponse(
+                id=str(plan.id),
+                userUuid=str(plan.userUuid),
+                name=str(plan.name),
+                totalKcal=plan.totalKcal,
+                totalCost=plan.totalCost,
+                totalFat=plan.totalFat,
+                totalCarbs=plan.totalCarbs,
+                totalProtein=plan.totalProtein,
+                totalDairyProtein=plan.totalDairyProtein,
+                totalAnimalProtein=plan.totalAnimalProtein,
+                totalPlantProtein=plan.totalPlantProtein,
+                totalSugar=plan.totalSugar,
+                totalSatFat=plan.totalSatFat,
+                totalSalt=plan.totalSalt,
+                date=plan.date,
+                plan=plan.plan  # JSON -> List[ProductItem]
+            )
+        )
+    if not response:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No diet plans found for this user."
+        )
+    return response
+
+
+def get_single_plan(db: Session, menuName: str) -> Optional[DietPlanResponse]:
+    plan = db.query(UserMenu).filter(UserMenu.name == menuName).first()
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No diet plan found with '{menuName}' name."
+        )
+    return DietPlanResponse(
+        id=str(plan.id),
+        userUuid=str(plan.userUuid),
+        name=plan.name,
+        totalKcal=plan.totalKcal,
+        totalCost=plan.totalCost,
+        totalFat=plan.totalFat,
+        totalCarbs=plan.totalCarbs,
+        totalProtein=plan.totalProtein,
+        totalDairyProtein=plan.totalDairyProtein,
+        totalAnimalProtein=plan.totalAnimalProtein,
+        totalPlantProtein=plan.totalPlantProtein,
+        totalSugar=plan.totalSugar,
+        totalSatFat=plan.totalSatFat,
+        totalSalt=plan.totalSalt,
+        date=plan.date,
+        plan=plan.plan
+
+    )
