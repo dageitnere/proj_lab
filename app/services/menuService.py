@@ -5,7 +5,7 @@ from app.models.userMenu import UserMenu
 from app.schemas.requests.dietPlanSaveRequest import DietPlanSaveRequest
 from app.schemas.responses.dietPlanResponse import DietPlanListResponse, DietPlanResponse
 from app.schemas.responses.generateMenuResponse import GenerateMenuResponse, ProductItem
-from app.services.userProductService import getAllUserProducts
+from app.services.userProductService import get_user_products
 from fastapi import HTTPException, status
 from typing import Optional
 from datetime import datetime
@@ -36,7 +36,7 @@ def combine_products(db: Session, request):
     all_products = db.query(ProductProtSep).all()
 
     # 2. Fetch user's products
-    user_products = getAllUserProducts(db, request.userUuid)
+    user_products = get_user_products(db, request.userUuid)
 
     for p in user_products:
         p.id = f"user_{p.id}"
@@ -229,7 +229,7 @@ def generate_diet_menu(db: Session, request):
     return GenerateMenuResponse(status="Optimal", plan=result, **totals)
 
 
-def save_user_diet_menu(db: Session, plan_data: DietPlanSaveRequest):
+def save_diet_menu(db: Session, plan_data: DietPlanSaveRequest):
     new_plan = UserMenu(
         userUuid=plan_data.userUuid,
         name=plan_data.name,  # <-- Save plan name
@@ -266,7 +266,7 @@ def save_user_diet_menu(db: Session, plan_data: DietPlanSaveRequest):
     return "Diet plan saved successfully."
 
 
-def get_all_user_menus(db: Session, user_uuid: int) -> DietPlanListResponse:
+def get_user_menus(db: Session, user_uuid: int) -> DietPlanListResponse:
     """
     Retrieve all diet plans for a given user.
     """
@@ -302,7 +302,7 @@ def get_all_user_menus(db: Session, user_uuid: int) -> DietPlanListResponse:
     return response
 
 
-def get_single_plan(db: Session, menuName: str) -> Optional[DietPlanResponse]:
+def get_single_menu(db: Session, menuName: str) -> Optional[DietPlanResponse]:
     plan = db.query(UserMenu).filter(UserMenu.name == menuName).first()
     if not plan:
         raise HTTPException(

@@ -8,11 +8,11 @@ def zero_if_none(value):
     return value if value is not None else 0
 
 
-def getAllUserProducts(db: Session, user_uuid: int):
+def get_user_products(db: Session, user_uuid: int):
     return db.query(UserProduct).filter(UserProduct.userUuid == user_uuid).order_by(UserProduct.id).all()
 
 
-def getUserProductsNames(db: Session, user_uuid: int):
+def get_user_products_names(db: Session, user_uuid: int):
     products = (
         db.query(UserProduct.produkts)
         .filter(UserProduct.userUuid == user_uuid)
@@ -22,11 +22,11 @@ def getUserProductsNames(db: Session, user_uuid: int):
     names = sorted([p[0] for p in products if p[0]])  # flatten tuples and remove None
     return {"products": names}
 
-def add_user_product(db: Session, user_uuid: int, product: AddUserProductRequest) -> UserProduct:
+def add_user_product(db: Session, product: AddUserProductRequest) -> UserProduct:
     # Check if product name already exists (case-insensitive)
     existing = (
         db.query(UserProduct)
-        .filter(UserProduct.userUuid == user_uuid)
+        .filter(UserProduct.userUuid == product.userUuid)
         .filter(UserProduct.produkts.ilike(product.produkts.strip()))
         .first()
     )
@@ -37,7 +37,7 @@ def add_user_product(db: Session, user_uuid: int, product: AddUserProductRequest
         )
 
     new_product = UserProduct(
-        userUuid=user_uuid,
+        userUuid=product.userUuid,
         produkts=product.produkts.strip(),
         kcal=zero_if_none(product.kcal),
         tauki=zero_if_none(product.tauki),

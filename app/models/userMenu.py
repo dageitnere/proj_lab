@@ -19,7 +19,7 @@ class UserMenu(Base):
     totalSugar = Column(Float, nullable=False)
     totalSatFat = Column(Float, nullable=False)
     totalSalt = Column(Float, nullable=False)
-    date = Column(DateTime(timezone=False), nullable=True)
+    date = Column(DateTime(timezone=False), nullable=False)
     plan = Column(JSON, nullable=False)
 
 
