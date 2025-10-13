@@ -26,6 +26,7 @@ def add_user_product(db: Session, user_uuid: int, product: AddUserProductRequest
     # Check if product name already exists (case-insensitive)
     existing = (
         db.query(UserProduct)
+        .filter(UserProduct.userUuid == user_uuid)
         .filter(UserProduct.produkts.ilike(product.produkts.strip()))
         .first()
     )
