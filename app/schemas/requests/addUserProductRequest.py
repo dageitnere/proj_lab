@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 class AddUserProductRequest(BaseModel):
+    userUuid: int
     produkts: str
     kcal: Optional[int] = None
     tauki: Optional[float] = None
