@@ -7,6 +7,7 @@ from app.services import userProductService
 from sqlalchemy.orm import Session
 from app.schemas.responses.userProductBaseResponse import UserProductsListResponse
 from app.schemas.responses.productsNamesResponse import ProductsNamesResponse
+from app.schemas.requests.deleteUserProductRequest import DeleteUserProductRequest
 
 userProduct = APIRouter()
 
@@ -29,10 +30,13 @@ def getUserProductsNames(userUuid: int, db: Session = Depends(get_db)):
     return userProductService.get_user_products_names(db, userUuid)
 
 @userProduct.post("/addUserProduct")
-def addUserProduct(product: AddUserProductRequest, db: Session = Depends(get_db)):
-    new_product = userProductService.add_user_product(db, product)
+def addUserProduct(request: AddUserProductRequest, db: Session = Depends(get_db)):
+    new_product = userProductService.add_user_product(db, request)
     return {
         "status": "success",
-        "product_id": new_product.id,
         "message": f"Product '{new_product.produkts}' added successfully for user {new_product.userUuid}."
     }
+
+@userProduct.delete("/deleteUserProduct")
+def deleteUserProduct(request: DeleteUserProductRequest, db: Session = Depends(get_db)):
+    return userProductService.delete_user_product(db, request)

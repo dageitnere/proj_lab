@@ -3,38 +3,39 @@ from sqlalchemy.orm import Session
 from app.models.userConsumedProducts import UserConsumedProduct
 from app.models.userProducts import UserProduct
 from app.models.productsProtSep import ProductProtSep
-from app.schemas.requests.userConsumedProductRequest import UserConsumedProductRequest
+from app.schemas.requests.addUserConsumedProductRequest import AddUserConsumedProductRequest
+from app.schemas.requests.deleteConsumedProductRequest import DeleteConsumedProductRequest
 from app.schemas.responses.userConsumedProductResponse import  UserConsumedProductResponse
 from app.schemas.responses.userConsumedProductResponse import  UserConsumedProductListResponse
 from sqlalchemy import and_
 from datetime import datetime, timedelta
 
-def add_consumed_product(db: Session, data: UserConsumedProductRequest):
+def add_consumed_product(db: Session, request: AddUserConsumedProductRequest):
     # Try user-specific product first
     product = (
         db.query(UserProduct)
-        .filter(UserProduct.userUuid == data.userUuid)
-        .filter(UserProduct.produkts.ilike(data.productName.strip()))
+        .filter(UserProduct.userUuid == request.userUuid)
+        .filter(UserProduct.produkts.ilike(request.productName.strip()))
         .first()
     )
     if not product:
         product = (
             db.query(ProductProtSep)
-            .filter(ProductProtSep.produkts.ilike(data.productName.strip()))
+            .filter(ProductProtSep.produkts.ilike(request.productName.strip()))
             .first()
         )
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Product '{data.productName}' not found."
+            detail=f"Product '{request.productName}' not found."
         )
 
-    factor = data.amount / 100.0
+    factor = request.amount / 100.0
 
     new_entry = UserConsumedProduct(
-        userUuid=data.userUuid,
-        productName=data.productName.strip(),
-        amount=data.amount,
+        userUuid=request.userUuid,
+        productName=request.productName.strip(),
+        amount=request.amount,
         kcal=product.kcal * factor,
         fat=product.tauki * factor,
         satFat=product.piesatTauki * factor,
@@ -53,7 +54,30 @@ def add_consumed_product(db: Session, data: UserConsumedProductRequest):
     db.commit()
     db.refresh(new_entry)
 
-    return f"Product '{data.productName}' entry added successfully."
+    return f"Product '{request.productName}' entry added successfully."
+
+def delete_consumed_product(db: Session, request: DeleteConsumedProductRequest):
+    """
+    Delete a single consumed product row by its ID for the given user.
+    """
+    product = (
+        db.query(UserConsumedProduct)
+        .filter(
+            UserConsumedProduct.id == request.productId,
+        )
+        .first()
+    )
+
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No consumed product found with ID {request.productId} for user."
+        )
+
+    db.delete(product)
+    db.commit()
+
+    return {"message": f"Product deleted successfully."}
 
 def _map_to_response(products) -> UserConsumedProductListResponse:
     """Helper: Convert ORM list -> Pydantic response list"""
@@ -77,20 +101,20 @@ def _map_to_response(products) -> UserConsumedProductListResponse:
         for p in products
     ]
 
-def get_all_consumed_products(db: Session, user_uuid: int) -> UserConsumedProductListResponse:
-    products = db.query(UserConsumedProduct).filter(UserConsumedProduct.userUuid == user_uuid).all()
+def get_all_consumed_products(db: Session, userUuid: int) -> UserConsumedProductListResponse:
+    products = db.query(UserConsumedProduct).filter(UserConsumedProduct.userUuid == userUuid).all()
     if not products:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No consumed products found.")
     return _map_to_response(products)
 
 
-def get_consumed_today(db: Session, user_uuid: int) -> UserConsumedProductListResponse:
+def get_consumed_today(db: Session, userUuid: int) -> UserConsumedProductListResponse:
     today = datetime.now().date()
     products = (
         db.query(UserConsumedProduct)
         .filter(
             and_(
-                UserConsumedProduct.userUuid == user_uuid,
+                UserConsumedProduct.userUuid == userUuid,
                 UserConsumedProduct.date >= datetime.combine(today, datetime.min.time()),
                 UserConsumedProduct.date <= datetime.combine(today, datetime.max.time())
             )
@@ -102,13 +126,13 @@ def get_consumed_today(db: Session, user_uuid: int) -> UserConsumedProductListRe
     return _map_to_response(products)
 
 
-def get_consumed_last_7_days(db: Session, user_uuid: int) -> UserConsumedProductListResponse:
+def get_consumed_last_7_days(db: Session, userUuid: int) -> UserConsumedProductListResponse:
     seven_days_ago = datetime.now() - timedelta(days=7)
     products = (
         db.query(UserConsumedProduct)
         .filter(
             and_(
-                UserConsumedProduct.userUuid == user_uuid,
+                UserConsumedProduct.userUuid == userUuid,
                 UserConsumedProduct.date >= seven_days_ago
             )
         )
@@ -119,13 +143,13 @@ def get_consumed_last_7_days(db: Session, user_uuid: int) -> UserConsumedProduct
     return _map_to_response(products)
 
 
-def get_consumed_last_30_days(db: Session, user_uuid: int) -> UserConsumedProductListResponse:
+def get_consumed_last_30_days(db: Session, userUuid: int) -> UserConsumedProductListResponse:
     thirty_days_ago = datetime.now() - timedelta(days=30)
     products = (
         db.query(UserConsumedProduct)
         .filter(
             and_(
-                UserConsumedProduct.userUuid == user_uuid,
+                UserConsumedProduct.userUuid == userUuid,
                 UserConsumedProduct.date >= thirty_days_ago
             )
         )
