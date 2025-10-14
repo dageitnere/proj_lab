@@ -2,7 +2,10 @@ from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
 from app.models.productsProtSep import ProductProtSep
 from app.models.userMenu import UserMenu
-from app.schemas.requests.dietPlanSaveRequest import DietPlanSaveRequest
+from app.schemas.requests.addDietPlanRequest import AddDietPlanRequest
+from app.schemas.requests.deleteUserMenuRequest import DeleteUserMenuRequest
+from app.schemas.requests.dietRequest import DietRequest
+from app.schemas.requests.getMenuRequest import GetMenuRequest
 from app.schemas.responses.dietPlanResponse import DietPlanListResponse, DietPlanResponse
 from app.schemas.responses.generateMenuResponse import GenerateMenuResponse, ProductItem
 from app.services.userProductService import get_user_products
@@ -31,7 +34,7 @@ def make_product_key(p):
         getattr(p, "dairyFree", False),
     )
 
-def combine_products(db: Session, request):
+def combine_products(db: Session, request: DietRequest):
     # 1. Fetch all general products
     all_products = db.query(ProductProtSep).all()
 
@@ -52,7 +55,7 @@ def combine_products(db: Session, request):
     products = list(combined_dict.values())
     return products
 
-def generate_diet_menu(db: Session, request):
+def generate_diet_menu(db: Session, request: DietRequest):
 
     # Unpack directly from request object
     kcalTarget = request.kcal
@@ -229,35 +232,35 @@ def generate_diet_menu(db: Session, request):
     return GenerateMenuResponse(status="Optimal", plan=result, **totals)
 
 
-def save_diet_menu(db: Session, plan_data: DietPlanSaveRequest):
+def save_diet_menu(db: Session, request: AddDietPlanRequest):
     new_plan = UserMenu(
-        userUuid=plan_data.userUuid,
-        name=plan_data.name,  # <-- Save plan name
-        totalKcal=plan_data.totalKcal,
-        totalCost=plan_data.totalCost,
-        totalFat=plan_data.totalFat,
-        totalCarbs=plan_data.totalCarbs,
-        totalProtein=plan_data.totalProtein,
-        totalDairyProtein=plan_data.totalDairyProtein,
-        totalAnimalProtein=plan_data.totalAnimalProtein,
-        totalPlantProtein=plan_data.totalPlantProtein,
-        totalSugar=plan_data.totalSugar,
-        totalSatFat=plan_data.totalSatFat,
-        totalSalt=plan_data.totalSalt,
+        userUuid=request.userUuid,
+        name=request.name,  # <-- Save plan name
+        totalKcal=request.totalKcal,
+        totalCost=request.totalCost,
+        totalFat=request.totalFat,
+        totalCarbs=request.totalCarbs,
+        totalProtein=request.totalProtein,
+        totalDairyProtein=request.totalDairyProtein,
+        totalAnimalProtein=request.totalAnimalProtein,
+        totalPlantProtein=request.totalPlantProtein,
+        totalSugar=request.totalSugar,
+        totalSatFat=request.totalSatFat,
+        totalSalt=request.totalSalt,
         date=datetime.now(),
-        plan=[p.model_dump() for p in plan_data.plan]
+        plan=[p.model_dump() for p in request.plan]
     )
 
     existing = (
         db.query(UserMenu)
-        .filter(UserMenu.userUuid == plan_data.userUuid)  # optional, check only this user's menus
-        .filter(UserMenu.name.ilike(plan_data.name.strip()))  # <-- strip the input string, not the column
+        .filter(UserMenu.userUuid == request.userUuid)  # optional, check only this user's menus
+        .filter(UserMenu.name.ilike(request.name.strip()))  # <-- strip the input string, not the column
         .first()
     )
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Menu '{plan_data.name}' already exists in your list - choose different name."
+            detail=f"Menu '{request.name}' already exists in your list - choose different name."
         )
 
     db.add(new_plan)
@@ -266,65 +269,89 @@ def save_diet_menu(db: Session, plan_data: DietPlanSaveRequest):
     return "Diet plan saved successfully."
 
 
-def get_user_menus(db: Session, user_uuid: int) -> DietPlanListResponse:
+def get_user_menus(db: Session, userUuid: int) -> DietPlanListResponse:
     """
-    Retrieve all diet plans for a given user.
+    Retrieve all diet menus for a given user.
     """
-    plans = db.query(UserMenu).filter(UserMenu.userUuid == int(user_uuid)).all()
+    menus = db.query(UserMenu).filter(UserMenu.userUuid == int(userUuid)).all()
 
     response: DietPlanListResponse = []
-    for plan in plans:
+    for menu in menus:
         response.append(
             DietPlanResponse(
-                id=str(plan.id),
-                userUuid=str(plan.userUuid),
-                name=str(plan.name),
-                totalKcal=plan.totalKcal,
-                totalCost=plan.totalCost,
-                totalFat=plan.totalFat,
-                totalCarbs=plan.totalCarbs,
-                totalProtein=plan.totalProtein,
-                totalDairyProtein=plan.totalDairyProtein,
-                totalAnimalProtein=plan.totalAnimalProtein,
-                totalPlantProtein=plan.totalPlantProtein,
-                totalSugar=plan.totalSugar,
-                totalSatFat=plan.totalSatFat,
-                totalSalt=plan.totalSalt,
-                date=plan.date,
-                plan=plan.plan  # JSON -> List[ProductItem]
+                id=str(menu.id),
+                userUuid=str(menu.userUuid),
+                name=str(menu.name),
+                totalKcal=menu.totalKcal,
+                totalCost=menu.totalCost,
+                totalFat=menu.totalFat,
+                totalCarbs=menu.totalCarbs,
+                totalProtein=menu.totalProtein,
+                totalDairyProtein=menu.totalDairyProtein,
+                totalAnimalProtein=menu.totalAnimalProtein,
+                totalPlantProtein=menu.totalPlantProtein,
+                totalSugar=menu.totalSugar,
+                totalSatFat=menu.totalSatFat,
+                totalSalt=menu.totalSalt,
+                date=menu.date,
+                plan=menu.plan  # JSON -> List[ProductItem]
             )
         )
     if not response:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No diet plans found for this user."
+            detail="No diet menus found for this user."
         )
     return response
 
 
-def get_single_menu(db: Session, menuName: str) -> Optional[DietPlanResponse]:
-    plan = db.query(UserMenu).filter(UserMenu.name == menuName).first()
-    if not plan:
+def get_single_menu(db: Session, request: GetMenuRequest) -> Optional[DietPlanResponse]:
+    menu = db.query(UserMenu).filter(UserMenu.name == request.menuName).filter(UserMenu.userUuid == request.userUuid).first()
+    if not menu:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No diet plan found with '{menuName}' name."
+            detail=f"No diet menu found with '{request.menuName}' name."
         )
     return DietPlanResponse(
-        id=str(plan.id),
-        userUuid=str(plan.userUuid),
-        name=plan.name,
-        totalKcal=plan.totalKcal,
-        totalCost=plan.totalCost,
-        totalFat=plan.totalFat,
-        totalCarbs=plan.totalCarbs,
-        totalProtein=plan.totalProtein,
-        totalDairyProtein=plan.totalDairyProtein,
-        totalAnimalProtein=plan.totalAnimalProtein,
-        totalPlantProtein=plan.totalPlantProtein,
-        totalSugar=plan.totalSugar,
-        totalSatFat=plan.totalSatFat,
-        totalSalt=plan.totalSalt,
-        date=plan.date,
-        plan=plan.plan
+        id=str(menu.id),
+        userUuid=str(menu.userUuid),
+        name=menu.name,
+        totalKcal=menu.totalKcal,
+        totalCost=menu.totalCost,
+        totalFat=menu.totalFat,
+        totalCarbs=menu.totalCarbs,
+        totalProtein=menu.totalProtein,
+        totalDairyProtein=menu.totalDairyProtein,
+        totalAnimalProtein=menu.totalAnimalProtein,
+        totalPlantProtein=menu.totalPlantProtein,
+        totalSugar=menu.totalSugar,
+        totalSatFat=menu.totalSatFat,
+        totalSalt=menu.totalSalt,
+        date=menu.date,
+        plan=menu.plan
 
     )
+
+def delete_user_menu(db: Session, request: DeleteUserMenuRequest):
+    """
+    Deletes a specific user menu by userUuid and menuName.
+    """
+    # Find the menu
+    menu = (
+        db.query(UserMenu)
+        .filter(UserMenu.userUuid == request.userUuid)
+        .filter(UserMenu.name.ilike(request.menuName.strip()))
+        .first()
+    )
+
+    if not menu:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No menu found with name '{request.menuName}' for this user."
+        )
+
+    # Delete the menu
+    db.delete(menu)
+    db.commit()
+
+    return {"message": f"Menu '{request.menuName}' deleted successfully."}

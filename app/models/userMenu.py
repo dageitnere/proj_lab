@@ -7,7 +7,7 @@ class UserMenu(Base):
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     userUuid = Column(BigInteger, ForeignKey("users.uuid"), nullable=False)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     totalKcal = Column(Float, nullable=False)
     totalCost = Column(Float, nullable=False)
     totalFat = Column(Float, nullable=False)

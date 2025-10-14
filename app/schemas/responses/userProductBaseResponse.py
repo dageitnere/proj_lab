@@ -3,21 +3,21 @@ from typing import List, Optional
 
 class UserProductBase(BaseModel):
     """Base representation of a user's product entry"""
-    id: Optional[int]
+    id: int
     userUuid: int
     produkts: str
-    kcal: Optional[float]
-    tauki: Optional[float]
-    piesatTauki: Optional[float]
-    oglh: Optional[float]
-    cukuri: Optional[float]
-    olbv: Optional[float]
-    pienaOlbv: Optional[float]
-    dzivOlbv: Optional[float]
-    auguOlbv: Optional[float]
-    sals: Optional[float]
-    cena1kg: Optional[float]
-    cena100g: Optional[float]
+    kcal: float
+    tauki: float
+    piesatTauki: float
+    oglh: float
+    cukuri: float
+    olbv: float
+    pienaOlbv: float
+    dzivOlbv: float
+    auguOlbv: float
+    sals: float
+    cena1kg: float
+    cena100g: float
 
 
 UserProductsListResponse = List[UserProductBase]
