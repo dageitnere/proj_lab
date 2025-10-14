@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.requests.deleteConsumedProductRequest import DeleteConsumedProductRequest
 from app.schemas.requests.addUserConsumedProductRequest import AddUserConsumedProductRequest
+from app.schemas.requests.getConsumedProductByDateRequest import GetConsumedProductByDateRequest
 from app.schemas.responses.userConsumedProductResponse import UserConsumedProductListResponse
-from app.services.consumedProductService import add_consumed_product, get_all_consumed_products, get_consumed_today, get_consumed_last_7_days, get_consumed_last_30_days, delete_consumed_product
-
+from app.services.consumedProductService import add_consumed_product, get_all_consumed_products, get_consumed_today, \
+    get_consumed_last_7_days, get_consumed_last_30_days, delete_consumed_product, get_consumed_by_date
 
 consumedProduct = APIRouter()
 
@@ -35,3 +36,7 @@ def getConsumedLast30Days(userUuid: int, db: Session = Depends(get_db)):
 @consumedProduct.delete("/deleteProduct")
 def deleteConsumedProduct(request: DeleteConsumedProductRequest, db: Session = Depends(get_db)):
     return delete_consumed_product(db, request)
+
+@consumedProduct.get("/byDate")
+def getConsumedByDate(request: GetConsumedProductByDateRequest, db: Session = Depends(get_db)):
+    return get_consumed_by_date(db, request)

@@ -5,6 +5,7 @@ from app.models.userProducts import UserProduct
 from app.models.productsProtSep import ProductProtSep
 from app.schemas.requests.addUserConsumedProductRequest import AddUserConsumedProductRequest
 from app.schemas.requests.deleteConsumedProductRequest import DeleteConsumedProductRequest
+from app.schemas.requests.getConsumedProductByDateRequest import GetConsumedProductByDateRequest
 from app.schemas.responses.userConsumedProductResponse import  UserConsumedProductResponse
 from app.schemas.responses.userConsumedProductResponse import  UserConsumedProductListResponse
 from sqlalchemy import and_
@@ -157,4 +158,28 @@ def get_consumed_last_30_days(db: Session, userUuid: int) -> UserConsumedProduct
     )
     if not products:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products consumed in the last 30 days.")
+    return _map_to_response(products)
+
+def get_consumed_by_date(db: Session, request: GetConsumedProductByDateRequest) -> UserConsumedProductListResponse:
+    start_of_day = datetime.combine(request.date, datetime.min.time())
+    end_of_day = datetime.combine(request.date, datetime.max.time())
+
+    products = (
+        db.query(UserConsumedProduct)
+        .filter(
+            and_(
+                UserConsumedProduct.userUuid == request.userUuid,
+                UserConsumedProduct.date >= start_of_day,
+                UserConsumedProduct.date <= end_of_day
+            )
+        )
+        .all()
+    )
+
+    if not products:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No products consumed on {request.date}."
+        )
+
     return _map_to_response(products)

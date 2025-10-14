@@ -4,6 +4,7 @@ from app.routers import menuRouter
 from app.routers import mainPageRouter
 from app.routers import userProductRouter
 from app.routers import consumedProductRouter
+from app.routers import statisticsRouter
 app = FastAPI(
     title="Diet Optimization API",
     description="Backend service"
@@ -15,6 +16,7 @@ app.include_router(menuRouter.menu, prefix ="/menu", tags=["menu"])
 app.include_router(mainPageRouter.mainPage, tags=["main_page"])
 app.include_router(userProductRouter.userProduct, prefix="/userProducts", tags=["userProducts"])
 app.include_router(consumedProductRouter.consumedProduct, prefix="/consumedProducts", tags=["consumedProducts"])
+app.include_router(statisticsRouter.statistics, prefix="/statistics", tags=["statistics"])
 
 @app.get("/")
 def root():
