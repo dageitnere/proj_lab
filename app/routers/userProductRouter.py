@@ -2,12 +2,14 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
 from app.database import get_db
+from app.schemas.requests.addUserProductByRimiUrlRequest import AddUserProductByRimiUrlRequest
 from app.schemas.requests.addUserProductRequest import AddUserProductRequest
 from app.services import userProductService
 from sqlalchemy.orm import Session
 from app.schemas.responses.userProductBaseResponse import UserProductsListResponse
 from app.schemas.responses.productsNamesResponse import ProductsNamesResponse
 from app.schemas.requests.deleteUserProductRequest import DeleteUserProductRequest
+from app.services.userProductService import add_user_product_by_rimi_url
 
 userProduct = APIRouter()
 
@@ -36,6 +38,10 @@ def addUserProduct(request: AddUserProductRequest, db: Session = Depends(get_db)
         "status": "success",
         "message": f"Product '{new_product.productName}' added successfully for user {new_product.userUuid}."
     }
+
+@userProduct.post("/addUserProductUrlRimi")
+def addUserProductByRimiUrl(request: AddUserProductByRimiUrlRequest, db: Session = Depends(get_db)):
+    return add_user_product_by_rimi_url(db, request)
 
 @userProduct.delete("/deleteUserProduct")
 def deleteUserProduct(request: DeleteUserProductRequest, db: Session = Depends(get_db)):
