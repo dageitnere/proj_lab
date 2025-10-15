@@ -1,5 +1,5 @@
 from pydantic import BaseModel
 
 class DeleteUserProductRequest(BaseModel):
-    produkts: str
+    productName: str
     userUuid: int

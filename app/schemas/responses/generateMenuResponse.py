@@ -3,18 +3,18 @@ from typing import List, Optional
 
 
 class ProductItem(BaseModel):
-    product: str
+    productName: str
     grams: float
     kcal: float
     cost: float
     fat: float
+    satFat: float
     carbs: float
     protein: float
     dairyProtein: float
     animalProtein: float
     plantProtein: float
-    sugar: float
-    sat_fat: float
+    sugars: float
     salt: float
 
 

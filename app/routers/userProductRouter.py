@@ -34,7 +34,7 @@ def addUserProduct(request: AddUserProductRequest, db: Session = Depends(get_db)
     new_product = userProductService.add_user_product(db, request)
     return {
         "status": "success",
-        "message": f"Product '{new_product.produkts}' added successfully for user {new_product.userUuid}."
+        "message": f"Product '{new_product.productName}' added successfully for user {new_product.userUuid}."
     }
 
 @userProduct.delete("/deleteUserProduct")
