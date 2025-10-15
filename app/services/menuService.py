@@ -22,13 +22,13 @@ def make_product_key(p):
     return (
         p.id,
         round(p.kcal or 0, 2),
-        round(p.tauki or 0, 2),
-        round(p.piesatTauki or 0, 2),
-        round(p.oglh or 0, 2),
-        round(p.cukuri or 0, 2),
-        round(p.olbv or 0, 2),
-        round(p.sals or 0, 2),
-        round(p.cena1kg or 0, 2),
+        round(p.fat or 0, 2),
+        round(p.satFat or 0, 2),
+        round(p.carbs or 0, 2),
+        round(p.sugars or 0, 2),
+        round(p.protein or 0, 2),
+        round(p.salt or 0, 2),
+        round(p.price1kg or 0, 2),
         getattr(p, "vegan", False),
         getattr(p, "vegetarian", False),
         getattr(p, "dairyFree", False),
@@ -94,7 +94,7 @@ def generate_diet_menu(db: Session, request: DietRequest):
     # 1.2 Validate restrictions BEFORE creating the optimization problem
     if restrictions:
         # Create a set of normalized product names for fast lookup
-        valid_product_names = {normalize(str(p.produkts)) for p in products}
+        valid_product_names = {normalize(str(p.productName)) for p in products}
         invalidProducts = []
 
         for r in restrictions:
@@ -119,7 +119,7 @@ def generate_diet_menu(db: Session, request: DietRequest):
     y = {p.id: LpVariable(f"y_{p.id}", cat="Binary") for p in products}
 
     # 4. Objective: minimize total cost
-    problem += lpSum([x[p.id] * p.cena100g / 100 for p in products])
+    problem += lpSum([x[p.id] * p.price100g / 100 for p in products])
 
     # Protein source targets
     animal_target = 0.4 * proteinTarget
@@ -130,35 +130,35 @@ def generate_diet_menu(db: Session, request: DietRequest):
     problem += lpSum([x[p.id] * p.kcal / 100 for p in products]) >= kcalTarget * 0.9, "caloriesMin"
     problem += lpSum([x[p.id] * p.kcal / 100 for p in products]) <= kcalTarget * 1.3, "caloriesMax"
 
-    problem += lpSum([x[p.id] * p.olbv / 100 for p in products]) >= proteinTarget * 0.9
-    problem += lpSum([x[p.id] * p.olbv / 100 for p in products]) <= proteinTarget * 1.6
+    problem += lpSum([x[p.id] * p.protein / 100 for p in products]) >= proteinTarget * 0.9
+    problem += lpSum([x[p.id] * p.protein / 100 for p in products]) <= proteinTarget * 1.6
 
     # Protein source constraints (conditional)
     if not vegan and not vegetarian:
         # Omnivore
-        problem += lpSum([x[p.id] * (p.dzivOlbv or 0) / 100 for p in products]) >= animal_target * 0.7
-        problem += lpSum([x[p.id] * (p.dzivOlbv or 0) / 100 for p in products]) <= animal_target * 1.1
+        problem += lpSum([x[p.id] * (p.animalProt or 0) / 100 for p in products]) >= animal_target * 0.7
+        problem += lpSum([x[p.id] * (p.animalProt or 0) / 100 for p in products]) <= animal_target * 1.1
 
     if not vegan and not dairyFree:
         # Dairy allowed
-        problem += lpSum([x[p.id] * (p.pienaOlbv or 0) / 100 for p in products]) >= dairy_target * 0.7
-        problem += lpSum([x[p.id] * (p.pienaOlbv or 0) / 100 for p in products]) <= dairy_target * 1.1
+        problem += lpSum([x[p.id] * (p.dairyProt or 0) / 100 for p in products]) >= dairy_target * 0.7
+        problem += lpSum([x[p.id] * (p.dairyProt or 0) / 100 for p in products]) <= dairy_target * 1.1
 
     # Always include plant protein constraints (everyone can eat plants)
-    problem += lpSum([x[p.id] * (p.auguOlbv or 0) / 100 for p in products]) >= plant_target * 0.7
-    problem += lpSum([x[p.id] * (p.auguOlbv or 0) / 100 for p in products]) <= plant_target * 1.1
+    problem += lpSum([x[p.id] * (p.plantProt or 0) / 100 for p in products]) >= plant_target * 0.7
+    problem += lpSum([x[p.id] * (p.plantProt or 0) / 100 for p in products]) <= plant_target * 1.1
 
 
-    problem += lpSum([x[p.id] * p.tauki / 100 for p in products]) >= fatTarget * 0.6, "fatMin"
-    problem += lpSum([x[p.id] * p.tauki / 100 for p in products]) <= fatTarget * 1.1, "fatMax"
-    problem += lpSum([x[p.id] * p.oglh / 100 for p in products]) >= carbsTarget * 0.6, "carbsMin"
-    problem += lpSum([x[p.id] * p.oglh / 100 for p in products]) <= carbsTarget * 1.1, "carbsMax"
-    problem += lpSum([x[p.id] * p.cukuri / 100 for p in products]) >= sugarTarget * 0.6, "sugarsMin"
-    problem += lpSum([x[p.id] * p.cukuri / 100 for p in products]) <= sugarTarget * 1.1, "sugarsMax"
-    problem += lpSum([x[p.id] * p.piesatTauki / 100 for p in products]) >= satFatTarget * 0.6, "saturatedFatMin"
-    problem += lpSum([x[p.id] * p.piesatTauki / 100 for p in products]) <= satFatTarget * 1.1, "saturatedFatMax"
-    problem += lpSum([x[p.id] * p.sals / 100 for p in products]) >= saltTarget * 0.6, "saltMin"
-    problem += lpSum([x[p.id] * p.sals / 100 for p in products]) <= saltTarget * 1.1, "saltMax"
+    problem += lpSum([x[p.id] * p.fat / 100 for p in products]) >= fatTarget * 0.6, "fatMin"
+    problem += lpSum([x[p.id] * p.fat / 100 for p in products]) <= fatTarget * 1.1, "fatMax"
+    problem += lpSum([x[p.id] * p.carbs / 100 for p in products]) >= carbsTarget * 0.6, "carbsMin"
+    problem += lpSum([x[p.id] * p.carbs / 100 for p in products]) <= carbsTarget * 1.1, "carbsMax"
+    problem += lpSum([x[p.id] * p.sugars / 100 for p in products]) >= sugarTarget * 0.6, "sugarsMin"
+    problem += lpSum([x[p.id] * p.sugars / 100 for p in products]) <= sugarTarget * 1.1, "sugarsMax"
+    problem += lpSum([x[p.id] * p.satFat / 100 for p in products]) >= satFatTarget * 0.6, "saturatedFatMin"
+    problem += lpSum([x[p.id] * p.satFat / 100 for p in products]) <= satFatTarget * 1.1, "saturatedFatMax"
+    problem += lpSum([x[p.id] * p.salt / 100 for p in products]) >= saltTarget * 0.6, "saltMin"
+    problem += lpSum([x[p.id] * p.salt / 100 for p in products]) <= saltTarget * 1.1, "saltMax"
 
 
     # Big-M constraint: link x and y
@@ -200,19 +200,19 @@ def generate_diet_menu(db: Session, request: DietRequest):
         grams = x[p.id].varValue
         if grams and grams > 0:
             result.append(ProductItem(
-                product=str(p.produkts),
+                productName=str(p.productName),
                 grams=round(grams, 1),
                 kcal=round(p.kcal * grams / 100, 1),
-                cost=round(p.cena100g * grams / 100, 2),
-                fat=round(p.tauki * grams / 100, 1),
-                carbs=round(p.oglh * grams / 100, 1),
-                protein=round(p.olbv * grams / 100, 1),
-                dairyProtein=round((p.pienaOlbv or 0) * grams / 100, 1),
-                animalProtein=round((p.dzivOlbv or 0) * grams / 100, 1),
-                plantProtein=round((p.auguOlbv or 0) * grams / 100, 1),
-                sugar=round(p.cukuri * grams / 100, 1),
-                sat_fat=round(p.piesatTauki * grams / 100, 1),
-                salt=round(p.sals * grams / 100, 1)
+                cost=round(p.price100g * grams / 100, 2),
+                fat=round(p.fat * grams / 100, 1),
+                carbs=round(p.carbs * grams / 100, 1),
+                protein=round(p.protein * grams / 100, 1),
+                dairyProtein=round((p.dairyProt or 0) * grams / 100, 1),
+                animalProtein=round((p.animalProt or 0) * grams / 100, 1),
+                plantProtein=round((p.plantProt or 0) * grams / 100, 1),
+                sugar=round(p.sugars * grams / 100, 1),
+                sat_fat=round(p.satFat * grams / 100, 1),
+                salt=round(p.salt * grams / 100, 1)
             ))
 
     totals = {

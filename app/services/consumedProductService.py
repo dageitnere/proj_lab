@@ -16,13 +16,13 @@ def add_consumed_product(db: Session, request: AddUserConsumedProductRequest):
     product = (
         db.query(UserProduct)
         .filter(UserProduct.userUuid == request.userUuid)
-        .filter(UserProduct.produkts.ilike(request.productName.strip()))
+        .filter(UserProduct.productName.ilike(request.productName.strip()))
         .first()
     )
     if not product:
         product = (
             db.query(ProductProtSep)
-            .filter(ProductProtSep.produkts.ilike(request.productName.strip()))
+            .filter(ProductProtSep.productName.ilike(request.productName.strip()))
             .first()
         )
     if not product:
@@ -38,16 +38,16 @@ def add_consumed_product(db: Session, request: AddUserConsumedProductRequest):
         productName=request.productName.strip(),
         amount=request.amount,
         kcal=product.kcal * factor,
-        fat=product.tauki * factor,
-        satFat=product.piesatTauki * factor,
-        carbs=product.oglh * factor,
-        sugar=product.cukuri * factor,
-        protein=product.olbv * factor,
-        dairyProtein=product.pienaOlbv * factor,
-        animalProtein=product.dzivOlbv * factor,
-        plantProtein=product.auguOlbv * factor,
-        salt=product.sals * factor,
-        cost=product.cena100g * factor,
+        fat=product.fat * factor,
+        satFat=product.satFat * factor,
+        carbs=product.carbs * factor,
+        sugar=product.sugars * factor,
+        protein=product.protein * factor,
+        dairyProtein=product.dairyProt * factor,
+        animalProtein=product.animalProt * factor,
+        plantProtein=product.plantProt * factor,
+        salt=product.salt * factor,
+        cost=product.price100g * factor,
         date=datetime.now()
     )
 

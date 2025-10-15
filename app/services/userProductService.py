@@ -15,7 +15,7 @@ def get_user_products(db: Session, userUuid: int):
 
 def get_user_products_names(db: Session, userUuid: int):
     products = (
-        db.query(UserProduct.produkts)
+        db.query(UserProduct.productName)
         .filter(UserProduct.userUuid == userUuid)
         .distinct()
         .all()
@@ -28,30 +28,30 @@ def add_user_product(db: Session, request: AddUserProductRequest) -> UserProduct
     existing = (
         db.query(UserProduct)
         .filter(UserProduct.userUuid == request.userUuid)
-        .filter(UserProduct.produkts.ilike(request.produkts.strip()))
+        .filter(UserProduct.productName.ilike(request.productName.strip()))
         .first()
     )
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Product '{request.produkts}' already exists in your list."
+            detail=f"Product '{request.productName}' already exists in your list."
         )
 
     new_product = UserProduct(
         userUuid=request.userUuid,
-        produkts=request.produkts.strip(),
+        productName=request.productName.strip(),
         kcal=zero_if_none(request.kcal),
-        tauki=zero_if_none(request.tauki),
-        piesatTauki=zero_if_none(request.piesatTauki),
-        oglh=zero_if_none(request.oglh),
-        cukuri=zero_if_none(request.cukuri),
-        olbv=zero_if_none(request.olbv),
-        pienaOlbv=zero_if_none(request.pienaOlbv),
-        dzivOlbv=zero_if_none(request.dzivOlbv),
-        auguOlbv=zero_if_none(request.auguOlbv),
-        sals=zero_if_none(request.sals),
-        cena1kg=zero_if_none(request.cena1kg),
-        cena100g=zero_if_none(request.cena100g),
+        fat=zero_if_none(request.fat),
+        satFat=zero_if_none(request.satFat),
+        carbs=zero_if_none(request.carbs),
+        sugars=zero_if_none(request.sugars),
+        protein=zero_if_none(request.protein),
+        dairyProt=zero_if_none(request.dairyProt),
+        animalProt=zero_if_none(request.animalProt),
+        plantProt=zero_if_none(request.plantProt),
+        salt=zero_if_none(request.salt),
+        price1kg=zero_if_none(request.price1kg),
+        price100g=zero_if_none(request.price100g),
         vegan=request.vegan or False,
         vegetarian=request.vegetarian or False,
         dairyFree=request.dairyFree or False
@@ -66,18 +66,18 @@ def delete_user_product(db: Session, request: DeleteUserProductRequest):
     product = (
         db.query(UserProduct)
         .filter(UserProduct.userUuid == request.userUuid)
-        .filter(UserProduct.produkts.ilike(request.produkts.strip()))
+        .filter(UserProduct.productName.ilike(request.productName.strip()))
         .first()
     )
 
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Product '{request.produkts}' not found for this user."
+            detail=f"Product '{request.productName}' not found for this user."
         )
 
     # Delete the product
     db.delete(product)
     db.commit()
 
-    return {"message": f"Product '{request.produkts}' deleted successfully."}
+    return {"message": f"Product '{request.productName}' deleted successfully."}

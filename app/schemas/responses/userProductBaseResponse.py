@@ -5,19 +5,19 @@ class UserProductBase(BaseModel):
     """Base representation of a user's product entry"""
     id: int
     userUuid: int
-    produkts: str
+    productName: str
     kcal: float
-    tauki: float
-    piesatTauki: float
-    oglh: float
-    cukuri: float
-    olbv: float
-    pienaOlbv: float
-    dzivOlbv: float
-    auguOlbv: float
-    sals: float
-    cena1kg: float
-    cena100g: float
+    fat: float
+    satFat: float
+    carbs: float
+    sugars: float
+    protein: float
+    dairyProt: float
+    animalProt: float
+    plantProt: float
+    salt: float
+    price1kg: float
+    price100g: float
 
 
 UserProductsListResponse = List[UserProductBase]
