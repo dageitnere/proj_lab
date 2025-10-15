@@ -205,13 +205,13 @@ def generate_diet_menu(db: Session, request: DietRequest):
                 kcal=round(p.kcal * grams / 100, 1),
                 cost=round(p.price100g * grams / 100, 2),
                 fat=round(p.fat * grams / 100, 1),
+                satFat=round(p.satFat * grams / 100, 1),
                 carbs=round(p.carbs * grams / 100, 1),
                 protein=round(p.protein * grams / 100, 1),
                 dairyProtein=round((p.dairyProt or 0) * grams / 100, 1),
                 animalProtein=round((p.animalProt or 0) * grams / 100, 1),
                 plantProtein=round((p.plantProt or 0) * grams / 100, 1),
-                sugar=round(p.sugars * grams / 100, 1),
-                sat_fat=round(p.satFat * grams / 100, 1),
+                sugars=round(p.sugars * grams / 100, 1),
                 salt=round(p.salt * grams / 100, 1)
             ))
 
@@ -219,13 +219,13 @@ def generate_diet_menu(db: Session, request: DietRequest):
         "totalKcal": round(sum(r.kcal for r in result), 1),
         "totalCost": round(sum(r.cost for r in result), 2),
         "totalFat": round(sum(r.fat for r in result), 1),
+        "totalSatFat": round(sum(r.satFat for r in result), 1),
         "totalCarbs": round(sum(r.carbs for r in result), 1),
         "totalProtein": round(sum(r.protein for r in result), 1),
         "totalDairyProtein": round(sum(r.dairyProtein for r in result), 1),
         "totalAnimalProtein": round(sum(r.animalProtein for r in result), 1),
         "totalPlantProtein": round(sum(r.plantProtein for r in result), 1),
-        "totalSugar": round(sum(r.sugar for r in result), 1),
-        "totalSatFat": round(sum(r.sat_fat for r in result), 1),
+        "totalSugar": round(sum(r.sugars for r in result), 1),
         "totalSalt": round(sum(r.salt for r in result), 1)
     }
 
