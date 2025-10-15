@@ -16,6 +16,6 @@ class AddUserProductRequest(BaseModel):
     salt: float
     price1kg: float
     price100g: float
-    vegan: float
-    vegetarian: float
-    dairyFree: float
+    vegan: bool = False
+    vegetarian: bool = False
+    dairyFree: bool = False
