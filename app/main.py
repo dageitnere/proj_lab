@@ -58,12 +58,6 @@ app.include_router(userRouter.router, prefix="/auth", tags=["auth"])
 #hashed = pwd.hash("fitness")
 #print(hashed)
 
-# btw bcrypt un passlib vjg kka ieinstalet, lai viens otra versijas atbalsta
-# pip install --upgrade passlib[bcrypt]
-# pip install --force-reinstall bcrypt==4.1.3
-# ta to var izdarit, todo pachekot kada versija tad ir passlib un pielikt requirements
-# man bail aiztikt georgijs dusmigs paliks vel :(
-
 @app.get("/")
 def root():
     return {"message": "Welcome to the Diet Optimization API"}
