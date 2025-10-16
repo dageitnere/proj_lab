@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from passlib.context import CryptContext
 from app.models.users import User
-from app.schemas.requests.getLoginRequest import LoginIn
+from app.schemas.requests.getLoginRequest import LoginInRequest
 
 import os, time, jwt
 
@@ -23,7 +23,7 @@ def _create_access_token(sub: str, extra: dict | None = None, ttl: int = _TTL) -
 
     return jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALG)
 
-def login_user(db: Session, body: LoginIn) -> tuple[str, str]:
+def login_user(db: Session, body: LoginInRequest) -> tuple[str, str]:
     """Return (jwt, username) or raise ValueError for invalid creds."""
     u: User | None = (
         db.query(User)
