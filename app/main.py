@@ -6,9 +6,41 @@ from app.routers import userProductRouter
 from app.routers import consumedProductRouter
 from app.routers import statisticsRouter
 from app.routers import userRouter
+from contextlib import asynccontextmanager
+from app.dependencies.firefoxDriver import init_firefox_pool, get_firefox_pool
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Manage application lifecycle:
+    - Startup: Initialize webdriver pool
+    - Shutdown: Close all drivers
+    """
+    # Startup
+    print("Starting application...")
+    init_firefox_pool(
+        pool_size=1,  # Number of concurrent scrapers
+        geckodriver_path=None,  # Set to path if needed, e.g., r"C:\path\to\geckodriver.exe"
+        headless=True  # Run Firefox in headless mode
+    )
+    print("Application startup complete")
+
+    yield
+
+    # Shutdown
+    print("Shutting down application...")
+    try:
+        pool = get_firefox_pool()
+        pool.shutdown()
+    except RuntimeError:
+        pass
+    print("Application shutdown complete")
+
 app = FastAPI(
     title="Diet Optimization API",
-    description="Backend service"
+    description="Backend service",
+    lifespan=lifespan
 )
 
 # Include routers

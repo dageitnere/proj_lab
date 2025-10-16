@@ -4,7 +4,7 @@ from app.schemas.requests.addUserProductByRimiUrlRequest import AddUserProductBy
 from app.schemas.requests.addUserProductRequest import AddUserProductRequest
 from fastapi import HTTPException, status
 from app.schemas.requests.deleteUserProductRequest import DeleteUserProductRequest
-from app.dependencies import scrape_rimi_product
+from app.dependencies.scrapeRimi import scrape_rimi_product
 
 def zero_if_none(value):
     return value if value is not None else 0
@@ -159,6 +159,6 @@ def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRe
     # --- Warn if nutrition info is incomplete ---
     missing_nutrition = [k for k in ["kcal", "fat", "satFat", "carbs", "sugars", "protein"] if scraped.get(k) is None]
     if missing_nutrition:
-        print(f"⚠️ Warning: Nutrition info missing for: {', '.join(missing_nutrition)}")
+        print(f"Warning: Nutrition info missing for: {', '.join(missing_nutrition)}")
 
     return {"message": f"Product {new_product.productName} added successfully."}
