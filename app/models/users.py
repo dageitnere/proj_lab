@@ -1,10 +1,10 @@
-from sqlalchemy import Column, BigInteger, Float, String, Boolean, TIMESTAMP
+from sqlalchemy import Column, Identity, BigInteger, Float, String, Boolean, TIMESTAMP
 from app.database import Base
 
 class User(Base):
     __tablename__ = "users"
 
-    uuid = Column(BigInteger, primary_key=True, index=True, autoincrement=True, unique=True)
+    uuid = Column(BigInteger, Identity(always=False), primary_key=True)
     username = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
