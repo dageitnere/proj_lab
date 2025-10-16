@@ -98,7 +98,7 @@ class FirefoxWebdriverPool:
 
     def shutdown(self):
         """Close all drivers (call at application shutdown)"""
-        print("🛑 Shutting down Firefox webdriver pool...")
+        print("Shutting down Firefox webdriver pool...")
         while not self.available_drivers.empty():
             try:
                 driver = self.available_drivers.get_nowait()

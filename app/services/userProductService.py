@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
+from app.dependencies.scrapeNutriotionValue import get_product_data_from_url
 from app.models.userProducts import UserProduct
+from app.schemas.requests.addUserProductByNutritionValueRequest import AddUserProductByNutritionValueUrlRequest
 from app.schemas.requests.addUserProductByRimiUrlRequest import AddUserProductByRimiUrlRequest
 from app.schemas.requests.addUserProductRequest import AddUserProductRequest
 from fastapi import HTTPException, status
@@ -162,3 +164,98 @@ def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRe
         print(f"Warning: Nutrition info missing for: {', '.join(missing_nutrition)}")
 
     return {"message": f"Product {new_product.productName} added successfully."}
+
+def add_user_product_by_nutrition_value_url(db: Session, request: AddUserProductByNutritionValueUrlRequest):
+    # --- Scrape product data ---
+    scraped = get_product_data_from_url(request.url)
+    if not scraped or "error" in scraped:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to scrape product data from the URL: {scraped.get('error', 'Unknown error')}"
+        )
+
+    # --- Use provided product name or scraped one ---
+    product_name = request.productName.strip() if request.productName else scraped.get("productName")
+    if not product_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Product name could not be determined."
+        )
+
+    # --- Check if product already exists for this user ---
+    existing = (
+        db.query(UserProduct)
+        .filter(UserProduct.userUuid == request.userUuid)
+        .filter(UserProduct.productName.ilike(product_name))
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Product '{product_name}' already exists in your list."
+        )
+
+    # --- Handle price logic ---
+    price1kg = request.price1kg
+    price100g = None
+
+    if request.pricePerUnit is not None:
+        if request.massPerUnit is None or request.massPerUnit <= 0 or price1kg is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="If pricePerUnit is provided, massPerUnit must also be specified and greater than 0, furhtermore - do not provide price per 1kg with price per unit."
+            )
+
+        # Calculate price1kg and price100g based on massPerUnit (grams)
+        price1kg = (request.pricePerUnit / request.massPerUnit) * 1000
+        price100g = price1kg / 10
+    elif price1kg is not None:
+        price100g = price1kg / 10
+
+    # --- Protein type control ---
+    protein_flags = [
+        request.dairyProtein,
+        request.animalProtein,
+        request.plantProtein
+    ]
+    if sum(bool(flag) for flag in protein_flags) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please select exactly one protein type (dairy, animal, or plant)."
+        )
+
+    dairyProt = scraped["protein"] if request.dairyProtein else 0
+    animalProt = scraped["protein"] if request.animalProtein else 0
+    plantProt = scraped["protein"] if request.plantProtein else 0
+
+    # --- Create and save new product ---
+    new_product = UserProduct(
+        userUuid=request.userUuid,
+        productName=product_name,
+        kcal=zero_if_none(scraped.get("kcal")),
+        fat=zero_if_none(scraped.get("fat")),
+        satFat=zero_if_none(scraped.get("satFat")),
+        carbs=zero_if_none(scraped.get("carbs")),
+        sugars=zero_if_none(scraped.get("sugars")),
+        protein=zero_if_none(scraped.get("protein")),
+        dairyProt=dairyProt,
+        animalProt=animalProt,
+        plantProt=plantProt,
+        salt=zero_if_none(scraped.get("salt")),
+        price1kg=zero_if_none(price1kg),
+        price100g=zero_if_none(price100g),
+        vegan=request.vegan,
+        vegetarian=request.vegetarian,
+        dairyFree=request.dairyFree
+    )
+
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+
+    # --- Optional: warn if missing nutritional values ---
+    missing_nutrition = [k for k in ["kcal", "fat", "satFat", "carbs", "sugars", "protein"] if scraped.get(k) is None]
+    if missing_nutrition:
+        print(f"⚠️ Missing nutrition info for: {', '.join(missing_nutrition)}")
+
+    return {"message": f"Product '{new_product.productName}' added successfully."}
