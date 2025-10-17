@@ -27,15 +27,15 @@ def _create_access_token(sub: str, extra: dict | None = None, ttl: int = _TTL) -
 def decode_access_token(token: str) -> dict:
     return jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG])
 
-def login_user(db: Session, body: LoginInRequest) -> tuple[str, str]:
+def login_user(db: Session, request: LoginInRequest) -> tuple[str, str]:
     """Return (jwt, username) or raise ValueError for invalid creds."""
     u: User | None = (
         db.query(User)
-        .filter(or_(User.username == body.login, User.email == body.login))
+        .filter(or_(User.username == request.login, User.email == request.login))
         .first()
     )
 
-    if not u or not _verify_password(body.password, u.password):
+    if not u or not _verify_password(request.password, u.password):
         raise ValueError("Invalid credentials")
 
     token = _create_access_token(sub=str(u.uuid), extra={"username": u.username})
@@ -45,19 +45,19 @@ def login_user(db: Session, body: LoginInRequest) -> tuple[str, str]:
 def _hash(raw: str) -> str:
     return _pwd.hash(raw)
 
-def register_user(db: Session, body: RegisterInRequest) -> tuple[int, str]:
+def register_user(db: Session, request: RegisterInRequest) -> tuple[int, str]:
     # unique check
-    exists = db.query(User).filter(or_(User.username == body.username,
-                                       User.email == body.email)).first()
+    exists = db.query(User).filter(or_(User.username == request.username,
+                                       User.email == request.email)).first()
     if exists:
         raise ValueError("User with this username or email already exists")
 
-    email = str(body.email).lower().strip()
+    email = str(request.email).lower().strip()
 
     u = User(
-        username=body.username.strip(),
+        username=request.username.strip(),
         email=email,
-        password=_hash(body.password),
+        password=_hash(request.password),
 
         # todo - likt lietotajam kkur so info ievadit
         age=0,
