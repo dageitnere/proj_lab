@@ -24,6 +24,9 @@ def _create_access_token(sub: str, extra: dict | None = None, ttl: int = _TTL) -
 
     return jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALG)
 
+def decode_access_token(token: str) -> dict:
+    return jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG])
+
 def login_user(db: Session, body: LoginInRequest) -> tuple[str, str]:
     """Return (jwt, username) or raise ValueError for invalid creds."""
     u: User | None = (

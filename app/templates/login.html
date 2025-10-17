@@ -11,13 +11,13 @@
     input { padding: .6rem .7rem; border: 1px solid #bbb; border-radius: .5rem; }
     button { padding: .7rem .9rem; border: 0; border-radius: .6rem; background:#2255ee; color:#fff; cursor:pointer; }
     .msg { min-height: 1.2rem; margin-top:.5rem; }
-    .err { color:#b40018; }
+    .ok { color:#0a7a26; } .err { color:#b40018; }
   </style>
 </head>
 <body>
   <h1>Pieteikšanās</h1>
   <form id="f">
-    <label>Login (lietotājvārds vai e-pasts)
+    <label>Login
       <input name="login" autocomplete="username" required />
     </label>
     <label>Parole
@@ -27,24 +27,20 @@
     <div id="m" class="msg"></div>
   </form>
 
+  <p style="margin-top:.5rem">Nav konta? <a href="/auth/register">Reģistrēties</a></p>
+
   <script>
   const f = document.getElementById('f'), m = document.getElementById('m');
   f.addEventListener('submit', async (e) => {
-    e.preventDefault(); m.textContent = '';
-    const body = { login: f.login.value.trim(), password: f.password.value };
+    e.preventDefault(); m.textContent='';
     const r = await fetch('/auth/login', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ login: f.login.value.trim(), password: f.password.value })
     });
-    if (r.ok) {
-      const j = await r.json();
-      // Temporary: store JWT in sessionStorage for this branch only.
-      sessionStorage.setItem('token', j.access_token);
-      // Redirect decided by your main router later; for now go to '/'
-      location.href = '/';
-    } else {
-      const j = await r.json().catch(()=>({detail:'Neizdevās pieteikties'}));
-      m.textContent = j.detail || 'Neizdevās pieteikties';
-      m.className = 'msg err';
+    if (r.ok) { location.href = '/'; }
+    else {
+      const j = await r.json().catch(()=>({detail:'Kļūda'}));
+      m.textContent = j.detail || 'Neizdevās'; m.className='msg err';
     }
   });
   </script>

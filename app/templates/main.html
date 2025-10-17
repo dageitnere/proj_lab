@@ -18,10 +18,28 @@
     header {
       text-align: center;
       margin-bottom: 40px;
+      position: relative;
+      width: 100%;
     }
     header h1 {
       font-size: 2em;
       color: #333;
+    }
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background-color: #e63946;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95em;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .logout-btn:hover {
+      background-color: #c72e3a;
     }
     .container {
       display: flex;
@@ -57,17 +75,25 @@
 </head>
 <body>
   <header>
+    <button class="logout-btn" id="logoutBtn">Log Out</button>
     <h1>Welcome to the Diet Optimization App</h1>
     <p>Choose an option below:</p>
   </header>
 
   <div class="container">
-    <a href="menu/form">🍽 Generate Diet Menu</a>
-    <a href="products/showProducts">📦 View All Products</a>
+    <a href="/menu/form">🍽 Generate Diet Menu</a>
+    <a href="/products/showProducts">📦 View All Products</a>
   </div>
 
   <footer>
     <p>&copy; 2025 Diet Optimization System</p>
   </footer>
+
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch('/auth/logout', { method: 'POST' });
+      location.href = '/auth/login';
+    });
+  </script>
 </body>
 </html>

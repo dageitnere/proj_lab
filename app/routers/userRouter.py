@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from typing import Literal
 
 from app.database import get_db
 from app.schemas.requests.getLoginRequest import LoginInRequest
@@ -13,6 +14,9 @@ from app.services.userService import register_user
 
 router = APIRouter(tags=["auth"])
 tpl = Jinja2Templates(directory="app/templates")
+COOKIE = "access_token"
+SECURE = False   # todo true kad pabeigts
+SAMESITE: Literal["lax", "strict", "none"] = "lax"
 
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
@@ -22,7 +26,12 @@ def login_page(request: Request):
 def login(body: LoginInRequest, db: Session = Depends(get_db)):
     try:
         token, username = login_user(db, body)
-        return JSONResponse({"access_token": token, "token_type": "bearer", "username": username})
+        resp = JSONResponse({"ok": True, "username": username})
+        resp.set_cookie(
+            key=COOKIE, value=token, httponly=True, secure=SECURE,
+            samesite=SAMESITE, max_age=60 * 60 * 24, path="/"
+        )
+        return resp
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
 
@@ -37,3 +46,9 @@ def register(body: RegisterInRequest, db: Session = Depends(get_db)):
         return JSONResponse({"ok": True, "uuid": uuid, "username": username})
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/logout")
+def logout():
+    resp = JSONResponse({"ok": True, "message": "logged out"})
+    resp.delete_cookie("access_token", path="/")
+    return resp
