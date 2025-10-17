@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from app.routers import productRouter
 from app.routers import menuRouter
 from app.routers import mainPageRouter
@@ -8,7 +8,8 @@ from app.routers import statisticsRouter
 from app.routers import userRouter
 from contextlib import asynccontextmanager
 from app.dependencies.firefoxDriver import init_firefox_pool, get_firefox_pool
-
+from fastapi.responses import RedirectResponse
+from app.services.userService import decode_access_token
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,6 +43,39 @@ app = FastAPI(
     description="Backend service",
     lifespan=lifespan
 )
+
+PUBLIC_PREFIXES = ("/auth/login", "/auth/register", "/static", "/docs", "/openapi.json")
+COOKIE = "access_token"
+
+@app.middleware("http")
+async def redirects(request: Request, call_next):
+    path = request.url.path
+    tok = request.cookies.get(COOKIE)
+
+    # root redirect
+    if path == "/":
+        return RedirectResponse("/mainPage" if tok else "/auth/login")
+
+    # if logged-in user tries to access login/register, redirect to mainPage
+    if tok and (path.startswith("/auth/login") or path.startswith("/auth/register")):
+        return RedirectResponse("/mainPage")
+
+    # public paths
+    if path.startswith(PUBLIC_PREFIXES):
+        return await call_next(request)
+
+    # protect everything else
+    if not tok:
+        return RedirectResponse("/auth/login")
+
+    try:
+        payload = decode_access_token(tok)
+        if payload.get("typ") != "access":
+            return RedirectResponse("/auth/login")
+    except Exception:
+        return RedirectResponse("/auth/login")
+
+    return await call_next(request)
 
 # Include routers
 app.include_router(productRouter.product, prefix="/products", tags=["products"])
