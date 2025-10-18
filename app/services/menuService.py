@@ -2,6 +2,8 @@ from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
 from app.models.productsProtSep import ProductProtSep
 from app.models.userMenu import UserMenu
+from app.models.userMenuRecipes import UserMenuRecipes
+from app.models.recipes import Recipe
 from app.schemas.requests.addDietPlanRequest import AddDietPlanRequest
 from app.schemas.requests.deleteUserMenuRequest import DeleteUserMenuRequest
 from app.schemas.requests.dietRequest import DietRequest
@@ -9,6 +11,8 @@ from app.schemas.requests.getMenuRequest import GetMenuRequest
 from app.schemas.responses.dietPlanResponse import DietPlanListResponse, DietPlanResponse
 from app.schemas.responses.generateMenuResponse import GenerateMenuResponse, ProductItem
 from app.services.userProductService import get_user_products
+from app.services.recipeService import create_recipes_from_menu
+from app.schemas.requests.getRecipeRequest import RecipeProductItem
 from fastapi import HTTPException, status
 from typing import Optional
 from datetime import datetime
@@ -263,10 +267,19 @@ def save_diet_menu(db: Session, request: AddDietPlanRequest, userUuid: int):
             detail=f"Menu '{request.name}' already exists in your list - choose different name."
         )
 
+    # 3. Save menu
     db.add(new_plan)
     db.commit()
     db.refresh(new_plan)
-    return "Diet plan saved successfully."
+
+    # 4. Convert menu.plan JSON to RecipeProductItem list
+    products = [RecipeProductItem(**p) for p in new_plan.plan]
+
+    # 5. Generate recipes for this menu using the **menu.id value**
+    create_recipes_from_menu(db, new_plan.id, products)
+
+    # 6. Return success message
+    return {"message": "Diet plan saved and recipes generated successfully."}
 
 
 def get_user_menus(db: Session, userUuid: int) -> DietPlanListResponse:
@@ -335,6 +348,7 @@ def get_single_menu(db: Session, request: GetMenuRequest, userUuid: int) -> Opti
 def delete_user_menu(db: Session, request: DeleteUserMenuRequest, userUuid: int):
     """
     Deletes a specific user menu by userUuid and menuName.
+    Also removes any recipes that are no longer linked to other menus.
     """
     # Find the menu
     menu = (
@@ -350,8 +364,28 @@ def delete_user_menu(db: Session, request: DeleteUserMenuRequest, userUuid: int)
             detail=f"No menu found with name '{request.menuName}' for this user."
         )
 
-    # Delete the menu
+    # Collect all linked recipe IDs
+    linked_recipe_ids = [
+        link.recipeId for link in db.query(UserMenuRecipes).filter(UserMenuRecipes.userMenuId == menu.id).all()
+    ]
+
+    # Delete all UserMenuRecipes for this menu
+    db.query(UserMenuRecipes).filter(UserMenuRecipes.userMenuId == menu.id).delete()
+
+    # Delete the menu itself
     db.delete(menu)
     db.commit()
 
-    return {"message": f"Menu '{request.menuName}' deleted successfully."}
+    # Remove recipes that are no longer linked to any menus
+    for recipe_id in linked_recipe_ids:
+        still_used = (
+            db.query(UserMenuRecipes)
+            .filter(UserMenuRecipes.recipeId == recipe_id)
+            .count()
+        )
+        if still_used == 0:
+            db.query(Recipe).filter(Recipe.id == recipe_id).delete()
+
+    db.commit()
+
+    return {"message": f"Menu '{request.menuName}' and unused recipes deleted successfully."}

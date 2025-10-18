@@ -22,4 +22,4 @@ class UserMenu(Base):
     date = Column(DateTime(timezone=False), nullable=False)
     plan = Column(JSON, nullable=False)
 
-
+recipes = relationship("Recipe", secondary="userMenuRecipes")
