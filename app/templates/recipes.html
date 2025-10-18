@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Recipes – {{ menuName }}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f6f9fc;
+      margin: 0;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    header h1 {
+      font-size: 2em;
+      color: #333;
+    }
+    .recipe {
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .recipe img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .recipe h2 {
+      margin: 0 0 10px 0;
+      color: #4287f5;
+    }
+    .recipe p {
+      margin: 5px 0;
+      line-height: 1.4em;
+    }
+    .meal-type {
+      font-weight: bold;
+      color: #e63946;
+    }
+    .back-btn {
+      display: block;
+      text-decoration: none;
+      text-align: center;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background-color: #4287f5;
+      color: white;
+      border-radius: 8px;
+      width: 200px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    .back-btn:hover {
+      background-color: #2f6ad9;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Recipes for Menu: {{ menuName }}</h1>
+    <a class="back-btn" href="/mainPage">← Back to Main</a>
+  </header>
+
+  {% for recipe in recipes %}
+  <div class="recipe">
+    <p class="meal-type">{{ recipe.mealType | capitalize }}</p>
+    <h2>{{ recipe.name }}</h2>
+    {% if recipe.photoUrl %}
+    <img src="{{ recipe.photoUrl }}" alt="{{ recipe.name }}">
+    {% endif %}
+    {% if recipe.description %}
+    <p><strong>Description:</strong> {{ recipe.description }}</p>
+    {% endif %}
+    {% if recipe.calories %}
+    <p><strong>Calories:</strong> {{ recipe.calories }} kcal</p>
+    {% endif %}
+    <p><strong>Instructions:</strong></p>
+    <p>{{ recipe.instructions | replace('\n','<br>') | safe }}</p>
+  </div>
+  {% endfor %}
+</body>
+</html>

@@ -7,6 +7,7 @@ from app.routers import consumedProductRouter
 from app.routers import statisticsRouter
 from app.routers import userRouter
 from contextlib import asynccontextmanager
+from app.routers import recipeRouter
 from app.dependencies.firefoxDriver import init_firefox_pool, get_firefox_pool
 from fastapi.responses import RedirectResponse
 from app.services.userService import decode_access_token
@@ -85,6 +86,7 @@ app.include_router(userProductRouter.userProduct, prefix="/userProducts", tags=[
 app.include_router(consumedProductRouter.consumedProduct, prefix="/consumedProducts", tags=["consumedProducts"])
 app.include_router(statisticsRouter.statistics, prefix="/statistics", tags=["statistics"])
 app.include_router(userRouter.router, prefix="/auth", tags=["auth"])
+app.include_router(recipeRouter.recipes, prefix="/recipes", tags=["recipes"])
 
 # testesanai - lai izvada hashotu paroli, kas registracija saglabatos db
 #from passlib.context import CryptContext
