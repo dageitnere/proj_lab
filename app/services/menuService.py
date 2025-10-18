@@ -34,12 +34,12 @@ def make_product_key(p):
         getattr(p, "dairyFree", False),
     )
 
-def combine_products(db: Session, request: DietRequest):
+def combine_products(db: Session, userUuid: int):
     # 1. Fetch all general products
     all_products = db.query(ProductProtSep).all()
 
     # 2. Fetch user's products
-    user_products = get_user_products(db, request.userUuid)
+    user_products = get_user_products(db, userUuid)
 
     for p in user_products:
         p.id = f"user_{p.id}"
@@ -55,7 +55,7 @@ def combine_products(db: Session, request: DietRequest):
     products = list(combined_dict.values())
     return products
 
-def generate_diet_menu(db: Session, request: DietRequest):
+def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
 
     # Unpack directly from request object
     kcalTarget = request.kcal
@@ -74,7 +74,7 @@ def generate_diet_menu(db: Session, request: DietRequest):
     if vegan and not dairyFree:
         return {"error": "Vegan diets are always dairy-free — please set dairyFree=True."}
 
-    products = combine_products(db, request)
+    products = combine_products(db, userUuid)
 
     if not products:
         return {"error": "No products found in database."}
@@ -232,9 +232,9 @@ def generate_diet_menu(db: Session, request: DietRequest):
     return GenerateMenuResponse(status="Optimal", plan=result, **totals)
 
 
-def save_diet_menu(db: Session, request: AddDietPlanRequest):
+def save_diet_menu(db: Session, request: AddDietPlanRequest, userUuid: int):
     new_plan = UserMenu(
-        userUuid=request.userUuid,
+        userUuid=userUuid,
         name=request.name,  # <-- Save plan name
         totalKcal=request.totalKcal,
         totalCost=request.totalCost,
@@ -253,7 +253,7 @@ def save_diet_menu(db: Session, request: AddDietPlanRequest):
 
     existing = (
         db.query(UserMenu)
-        .filter(UserMenu.userUuid == request.userUuid)  # optional, check only this user's menus
+        .filter(UserMenu.userUuid == userUuid)  # optional, check only this user's menus
         .filter(UserMenu.name.ilike(request.name.strip()))  # <-- strip the input string, not the column
         .first()
     )
@@ -305,8 +305,8 @@ def get_user_menus(db: Session, userUuid: int) -> DietPlanListResponse:
     return response
 
 
-def get_single_menu(db: Session, request: GetMenuRequest) -> Optional[DietPlanResponse]:
-    menu = db.query(UserMenu).filter(UserMenu.name == request.menuName).filter(UserMenu.userUuid == request.userUuid).first()
+def get_single_menu(db: Session, request: GetMenuRequest, userUuid: int) -> Optional[DietPlanResponse]:
+    menu = db.query(UserMenu).filter(UserMenu.name == request.menuName).filter(UserMenu.userUuid == userUuid).first()
     if not menu:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -332,14 +332,14 @@ def get_single_menu(db: Session, request: GetMenuRequest) -> Optional[DietPlanRe
 
     )
 
-def delete_user_menu(db: Session, request: DeleteUserMenuRequest):
+def delete_user_menu(db: Session, request: DeleteUserMenuRequest, userUuid: int):
     """
     Deletes a specific user menu by userUuid and menuName.
     """
     # Find the menu
     menu = (
         db.query(UserMenu)
-        .filter(UserMenu.userUuid == request.userUuid)
+        .filter(UserMenu.userUuid == userUuid)
         .filter(UserMenu.name.ilike(request.menuName.strip()))
         .first()
     )

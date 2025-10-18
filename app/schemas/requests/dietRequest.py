@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
 class DietRequest(BaseModel):
-    userUuid: int
     kcal: float
     protein: float
     fat: float

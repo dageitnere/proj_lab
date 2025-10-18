@@ -4,7 +4,6 @@ from typing import List, Optional
 class UserProductBase(BaseModel):
     """Base representation of a user's product entry"""
     id: int
-    userUuid: int
     productName: str
     kcal: float
     fat: float

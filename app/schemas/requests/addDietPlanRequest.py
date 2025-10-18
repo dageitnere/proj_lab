@@ -3,7 +3,6 @@ from typing import List
 from app.schemas.responses.generateMenuResponse import ProductItem
 
 class AddDietPlanRequest(BaseModel):
-    userUuid: int
     name: str  # <-- Added plan name
     totalKcal: float
     totalCost: float
