@@ -11,11 +11,11 @@ from app.schemas.responses.userConsumedProductResponse import  UserConsumedProdu
 from sqlalchemy import and_
 from datetime import datetime, timedelta
 
-def add_consumed_product(db: Session, request: AddUserConsumedProductRequest):
+def add_consumed_product(db: Session, request: AddUserConsumedProductRequest, userUuid: int):
     # Try user-specific product first
     product = (
         db.query(UserProduct)
-        .filter(UserProduct.userUuid == request.userUuid)
+        .filter(UserProduct.userUuid == userUuid)
         .filter(UserProduct.productName.ilike(request.productName.strip()))
         .first()
     )
@@ -34,7 +34,7 @@ def add_consumed_product(db: Session, request: AddUserConsumedProductRequest):
     factor = request.amount / 100.0
 
     new_entry = UserConsumedProduct(
-        userUuid=request.userUuid,
+        userUuid=userUuid,
         productName=request.productName.strip(),
         amount=request.amount,
         kcal=product.kcal * factor,
@@ -160,7 +160,7 @@ def get_consumed_last_30_days(db: Session, userUuid: int) -> UserConsumedProduct
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products consumed in the last 30 days.")
     return _map_to_response(products)
 
-def get_consumed_by_date(db: Session, request: GetConsumedProductByDateRequest) -> UserConsumedProductListResponse:
+def get_consumed_by_date(db: Session, request: GetConsumedProductByDateRequest, userUuid: int) -> UserConsumedProductListResponse:
     start_of_day = datetime.combine(request.date, datetime.min.time())
     end_of_day = datetime.combine(request.date, datetime.max.time())
 
@@ -168,7 +168,7 @@ def get_consumed_by_date(db: Session, request: GetConsumedProductByDateRequest) 
         db.query(UserConsumedProduct)
         .filter(
             and_(
-                UserConsumedProduct.userUuid == request.userUuid,
+                UserConsumedProduct.userUuid == userUuid,
                 UserConsumedProduct.date >= start_of_day,
                 UserConsumedProduct.date <= end_of_day
             )

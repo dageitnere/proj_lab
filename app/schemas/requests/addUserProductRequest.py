@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from typing import Optional
 
 class AddUserProductRequest(BaseModel):
-    userUuid: int
     productName: str
     kcal: int
     fat: float

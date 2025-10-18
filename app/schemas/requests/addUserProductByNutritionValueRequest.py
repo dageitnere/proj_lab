@@ -2,7 +2,6 @@ from pydantic import BaseModel, HttpUrl
 from typing import Optional
 
 class AddUserProductByNutritionValueUrlRequest(BaseModel):
-    userUuid: int
     url: str
     productName: Optional[str] = None  # if not provided, use scraped name
     massPerUnit: Optional[float] = None

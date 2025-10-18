@@ -90,12 +90,12 @@ def get_average_last_30_days(db: Session, userUuid: int) -> UserStatisticsRespon
     sums = _sum_consumed(products)
     # divide all by 30 for daily averages
     averages = {k: round((v / 30), 2) for k, v in sums.items()}
-    averages["period"] = "last 30 days"
+    averages["period"] = "Last 30 days"
     return UserStatisticsResponse(**averages)
 
 
 
-def get_average_by_date(db: Session, request: GetUserStatisticsByDateRequest) -> UserStatisticsResponse:
+def get_average_by_date(db: Session, request: GetUserStatisticsByDateRequest, userUuid: int) -> UserStatisticsResponse:
 
     # Validate range
     if request.startDate > request.endDate:
@@ -109,7 +109,7 @@ def get_average_by_date(db: Session, request: GetUserStatisticsByDateRequest) ->
     # Fetch all products consumed in that range
     products = db.query(UserConsumedProduct).filter(
         and_(
-            UserConsumedProduct.userUuid == request.userUuid,
+            UserConsumedProduct.userUuid == userUuid,
             UserConsumedProduct.date >= datetime.combine(request.startDate.date(), datetime.min.time()),
             UserConsumedProduct.date <= end_of_day
         )

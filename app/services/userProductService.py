@@ -26,11 +26,11 @@ def get_user_products_names(db: Session, userUuid: int):
     names = sorted([p[0] for p in products if p[0]])  # flatten tuples and remove None
     return {"products": names}
 
-def add_user_product(db: Session, request: AddUserProductRequest) -> UserProduct:
+def add_user_product(db: Session, request: AddUserProductRequest, userUuid: int) -> UserProduct:
     # Check if product name already exists (case-insensitive)
     existing = (
         db.query(UserProduct)
-        .filter(UserProduct.userUuid == request.userUuid)
+        .filter(UserProduct.userUuid == userUuid)
         .filter(UserProduct.productName.ilike(request.productName.strip()))
         .first()
     )
@@ -41,7 +41,7 @@ def add_user_product(db: Session, request: AddUserProductRequest) -> UserProduct
         )
 
     new_product = UserProduct(
-        userUuid=request.userUuid,
+        userUuid=userUuid,
         productName=request.productName.strip(),
         kcal=zero_if_none(request.kcal),
         fat=zero_if_none(request.fat),
@@ -65,10 +65,10 @@ def add_user_product(db: Session, request: AddUserProductRequest) -> UserProduct
     db.refresh(new_product)
     return new_product
 
-def delete_user_product(db: Session, request: DeleteUserProductRequest):
+def delete_user_product(db: Session, request: DeleteUserProductRequest, userUuid: int):
     product = (
         db.query(UserProduct)
-        .filter(UserProduct.userUuid == request.userUuid)
+        .filter(UserProduct.userUuid == userUuid)
         .filter(UserProduct.productName.ilike(request.productName.strip()))
         .first()
     )
@@ -86,7 +86,7 @@ def delete_user_product(db: Session, request: DeleteUserProductRequest):
     return {"message": f"Product '{request.productName}' deleted successfully."}
 
 
-def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRequest):
+def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRequest, userUuid: int):
     # --- Scrape product data ---
     scraped = scrape_rimi_product(request.url, mass_g=request.mass_g)
     print(f"Scraped data: {scraped}")
@@ -107,7 +107,7 @@ def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRe
     # --- Check if product already exists ---
     existing = (
         db.query(UserProduct)
-        .filter(UserProduct.userUuid == request.userUuid)
+        .filter(UserProduct.userUuid == userUuid)
         .filter(UserProduct.productName.ilike(product_name))
         .first()
     )
@@ -135,7 +135,7 @@ def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRe
 
     # --- Create new product ---
     new_product = UserProduct(
-        userUuid=request.userUuid,
+        userUuid=userUuid,
         productName=product_name,
         kcal=zero_if_none(scraped.get("kcal")),
         fat=zero_if_none(scraped.get("fat")),
@@ -165,7 +165,7 @@ def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRe
 
     return {"message": f"Product {new_product.productName} added successfully."}
 
-def add_user_product_by_nutrition_value_url(db: Session, request: AddUserProductByNutritionValueUrlRequest):
+def add_user_product_by_nutrition_value_url(db: Session, request: AddUserProductByNutritionValueUrlRequest, userUuid: int):
     # --- Scrape product data ---
     scraped = get_product_data_from_url(request.url)
     if not scraped or "error" in scraped:
@@ -185,7 +185,7 @@ def add_user_product_by_nutrition_value_url(db: Session, request: AddUserProduct
     # --- Check if product already exists for this user ---
     existing = (
         db.query(UserProduct)
-        .filter(UserProduct.userUuid == request.userUuid)
+        .filter(UserProduct.userUuid == userUuid)
         .filter(UserProduct.productName.ilike(product_name))
         .first()
     )
@@ -230,7 +230,7 @@ def add_user_product_by_nutrition_value_url(db: Session, request: AddUserProduct
 
     # --- Create and save new product ---
     new_product = UserProduct(
-        userUuid=request.userUuid,
+        userUuid=userUuid,
         productName=product_name,
         kcal=zero_if_none(scraped.get("kcal")),
         fat=zero_if_none(scraped.get("fat")),
