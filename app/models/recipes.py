@@ -8,5 +8,5 @@ class Recipe(Base):
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     instructions = Column(Text, nullable=False)
-    photoUrl = Column(String, nullable=True)
+    pictureBase64 = Column(Text, nullable=True)
     calories = Column(Float, nullable=True)
