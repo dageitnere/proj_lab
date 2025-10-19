@@ -6,7 +6,7 @@ class RecipeItem(BaseModel):
     name: str
     description: Optional[str] = None
     instructions: str
-    photoUrl: Optional[str] = None
+    pictureBase64: Optional[str] = None
     calories: Optional[float] = None
 
 
