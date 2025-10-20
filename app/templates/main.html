@@ -42,12 +42,13 @@
       gap: 20px;
       align-items: center;
     }
-    a, button {
+    a, button.nav-btn {
       display: inline-block;
       text-decoration: none;
       padding: 15px 25px;
       background-color: #4287f5;
       color: white;
+      border: none;
       border-radius: 8px;
       font-size: 1.1em;
       font-weight: bold;
@@ -56,7 +57,7 @@
       text-align: center;
       cursor: pointer;
     }
-    a:hover, button:hover {
+    a:hover, button.nav-btn:hover {
       background-color: #2f6ad9;
       transform: scale(1.03);
     }
@@ -65,28 +66,32 @@
       font-size: 1em;
       border-radius: 6px;
     }
-    footer { position: absolute; bottom: 20px; text-align: center; color: #777; font-size: 0.9em; }
+    button.nav-btn {
+      border: none;
+    }
+    footer {
+      position: absolute;
+      bottom: 20px;
+      text-align: center;
+      color: #777;
+      font-size: 0.9em;
+    }
   </style>
 </head>
 <body>
   <header>
     <button class="logout-btn" id="logoutBtn">Log Out</button>
-    <h1>Welcome to the Diet Optimization App</h1>
+    <h1>Welcome to the NutriMax</h1>
     <p>Choose an option below:</p>
   </header>
 
   <div class="container">
     <a href="/menu/form">🍽 Generate Diet Menu</a>
     <a href="/products/showProducts">📦 View All Products</a>
-
-    <!-- Recipe selector -->
-    <div>
-      <label for="menuSelect">📖 View Recipes for Menu:</label>
-      <select id="menuSelect">
-        <option value="">Select menu...</option>
-      </select>
-      <button id="viewRecipesBtn">View Recipes</button>
-    </div>
+    <a href="/userProducts/showUserProducts">🧾 My Products</a>
+    <a href="/statistics/form">📊 View Statistics</a>
+    <a href="/consumedProducts/form">Consumed products</a>
+    <a href="/menu/userMenuForm">My Menus</a>
   </div>
 
   <footer>
@@ -94,32 +99,10 @@
   </footer>
 
   <script>
-    const userUuid = 1; // Replace with actual user ID dynamically if needed
-
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       await fetch('/auth/logout', { method: 'POST' });
       location.href = '/auth/login';
     });
-
-    async function loadMenus() {
-      const res = await fetch(`/menu/getUserMenus/${userUuid}`);
-      const menus = await res.json();
-      const select = document.getElementById('menuSelect');
-      menus.forEach(menu => {
-        const option = document.createElement('option');
-        option.value = menu.id;
-        option.textContent = menu.name;
-        select.appendChild(option);
-      });
-    }
-
-    document.getElementById('viewRecipesBtn').addEventListener('click', () => {
-      const menuId = document.getElementById('menuSelect').value;
-      if (!menuId) return alert("Please select a menu.");
-      window.location.href = `/recipes/${userUuid}/${menuId}`;
-    });
-
-    loadMenus();
   </script>
 </body>
 </html>

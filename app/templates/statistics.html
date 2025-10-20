@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>User Statistics</title>
+    <div class="control-section">
+                <div class="control-group">
+                    <a href="/mainPage">
+                        <button>Go to Main Page</button>
+                    </a>
+                </div>
+            </div>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin: 24px; max-width: 900px; }
+    h1 { margin-bottom: 8px; }
+    .controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+    .controls .group { display:flex; gap:8px; align-items:center; }
+    button { background:#2470e6; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:600; }
+    button.secondary { background:#6b7280; }
+    button:disabled { opacity:0.6; cursor:not-allowed; }
+    input[type="date"] { padding:6px 8px; border-radius:6px; border:1px solid #ccc; }
+    #message { margin-top:12px; min-height:20px; color:#b91c1c; } /* red for errors */
+    #result { margin-top:18px; border:1px solid #e5e7eb; padding:14px; border-radius:8px; background:#fff; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .stat { min-width:180px; padding:8px; border-radius:6px; background:#f8fafc; border:1px solid #eef2ff; margin:6px 6px 6px 0; }
+    .stat h4 { margin:0 0 6px 0; font-size:13px; color:#374151; }
+    .stat p { margin:0; font-weight:700; font-size:16px; color:#111827; }
+    .small { font-size:12px; color:#6b7280; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <h1>User Statistics</h1>
+  <p class="small">Use the buttons below to fetch daily or average statistics. For date range, pick start and end dates and click fetch.</p>
+
+  <div class="controls">
+    <div class="group">
+      <button id="btnDaily">📅 Daily</button>
+      <button id="btn7" class="secondary">7-day avg</button>
+      <button id="btn30" class="secondary">30-day avg</button>
+    </div>
+
+    <div class="group" style="align-items:center;">
+      <label for="startDate" class="small" style="margin-right:6px;">Start:</label>
+      <input type="date" id="startDate">
+      <label for="endDate" class="small" style="margin-left:8px; margin-right:6px;">End:</label>
+      <input type="date" id="endDate">
+      <button id="btnRange">📈 Range avg</button>
+    </div>
+  </div>
+
+  <div id="message" role="status" aria-live="polite"></div>
+
+  <div id="result" hidden>
+    <h3 id="periodTitle">Period</h3>
+    <div id="summaryRow" class="row"></div>
+    <div class="small" id="meta"></div>
+  </div>
+
+  <script>
+    const ENDPOINTS = {
+      daily: "/statistics/daily",
+      avg7: "/statistics/average/7days",
+      avg30: "/statistics/average/30days",
+      avgByDate: "/statistics/averageByDate"
+    };
+
+    const messageEl = document.getElementById("message");
+    const resultEl = document.getElementById("result");
+    const summaryRow = document.getElementById("summaryRow");
+    const periodTitle = document.getElementById("periodTitle");
+    const metaEl = document.getElementById("meta");
+
+    const btnDaily = document.getElementById("btnDaily");
+    const btn7 = document.getElementById("btn7");
+    const btn30 = document.getElementById("btn30");
+    const btnRange = document.getElementById("btnRange");
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
+
+    function setLoading(isLoading) {
+      [btnDaily, btn7, btn30, btnRange].forEach(b => b.disabled = isLoading);
+      messageEl.textContent = isLoading ? "Loading..." : "";
+    }
+
+    const LABELS = {
+      averageKcal: "Kcal",
+      averageFat: "Fat (g)",
+      averageSatFat: "Sat Fat (g)",
+      averageCarbs: "Carbs (g)",
+      averageSugar: "Sugars (g)",
+      averageProtein: "Protein (g)",
+      averageDairyProtein: "Dairy Prot (g)",
+      averageAnimalProtein: "Animal Prot (g)",
+      averagePlantProtein: "Plant Prot (g)",
+      averageSalt: "Salt (mg)",
+      averageCost: "Cost (€)",
+      averageProducts: "Products (count)"
+    };
+
+    function renderAverages(payload) {
+      summaryRow.innerHTML = "";
+      const order = [
+        "averageKcal","averageProtein","averageFat","averageCarbs","averageSugar",
+        "averageSatFat","averageSalt","averageCost","averageProducts",
+        "averageDairyProtein","averageAnimalProtein","averagePlantProtein"
+      ];
+
+      order.forEach(key => {
+        if (payload[key] === undefined) return;
+        const div = document.createElement("div");
+        div.className = "stat";
+        const label = LABELS[key] || key;
+        let value = payload[key];
+
+        // Return 0 if nothing retrieved from DB
+        if (value === null || value === undefined) {
+          value = 0;
+        }
+
+        value = typeof value === "number" ? Number(value).toFixed(key === "averageCost" ? 2 : 1) : value;
+        div.innerHTML = `<h4>${label}</h4><p>${value}</p>`;
+        summaryRow.appendChild(div);
+      });
+
+      metaEl.textContent = `Period: ${payload.period ?? "—"}`;
+      resultEl.hidden = false;
+    }
+
+    async function callApi(url, opts = {}) {
+      setLoading(true);
+      messageEl.textContent = "";
+      try {
+        const res = await fetch(url, {
+          method: "GET",
+          credentials: "include",
+          ...opts
+        });
+
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          const msg = (data && (data.detail || data.message || data.error)) || `HTTP ${res.status}`;
+          messageEl.textContent = msg;
+          resultEl.hidden = true;
+          return;
+        }
+
+        renderAverages(data);
+      } catch (err) {
+        console.error(err);
+        messageEl.textContent = "Network error — cannot reach server.";
+        resultEl.hidden = true;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    btnDaily.addEventListener("click", () => {
+      periodTitle.textContent = "Daily statistics";
+      callApi(ENDPOINTS.daily);
+    });
+
+    btn7.addEventListener("click", () => {
+      periodTitle.textContent = "Average — last 7 days";
+      callApi(ENDPOINTS.avg7);
+    });
+
+    btn30.addEventListener("click", () => {
+      periodTitle.textContent = "Average — last 30 days";
+      callApi(ENDPOINTS.avg30);
+    });
+
+    btnRange.addEventListener("click", () => {
+      const s = startDateInput.value;
+      const e = endDateInput.value;
+      messageEl.textContent = "";
+      resultEl.hidden = true;
+
+      if (!s || !e) {
+        messageEl.textContent = "Please pick both start and end dates.";
+        return;
+      }
+
+      const start = new Date(s);
+      const end = new Date(e);
+
+      if (start > end) {
+        messageEl.textContent = "Start date cannot be after end date.";
+        return;
+      }
+
+      const body = {
+        startDate: s,
+        endDate: e
+      };
+
+      periodTitle.textContent = `Average — ${s} → ${e}`;
+
+      setLoading(true);
+      fetch(ENDPOINTS.avgByDate, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body)
+      })
+      .then(res => res.json().catch(() => null).then(data => ({ res, data })))
+      .then(({ res, data }) => {
+        if (!res.ok) {
+          const msg = (data && (data.detail || data.message || data.error)) || `HTTP ${res.status}`;
+          messageEl.textContent = msg;
+          resultEl.hidden = true;
+          return;
+        }
+        renderAverages(data);
+      })
+      .catch(err => {
+        console.error(err);
+        messageEl.textContent = "Network error — cannot reach server.";
+        resultEl.hidden = true;
+      })
+      .finally(() => setLoading(false));
+    });
+
+    (function setDefaultDates() {
+      const today = new Date();
+      const prior = new Date();
+      prior.setDate(today.getDate() - 7);
+      endDateInput.valueAsDate = today;
+      startDateInput.valueAsDate = prior;
+    })();
+  </script>
+</body>
+</html>

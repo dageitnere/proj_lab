@@ -12,7 +12,7 @@ class Product(Base):
     carbs = Column(Float, nullable=False, default=0.0)
     sugars = Column(Float, nullable=False, default=0.0)
     protein = Column(Float, nullable=False, default=0.0)
-    salt = Column(BigInteger, nullable=False, default=0)
+    salt = Column(Float, nullable=False, default=0)
     price1kg = Column(Float, nullable=False, default=0.0)
     price100g = Column(Float, nullable=False, default=0.0)
     vegan = Column(Boolean, nullable=False, default=False)

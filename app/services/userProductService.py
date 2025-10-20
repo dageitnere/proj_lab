@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from app.dependencies.scrapeNutriotionValue import get_product_data_from_url
+from app.models.products import Product
 from app.models.userProducts import UserProduct
 from app.schemas.requests.addUserProductByNutritionValueRequest import AddUserProductByNutritionValueUrlRequest
 from app.schemas.requests.addUserProductByRimiUrlRequest import AddUserProductByRimiUrlRequest
@@ -27,22 +29,34 @@ def get_user_products_names(db: Session, userUuid: int):
     return {"products": names}
 
 def add_user_product(db: Session, request: AddUserProductRequest, userUuid: int) -> UserProduct:
-    # Check if product name already exists (case-insensitive)
-    existing = (
+    product_name = request.productName.strip()
+
+    existing_user = (
         db.query(UserProduct)
         .filter(UserProduct.userUuid == userUuid)
-        .filter(UserProduct.productName.ilike(request.productName.strip()))
+        .filter(UserProduct.productName.ilike(product_name))
         .first()
     )
-    if existing:
+
+    existing_global = (
+        db.query(Product)
+        .filter(Product.productName.ilike(product_name))
+        .first()
+    )
+
+    if existing_user or existing_global:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Product '{request.productName}' already exists in your list."
+            status_code=400,
+            detail=f"Product '{product_name}' already exists in your list or in the global products."
         )
+
+    # Calculate price100g from price1kg
+    price1kg = zero_if_none(request.price1kg)
+    price100g = round(price1kg / 10, 2) if price1kg > 0 else 0
 
     new_product = UserProduct(
         userUuid=userUuid,
-        productName=request.productName.strip(),
+        productName=request.productName.strip().title(),
         kcal=zero_if_none(request.kcal),
         fat=zero_if_none(request.fat),
         satFat=zero_if_none(request.satFat),
@@ -53,8 +67,8 @@ def add_user_product(db: Session, request: AddUserProductRequest, userUuid: int)
         animalProt=zero_if_none(request.animalProt),
         plantProt=zero_if_none(request.plantProt),
         salt=zero_if_none(request.salt),
-        price1kg=zero_if_none(request.price1kg),
-        price100g=zero_if_none(request.price100g),
+        price1kg=price1kg,
+        price100g=price100g,
         vegan=request.vegan or False,
         vegetarian=request.vegetarian or False,
         dairyFree=request.dairyFree or False
@@ -90,10 +104,10 @@ def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRe
     # --- Scrape product data ---
     scraped = scrape_rimi_product(request.url, mass_g=request.mass_g)
     print(f"Scraped data: {scraped}")
-    if not scraped:
+    if not scraped or "error" in scraped:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Failed to scrape the product. Please check the URL."
+            detail=f"Failed to scrape product data from the URL: {scraped.get('error', 'Unknown error')}"
         )
 
     # --- Use scraped name if not provided ---
@@ -108,13 +122,13 @@ def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRe
     existing = (
         db.query(UserProduct)
         .filter(UserProduct.userUuid == userUuid)
-        .filter(UserProduct.productName.ilike(product_name))
+        .filter(UserProduct.URL.ilike(request.url.strip()))
         .first()
     )
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Product '{product_name}' already exists in your list."
+            detail=f"Product already exists in your list: '{existing.productName}'."
         )
 
     # --- Handle protein assignment ---
@@ -136,7 +150,7 @@ def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRe
     # --- Create new product ---
     new_product = UserProduct(
         userUuid=userUuid,
-        productName=product_name,
+        productName=product_name.strip().title(),
         kcal=zero_if_none(scraped.get("kcal")),
         fat=zero_if_none(scraped.get("fat")),
         satFat=zero_if_none(scraped.get("satFat")),
@@ -151,7 +165,8 @@ def add_user_product_by_rimi_url(db: Session, request: AddUserProductByRimiUrlRe
         price100g=zero_if_none(scraped.get("price100g")),
         vegan=request.vegan or False,
         vegetarian=request.vegetarian or False,
-        dairyFree=request.dairyFree or False
+        dairyFree=request.dairyFree or False,
+        URL = request.url.strip()
     )
 
     db.add(new_product)
@@ -186,13 +201,13 @@ def add_user_product_by_nutrition_value_url(db: Session, request: AddUserProduct
     existing = (
         db.query(UserProduct)
         .filter(UserProduct.userUuid == userUuid)
-        .filter(UserProduct.productName.ilike(product_name))
+        .filter(UserProduct.URL.ilike(request.url.strip()))
         .first()
     )
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Product '{product_name}' already exists in your list."
+            detail=f"Product already exists in your list: '{existing.productName}'."
         )
 
     # --- Handle price logic ---
@@ -203,7 +218,7 @@ def add_user_product_by_nutrition_value_url(db: Session, request: AddUserProduct
         if request.massPerUnit is None or request.massPerUnit <= 0 or price1kg is not None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="If pricePerUnit is provided, massPerUnit must also be specified and greater than 0, furhtermore - do not provide price per 1kg with price per unit."
+                detail="If price per unit is provided, mass per unit must also be specified and greater than 0, furthermore - do not provide price per 1kg with price per unit."
             )
 
         # Calculate price1kg and price100g based on massPerUnit (grams)
@@ -231,7 +246,7 @@ def add_user_product_by_nutrition_value_url(db: Session, request: AddUserProduct
     # --- Create and save new product ---
     new_product = UserProduct(
         userUuid=userUuid,
-        productName=product_name,
+        productName=product_name.strip().title(),
         kcal=zero_if_none(scraped.get("kcal")),
         fat=zero_if_none(scraped.get("fat")),
         satFat=zero_if_none(scraped.get("satFat")),
@@ -242,11 +257,12 @@ def add_user_product_by_nutrition_value_url(db: Session, request: AddUserProduct
         animalProt=animalProt,
         plantProt=plantProt,
         salt=zero_if_none(scraped.get("salt")),
-        price1kg=zero_if_none(price1kg),
-        price100g=zero_if_none(price100g),
+        price1kg=round(zero_if_none(price1kg), 2),
+        price100g=round(zero_if_none(price100g), 2),
         vegan=request.vegan,
         vegetarian=request.vegetarian,
-        dairyFree=request.dairyFree
+        dairyFree=request.dairyFree,
+        URL = request.url.strip()
     )
 
     db.add(new_product)

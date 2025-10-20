@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List
 
 class UserConsumedProductResponse(BaseModel):
+    id: int
     productName: str
     amount: float
     kcal: float

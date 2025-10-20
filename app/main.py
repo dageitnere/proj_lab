@@ -88,6 +88,14 @@ app.include_router(statisticsRouter.statistics, prefix="/statistics", tags=["sta
 app.include_router(userRouter.router, prefix="/auth", tags=["auth"])
 app.include_router(recipeRouter.recipes, prefix="/recipes", tags=["recipes"])
 
+
+# --- Catch-all route for unmatched URLs ---
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str, request: Request):
+    tok = request.cookies.get(COOKIE)
+    # Redirect based on auth state
+    return RedirectResponse("/mainPage" if tok else "/auth/login")
+
 # testesanai - lai izvada hashotu paroli, kas registracija saglabatos db
 #from passlib.context import CryptContext
 #pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")

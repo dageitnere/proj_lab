@@ -50,5 +50,5 @@ def register(request: RegisterInRequest, db: Session = Depends(get_db)):
 @router.post("/logout")
 def logout():
     resp = JSONResponse({"ok": True, "message": "logged out"})
-    resp.delete_cookie("access_token", path="/")
+    resp.delete_cookie(COOKIE, path="/")
     return resp

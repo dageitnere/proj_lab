@@ -49,7 +49,23 @@ def get_daily_statistics(db: Session, userUuid: int) -> UserStatisticsResponse:
     ).all()
 
     if not products:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products consumed today.")
+        # Return zeros instead of raising exception
+        averages = {
+            "averageKcal": 0.0,
+            "averageFat": 0.0,
+            "averageSatFat": 0.0,
+            "averageCarbs": 0.0,
+            "averageSugar": 0.0,
+            "averageProtein": 0.0,
+            "averageDairyProtein": 0.0,
+            "averageAnimalProtein": 0.0,
+            "averagePlantProtein": 0.0,
+            "averageSalt": 0.0,
+            "averageCost": 0.0,
+            "averageProducts": 0
+        }
+        averages["period"] = "Today"
+        return UserStatisticsResponse(**averages)
 
     averages = _sum_consumed(products)
     averages["period"] = "Today"
@@ -66,7 +82,23 @@ def get_average_last_7_days(db: Session, userUuid: int) -> UserStatisticsRespons
     ).all()
 
     if not products:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products consumed in the last 7 days.")
+        # Return zeros instead of raising exception
+        averages = {
+            "averageKcal": 0.0,
+            "averageFat": 0.0,
+            "averageSatFat": 0.0,
+            "averageCarbs": 0.0,
+            "averageSugar": 0.0,
+            "averageProtein": 0.0,
+            "averageDairyProtein": 0.0,
+            "averageAnimalProtein": 0.0,
+            "averagePlantProtein": 0.0,
+            "averageSalt": 0.0,
+            "averageCost": 0.0,
+            "averageProducts": 0
+        }
+        averages["period"] = "Last 7 days"
+        return UserStatisticsResponse(**averages)
 
     sums = _sum_consumed(products)
     # divide all by 7 for daily averages
@@ -85,14 +117,29 @@ def get_average_last_30_days(db: Session, userUuid: int) -> UserStatisticsRespon
     ).all()
 
     if not products:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products consumed in the last 30 days.")
+        # Return zeros instead of raising exception
+        averages = {
+            "averageKcal": 0.0,
+            "averageFat": 0.0,
+            "averageSatFat": 0.0,
+            "averageCarbs": 0.0,
+            "averageSugar": 0.0,
+            "averageProtein": 0.0,
+            "averageDairyProtein": 0.0,
+            "averageAnimalProtein": 0.0,
+            "averagePlantProtein": 0.0,
+            "averageSalt": 0.0,
+            "averageCost": 0.0,
+            "averageProducts": 0
+        }
+        averages["period"] = "Last 30 days"
+        return UserStatisticsResponse(**averages)
 
     sums = _sum_consumed(products)
     # divide all by 30 for daily averages
     averages = {k: round((v / 30), 2) for k, v in sums.items()}
     averages["period"] = "Last 30 days"
     return UserStatisticsResponse(**averages)
-
 
 
 def get_average_by_date(db: Session, request: GetUserStatisticsByDateRequest, userUuid: int) -> UserStatisticsResponse:
@@ -116,10 +163,23 @@ def get_average_by_date(db: Session, request: GetUserStatisticsByDateRequest, us
     ).all()
 
     if not products:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No products found for the selected date range."
-        )
+        # Return zeros instead of raising exception
+        averages = {
+            "averageKcal": 0.0,
+            "averageFat": 0.0,
+            "averageSatFat": 0.0,
+            "averageCarbs": 0.0,
+            "averageSugar": 0.0,
+            "averageProtein": 0.0,
+            "averageDairyProtein": 0.0,
+            "averageAnimalProtein": 0.0,
+            "averagePlantProtein": 0.0,
+            "averageSalt": 0.0,
+            "averageCost": 0.0,
+            "averageProducts": 0
+        }
+        averages["period"] = f"{request.startDate.date()} - {request.endDate.date()}"
+        return UserStatisticsResponse(**averages)
 
     # Calculate sums and averages
     sums = _sum_consumed(products)

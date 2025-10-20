@@ -17,6 +17,6 @@ class UserProductBase(BaseModel):
     salt: float
     price1kg: float
     price100g: float
-
+    URL: Optional[str] = None
 
 UserProductsListResponse = List[UserProductBase]

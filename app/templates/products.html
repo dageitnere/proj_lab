@@ -2,6 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <div class="control-section">
+                <div class="control-group">
+                    <a href="/mainPage">
+                        <button>Go to Main Page</button>
+                    </a>
+                </div>
+            </div>
     <title>Products Table</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
@@ -18,38 +25,38 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Produkts</th>
+                <th>Product</th>
                 <th>Kcal</th>
-                <th>Tauki</th>
-                <th>Piesat. Tauki</th>
-                <th>Oglh.</th>
-                <th>Cukuri</th>
-                <th>Olb.v</th>
-                <th>Piena Olb.v</th>
-                <th>Dziv Olb.v</th>
-                <th>Augu Olb.v</th>
-                <th>Sals</th>
-                <th>Cena 1kg</th>
-                <th>Cena 100g</th>
+                <th>Fats</th>
+                <th>Saturated Fats</th>
+                <th>Carbs</th>
+                <th>Sugars</th>
+                <th>Protein</th>
+                <th>Dairy Protein</th>
+                <th>Animal Protein</th>
+                <th>Plant Protein</th>
+                <th>Salt</th>
+                <th>Price 1kg</th>
+                <th>Price 100g</th>
             </tr>
         </thead>
         <tbody>
             {% for p in products %}
             <tr>
                 <td>{{ p.id }}</td>
-                <td>{{ p.produkts }}</td>
+                <td>{{ p.productName }}</td>
                 <td>{{ p.kcal }}</td>
-                <td>{{ p.tauki }}</td>
-                <td>{{ p.piesatTauki }}</td>
-                <td>{{ p.oglh }}</td>
-                <td>{{ p.cukuri }}</td>
-                <td>{{ p.olbv }}</td>
-                <td>{{ p.pienaOlbv }}</td>
-                <td>{{ p.dzivOlbv }}</td>
-                <td>{{ p.auguOlbv }}</td>
-                <td>{{ p.sals }}</td>
-                <td>{{ p.cena1kg }}</td>
-                <td>{{ p.cena100g }}</td>
+                <td>{{ p.fat }}</td>
+                <td>{{ p.satFat }}</td>
+                <td>{{ p.carbs }}</td>
+                <td>{{ p.sugars }}</td>
+                <td>{{ p.protein }}</td>
+                <td>{{ p.dairyProt }}</td>
+                <td>{{ p.animalProt }}</td>
+                <td>{{ p.plantProt }}</td>
+                <td>{{ p.salt }}</td>
+                <td>{{ p.price1kg }}</td>
+                <td>{{ p.price100g }}</td>
             </tr>
             {% endfor %}
         </tbody>

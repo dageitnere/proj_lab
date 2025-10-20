@@ -35,7 +35,7 @@ def add_consumed_product(db: Session, request: AddUserConsumedProductRequest, us
 
     new_entry = UserConsumedProduct(
         userUuid=userUuid,
-        productName=request.productName.strip(),
+        productName=request.productName.strip().title(),
         amount=request.amount,
         kcal=product.kcal * factor,
         fat=product.fat * factor,
@@ -48,7 +48,7 @@ def add_consumed_product(db: Session, request: AddUserConsumedProductRequest, us
         plantProtein=product.plantProt * factor,
         salt=product.salt * factor,
         cost=product.price100g * factor,
-        date=datetime.now()
+        date=request.date if request.date else datetime.now()
     )
 
     db.add(new_entry)
@@ -84,6 +84,7 @@ def _map_to_response(products) -> UserConsumedProductListResponse:
     """Helper: Convert ORM list -> Pydantic response list"""
     return [
         UserConsumedProductResponse(
+            id = p.id,
             productName=p.productName,
             amount=p.amount,
             kcal=p.kcal,
