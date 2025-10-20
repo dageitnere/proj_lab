@@ -1,17 +1,200 @@
 <!DOCTYPE html>
-<html lang="lv">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Lietotāja Produkti</title>
+    <title>User Products</title>
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
+            margin: 0;
+            padding: 20px;
             background-color: #f5f5f5;
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
         h1 {
-            text-align: center;
             color: #333;
+            margin: 0;
+        }
+        .back {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 14px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .back:hover {
+            background-color: #45a049;
+        }
+        .warning-banner {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #856404;
+        }
+        .warning-banner.hidden {
+            display: none;
+        }
+        .warning-banner button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #856404;
+            padding: 0;
+            margin-left: 10px;
+        }
+        .warning-banner button:hover {
+            color: #000;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-bottom: 3px solid transparent;
+            color: #666;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            color: #2196F3;
+            border-bottom-color: #2196F3;
+        }
+        .tab-btn:hover {
+            color: #333;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .form-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="checkbox"], input[type="radio"] {
+            width: auto;
+        }
+        button[type="submit"] {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button[type="submit"]:hover {
+            background-color: #0b7dda;
+        }
+        button[type="submit"]:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .message {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+            position: relative;
+        }
+        .message.show {
+            display: block;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message.persistent {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .message.persistent.show {
+            display: flex;
+        }
+        .message.persistent button {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 10px;
+            color: inherit;
+        }
+        .message.persistent button:hover {
+            opacity: 0.7;
         }
         table {
             width: 100%;
@@ -20,86 +203,565 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         th, td {
-            border: 1px solid #ccc;
-            padding: 8px 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
             text-align: left;
+            font-size: 13px;
         }
         th {
-            background-color: #eee;
+            background-color: #f0f0f0;
+            font-weight: bold;
+            color: #333;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-        .meta {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 18px;
-            color: #555;
+        tr:hover {
+            background-color: #f0f0f0;
         }
-        .back {
-            display: inline-block;
-            margin-bottom: 20px;
-            background-color: #4CAF50;
+        .delete-btn {
+            background-color: #f44336;
             color: white;
-            padding: 8px 14px;
-            text-decoration: none;
-            border-radius: 5px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s;
         }
-        .back:hover {
-            background-color: #45a049;
+        .delete-btn:hover {
+            background-color: #da190b;
+        }
+        .protein-btn {
+            background-color: #e0e0e0;
+            color: #333;
+            padding: 8px 16px;
+            border: 2px solid #999;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .protein-btn:hover {
+            background-color: #d0d0d0;
+        }
+        .protein-btn.active {
+            background-color: #2196F3;
+            color: white;
+            border-color: #2196F3;
+        }
+        .empty-msg {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <a class="back" href="http://localhost:8000/mainPage">← Atpakaļ</a>
-    <h1>Lietotāja Produktu Saraksts</h1>
-    <div class="meta">
-        Lietotāja UUID: {{ request.path_params.userUuid }}
+    <div class="warning-banner hidden" id="warningBanner">
+        <span id="warningText">Warning: Products failed to load. Please check your connection.</span>
+        <button onclick="closeWarning()">&times;</button>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Produkts</th>
-                <th>Kcal</th>
-                <th>Tauki</th>
-                <th>Piesāt. tauki</th>
-                <th>Oglhidrāti</th>
-                <th>Cukuri</th>
-                <th>Olbaltumvielas</th>
-                <th>Piena olb.v.</th>
-                <th>Dzīv. olb.v.</th>
-                <th>Augu olb.v.</th>
-                <th>Sāls</th>
-                <th>Cena (1kg)</th>
-                <th>Cena (100g)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if products %}
-                {% for p in products %}
-                <tr>
-                    <td>{{ p.id }}</td>
-                    <td>{{ p.produkts }}</td>
-                    <td>{{ p.kcal }}</td>
-                    <td>{{ p.tauki }}</td>
-                    <td>{{ p.piesatTauki }}</td>
-                    <td>{{ p.oglh }}</td>
-                    <td>{{ p.cukuri }}</td>
-                    <td>{{ p.olbv }}</td>
-                    <td>{{ p.pienaOlbv }}</td>
-                    <td>{{ p.dzivOlbv }}</td>
-                    <td>{{ p.auguOlbv }}</td>
-                    <td>{{ p.sals }}</td>
-                    <td>{{ p.cena1kg }}</td>
-                    <td>{{ p.cena100g }}</td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr><td colspan="14" style="text-align:center; color:#999;">Nav atrastu produktu šim lietotājam.</td></tr>
-            {% endif %}
-        </tbody>
-    </table>
+    <div class="header">
+        <h1>User Products List</h1>
+        <a class="back" href="/">← Main Page</a>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="products">Products</button>
+        <button class="tab-btn" data-tab="manual">Add Manually</button>
+        <button class="tab-btn" data-tab="rimi">Add from Rimi</button>
+        <button class="tab-btn" data-tab="nutrition">Add from NutritionValue</button>
+    </div>
+
+    <!-- PRODUCTS TAB -->
+    <div id="products" class="tab-content active">
+        <div class="form-section">
+            <div id="productsList"></div>
+        </div>
+    </div>
+
+    <!-- MANUAL ADD TAB -->
+    <div id="manual" class="tab-content">
+        <div class="form-section">
+            <h2>Add Product Manually</h2>
+            <div id="manualMessage" class="message"></div>
+            <form id="manualForm">
+                <div class="form-group">
+                    <div>
+                        <label>Product Name *</label>
+                        <input type="text" name="productName" required>
+                    </div>
+                    <div>
+                        <label>Kcal</label>
+                        <input type="number" name="kcal" step="0.1" min="0">
+                    </div>
+                    <div>
+                        <label>Fat (g)</label>
+                        <input type="number" name="fat" step="0.1" min="0">
+                    </div>
+                    <div>
+                        <label>Saturated Fat (g)</label>
+                        <input type="number" name="satFat" step="0.1" min="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div>
+                        <label>Carbs (g)</label>
+                        <input type="number" name="carbs" step="0.1" min="0">
+                    </div>
+                    <div>
+                        <label>Sugars (g)</label>
+                        <input type="number" name="sugars" step="0.1" min="0">
+                    </div>
+                    <div>
+                        <label>Protein (g)</label>
+                        <input type="number" name="protein" step="0.1" min="0">
+                    </div>
+                    <div>
+                        <label>Salt (mg)</label>
+                        <input type="number" name="salt" step="0.1" min="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div>
+                        <label>Price per 1kg (€)</label>
+                        <input type="number" name="price1kg" step="0.01" min="0" id="manualPrice1kg">
+                    </div>
+                </div>
+
+                <!-- ✅ Added Protein Type Selection -->
+                <div class="form-group">
+                    <label>Protein Type *</label>
+                    <div class="checkbox-group">
+                        <button type="button" class="protein-btn" data-type="dairy" data-form="manual">Dairy Protein</button>
+                        <button type="button" class="protein-btn" data-type="animal" data-form="manual">Animal Protein</button>
+                        <button type="button" class="protein-btn" data-type="plant" data-form="manual">Plant Protein</button>
+                    </div>
+                    <input type="hidden" name="proteinType" id="manualProteinType">
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="vegan" id="vegan">
+                            <label for="vegan" style="margin: 0;">Vegan</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="vegetarian" id="vegetarian">
+                            <label for="vegetarian" style="margin: 0;">Vegetarian</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="dairyFree" id="dairyFree">
+                            <label for="dairyFree" style="margin: 0;">Dairy Free</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit">Add Product</button>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- RIMI ADD TAB -->
+    <div id="rimi" class="tab-content">
+        <div class="form-section">
+            <h2>Add Product from Rimi</h2>
+            <div id="rimiMessage" class="message"></div>
+            <form id="rimiForm">
+                <div class="form-group">
+                    <div>
+                        <label>Rimi Product URL *</label>
+                        <input type="url" name="url" placeholder="https://www.rimi.lv/..." required>
+                    </div>
+                    <div>
+                        <label>Mass (g)</label>
+                        <input type="number" name="mass_g" step="1" min="1">
+                    </div>
+                    <div>
+                        <label>Product Name (optional)</label>
+                        <input type="text" name="productName">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Protein Type *</label>
+                    <div class="checkbox-group">
+                        <button type="button" class="protein-btn" data-type="dairy" data-form="rimi">Dairy Protein</button>
+                        <button type="button" class="protein-btn" data-type="animal" data-form="rimi">Animal Protein</button>
+                        <button type="button" class="protein-btn" data-type="plant" data-form="rimi">Plant Protein</button>
+                    </div>
+                    <input type="hidden" name="proteinType" id="rimiProteinType">
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="vegan" id="rimiVegan">
+                            <label for="rimiVegan" style="margin: 0;">Vegan</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="vegetarian" id="rimiVegetarian">
+                            <label for="rimiVegetarian" style="margin: 0;">Vegetarian</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="dairyFree" id="rimiDairyFree">
+                            <label for="rimiDairyFree" style="margin: 0;">Dairy Free</label>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit">Add from Rimi</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- NUTRITION VALUE ADD TAB -->
+    <div id="nutrition" class="tab-content">
+        <div class="form-section">
+            <h2>Add Product from NutritionValue</h2>
+            <div id="nutritionMessage" class="message"></div>
+            <form id="nutritionForm">
+                <div class="form-group">
+                    <div>
+                        <label>NutritionValue URL *</label>
+                        <input type="url" name="url" placeholder="https://www.nutritionvalue.org/..." required>
+                    </div>
+                    <div>
+                        <label>Product Name (optional)</label>
+                        <input type="text" name="productName">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Price Information</label>
+                    <div>
+                        <label>Price per 1kg (€)</label>
+                        <input type="number" name="price1kg" step="0.01" min="0">
+                    </div>
+                    <div>
+                        <label>Price per Unit (€)</label>
+                        <input type="number" name="pricePerUnit" step="0.01" min="0">
+                    </div>
+                    <div>
+                        <label>Mass per Unit (g)</label>
+                        <input type="number" name="massPerUnit" step="1" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Protein Type *</label>
+                    <div class="checkbox-group">
+                        <button type="button" class="protein-btn" data-type="dairy" data-form="nutrition">Dairy Protein</button>
+                        <button type="button" class="protein-btn" data-type="animal" data-form="nutrition">Animal Protein</button>
+                        <button type="button" class="protein-btn" data-type="plant" data-form="nutrition">Plant Protein</button>
+                    </div>
+                    <input type="hidden" name="proteinType" id="nutritionProteinType">
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="vegan" id="nutritionVegan">
+                            <label for="nutritionVegan" style="margin: 0;">Vegan</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="vegetarian" id="nutritionVegetarian">
+                            <label for="nutritionVegetarian" style="margin: 0;">Vegetarian</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="dairyFree" id="nutritionDairyFree">
+                            <label for="nutritionDairyFree" style="margin: 0;">Dairy Free</label>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit">Add from URL</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "/userProducts";
+
+        function showWarning(message) {
+            const banner = document.getElementById("warningBanner");
+            const text = document.getElementById("warningText");
+            text.textContent = message;
+            banner.classList.remove("hidden");
+        }
+
+        function closeWarning() {
+            document.getElementById("warningBanner").classList.add("hidden");
+        }
+
+        // Tab switching
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+                btn.classList.add("active");
+                document.getElementById(btn.dataset.tab).classList.add("active");
+            });
+        });
+
+        // Protein type button handler
+        document.querySelectorAll(".protein-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                const formType = btn.dataset.form;
+                const proteinType = btn.dataset.type;
+
+                // Deactivate all buttons for this form
+                document.querySelectorAll(`.protein-btn[data-form="${formType}"]`).forEach(b => {
+                    b.classList.remove("active");
+                });
+
+                // Activate clicked button
+                btn.classList.add("active");
+
+                // Set hidden input
+                const hiddenInput = document.getElementById(`${formType}ProteinType`);
+                if (hiddenInput) {
+                    hiddenInput.value = proteinType;
+                }
+            });
+        });
+
+        // Load products
+        async function loadProducts() {
+            try {
+                const res = await fetch(`${API_BASE}/getUserProducts`, { credentials: "include" });
+                if (!res.ok) {
+                    showWarning("Failed to load products. Server error.");
+                    document.getElementById("productsList").innerHTML = '<div class="empty-msg">Error loading products</div>';
+                    return;
+                }
+                const data = await res.json();
+                renderProducts(data || []);
+            } catch (err) {
+                console.error(err);
+                showWarning("Network error: Cannot reach server.");
+                document.getElementById("productsList").innerHTML = '<div class="empty-msg">Error loading products</div>';
+            }
+        }
+
+        function renderProducts(products) {
+            const container = document.getElementById("productsList");
+            if (products.length === 0) {
+                container.innerHTML = '<div class="empty-msg">No products</div>';
+                return;
+            }
+            let html = '<table><thead><tr><th>Name</th><th>Kcal</th><th>Fat</th><th>Carbs</th><th>Protein</th><th>Price (€)</th><th>URL</th><th>Actions</th></tr></thead><tbody>';
+            products.forEach(p => {
+                const escapedName = p.productName.replace(/'/g, "\\'");
+                const urlCell = p.URL
+                    ? `<a href="${p.URL}" target="_blank">Go to URL</a>`
+                    : 'No URL';
+
+                html += `
+                  <tr>
+                    <td>${p.productName}</td>
+                    <td>${p.kcal}</td>
+                    <td>${p.fat}</td>
+                    <td>${p.carbs}</td>
+                    <td>${p.protein}</td>
+                    <td>${p.price1kg || "-"}</td>
+                    <td>${urlCell}</td>
+                    <td><button class="delete-btn" onclick="deleteProduct('${escapedName}')">Delete</button></td>
+                  </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        async function deleteProduct(productName) {
+            if (!confirm(`Delete product "${productName}"?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/deleteUserProduct`, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ productName })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showWarning(`Product "${productName}" deleted successfully!`);
+                    loadProducts();
+                } else {
+                    showWarning(data.detail || "Error deleting product");
+                }
+            } catch (err) {
+                showWarning("Network error: " + err.message);
+            }
+        }
+
+        function showMessage(elementId, message, type, persistent = false) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `message show ${type}`;
+
+            if (persistent) {
+                el.classList.add("persistent");
+                el.innerHTML = `<span>${message}</span>
+                    <button onclick="this.parentElement.classList.remove('show'); this.parentElement.classList.remove('persistent')">&times;</button>`;
+            } else {
+                el.classList.remove("persistent");
+                setTimeout(() => el.classList.remove("show"), 4000);
+            }
+        }
+
+        // Manual form
+        document.getElementById("manualForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const payload = Object.fromEntries(formData);
+
+            // Check all required fields
+            const requiredFields = [
+                "productName", "kcal", "fat", "satFat", "carbs",
+                "sugars", "protein", "salt", "price1kg", "proteinType"
+            ];
+            const missingFields = requiredFields.filter(f => !payload[f] || payload[f].toString().trim() === "");
+            if (missingFields.length > 0) {
+                showMessage("manualMessage", `Please fill in all required fields: ${missingFields.join(", ")}`, "error", true);
+                return;
+            }
+
+            const proteinType = payload.proteinType;
+            payload.kcal = parseFloat(payload.kcal);
+            payload.fat = parseFloat(payload.fat);
+            payload.satFat = parseFloat(payload.satFat);
+            payload.carbs = parseFloat(payload.carbs);
+            payload.sugars = parseFloat(payload.sugars);
+            payload.protein = parseFloat(payload.protein);
+            payload.salt = parseFloat(payload.salt);
+            payload.price1kg = parseFloat(payload.price1kg);
+            payload.dairyProt = proteinType === "dairy";
+            payload.animalProt = proteinType === "animal";
+            payload.plantProt = proteinType === "plant";
+            payload.vegan = !!payload.vegan;
+            payload.vegetarian = !!payload.vegetarian;
+            payload.dairyFree = !!payload.dairyFree;
+
+            try {
+                const res = await fetch(`${API_BASE}/addUserProduct`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage("manualMessage", "Product added successfully!", "success");
+                    e.target.reset();
+                    // Reset protein buttons
+                    document.querySelectorAll(".protein-btn[data-form='manual']").forEach(b => b.classList.remove("active"));
+                    document.getElementById("manualProteinType").value = "";
+                    loadProducts();
+                } else {
+                    showMessage("manualMessage", data.detail || "Error", "error");
+                }
+            } catch (err) {
+                showMessage("manualMessage", "Network error: " + err.message, "error");
+            }
+        });
+
+        // Rimi form
+        document.getElementById("rimiForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const proteinType = document.getElementById("rimiProteinType").value;
+
+            if (!proteinType) {
+                showMessage("rimiMessage", "Please select a protein type", "error", true);
+                return;
+            }
+
+            const payload = {
+                url: formData.get("url"),
+                mass_g: parseInt(formData.get("mass_g")),
+                productName: formData.get("productName") || "",
+                dairyProtein: proteinType === "dairy",
+                animalProtein: proteinType === "animal",
+                plantProtein: proteinType === "plant",
+                vegan: !!formData.get("vegan"),
+                vegetarian: !!formData.get("vegetarian"),
+                dairyFree: !!formData.get("dairyFree")
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/addUserProductUrlRimi`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage("rimiMessage", "Product added from Rimi!", "success");
+                    e.target.reset();
+                    document.querySelectorAll(".protein-btn[data-form='rimi']").forEach(b => b.classList.remove("active"));
+                    document.getElementById("rimiProteinType").value = "";
+                    loadProducts();
+                } else {
+                    showMessage("rimiMessage", data.detail || "Error", "error", true);
+                }
+            } catch (err) {
+                showMessage("rimiMessage", "Network error: " + err.message, "error", true);
+            }
+        });
+
+        // Nutrition form
+        document.getElementById("nutritionForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const proteinType = document.getElementById("nutritionProteinType").value;
+
+            if (!proteinType) {
+                showMessage("nutritionMessage", "Please select a protein type", "error");
+                return;
+            }
+
+            const payload = {
+                url: formData.get("url"),
+                productName: formData.get("productName") || "",
+                price1kg: formData.get("price1kg") ? parseFloat(formData.get("price1kg")) : null,
+                pricePerUnit: formData.get("pricePerUnit") ? parseFloat(formData.get("pricePerUnit")) : null,
+                massPerUnit: formData.get("massPerUnit") ? parseInt(formData.get("massPerUnit")) : null,
+                dairyProtein: proteinType === "dairy",
+                animalProtein: proteinType === "animal",
+                plantProtein: proteinType === "plant",
+                vegan: !!formData.get("vegan"),
+                vegetarian: !!formData.get("vegetarian"),
+                dairyFree: !!formData.get("dairyFree")
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/addUserProductUrlNutritionValue`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage("nutritionMessage", "Product added!", "success");
+                    e.target.reset();
+                    document.querySelectorAll(".protein-btn[data-form='nutrition']").forEach(b => b.classList.remove("active"));
+                    document.getElementById("nutritionProteinType").value = "";
+                    loadProducts();
+                } else {
+                    showMessage("nutritionMessage", data.detail || "Error", "error", true);
+                }
+            } catch (err) {
+                showMessage("nutritionMessage", "Network error: " + err.message, "error");
+            }
+        });
+
+        // Load products on page load
+        loadProducts();
+    </script>
 </body>
 </html>

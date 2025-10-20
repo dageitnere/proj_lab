@@ -104,11 +104,27 @@
     .error-box li { color: #d00; margin: 5px 0; }
     .error-box button { background-color: #f44; margin-top: 10px; }
     .error-box button:hover { background-color: #c00; }
+    #saveMenuContainer {
+      margin-top: 20px;
+    }
+    #menuName {
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="main-content">
+        <div class="control-section">
+                <div class="control-group">
+                    <a href="/mainPage">
+                        <button>Go to Main Page</button>
+                    </a>
+                </div>
+            </div>
       <h1>Generate Diet Menu</h1>
 
       <div id="errorBox" class="error-box">
@@ -139,6 +155,14 @@
         <button type="submit">Generate Menu</button>
       </form>
 
+      <!-- Save Menu Section -->
+      <div id="saveMenuContainer">
+        <label for="menuName"><strong>Menu Name:</strong></label>
+        <input type="text" id="menuName" placeholder="Enter menu name" required>
+        <button type="button" id="saveMenuBtn">💾 Save Menu</button>
+        <div id="saveWarning" class="warning" style="margin-top:5px;"></div>
+      </div>
+
       <h3>Result</h3>
       <div id="summary"></div>
       <table id="resultTable">
@@ -164,10 +188,29 @@
         <tbody></tbody>
       </table>
     </div>
+    <div class="products-table">
+      <h3>Your Own Products</h3>
+      <table id="userProductsTable">
+        <thead>
+          <tr>
+            <th>Product Name</th><th>Product Name</th><th>Product Name</th><th>Product Name</th>
+            <th>Product Name</th><th>Product Name</th><th>Product Name</th><th>Product Name</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
     let productNames = [];
+    let userProductNames = [];
+    let allProductNames = [];
+    let lastResult = null;
+
+    function updateAllProductNames() {
+      allProductNames = [...new Set([...productNames, ...userProductNames])];
+    }
 
     async function loadProductNames() {
       try {
@@ -175,6 +218,7 @@
         const data = await res.json();
         productNames = data.products || [];
         renderProductsTable();
+        updateAllProductNames();
       } catch (err) {
         const tbody = document.getElementById("productsTable").querySelector("tbody");
         tbody.innerHTML = '<tr><td colspan="8">Error loading products</td></tr>';
@@ -203,6 +247,42 @@
     }
 
     loadProductNames();
+
+    async function loadUserProducts() {
+      try {
+        const res = await fetch("/userProducts/userProductsNames");
+        const data = await res.json();
+        userProductNames = data.products || [];
+        renderUserProductsTable();
+        updateAllProductNames();
+      } catch (err) {
+        const tbody = document.getElementById("userProductsTable").querySelector("tbody");
+        tbody.innerHTML = '<tr><td colspan="8">Error loading user products</td></tr>';
+      }
+    }
+
+    function renderUserProductsTable() {
+      const tbody = document.getElementById("userProductsTable").querySelector("tbody");
+      tbody.innerHTML = "";
+      if (!userProductNames.length) {
+        tbody.innerHTML = '<tr><td colspan="8">No user products</td></tr>';
+        return;
+      }
+      const numColumns = 8;
+      const numRows = Math.ceil(userProductNames.length / numColumns);
+      for (let row = 0; row < numRows; row++) {
+        const tr = document.createElement("tr");
+        for (let col = 0; col < numColumns; col++) {
+          const index = row + col * numRows;
+          const td = document.createElement("td");
+          td.textContent = userProductNames[index] || "";
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    loadUserProducts();
 
     document.getElementById("addRestriction").addEventListener("click", () => {
       const container = document.createElement("div");
@@ -246,7 +326,7 @@
       function showSuggestions(input, suggestionsDiv) {
         const query = input.value.trim().toLowerCase();
         suggestionsDiv.innerHTML = "";
-        const matches = query ? productNames.filter(p => p.toLowerCase().includes(query)) : productNames;
+        const matches = query ? allProductNames.filter(p => p.toLowerCase().includes(query)) : allProductNames;
         matches.slice(0, 10).forEach(name => {
           const div = document.createElement("div");
           div.textContent = name;
@@ -274,7 +354,7 @@
       const restrictionElements = Array.from(document.querySelectorAll(".restriction"));
       const restrictions = restrictionElements.map(r => {
         const type = r.querySelector('[name="type"]').value;
-        const product = r.querySelector('[name="product"]').value.trim();
+        const product = r.querySelector('[name="product"]').value.trim().toLowerCase();
         const value = r.querySelector('[name="value"]').value;
         const restriction = { type, product };
         if (type !== "exclude" && value) restriction.value = parseFloat(value);
@@ -302,12 +382,12 @@
       });
 
       const result = await res.json();
+      lastResult = result;  // Save last result for saving
 
       const errorBox = document.getElementById('errorBox');
       const errorMessage = document.getElementById('errorMessage');
       const errorList = document.getElementById('errorList');
 
-      // Backend error
       if (result.error) {
         errorMessage.textContent = result.error;
         errorList.innerHTML = '';
@@ -316,7 +396,6 @@
         return;
       }
 
-      // Invalid products
       if (result.status === "InvalidProducts" && result.invalidProducts?.length) {
         errorMessage.textContent = 'The following products were not found in the database:';
         errorList.innerHTML = '';
@@ -368,15 +447,15 @@
       result.plan.forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${item.product}</td>
+          <td>${item.productName}</td>
           <td>${item.grams.toFixed(1)}</td>
           <td>${item.kcal.toFixed(1)}</td>
           <td>${item.cost.toFixed(2)}</td>
           <td>${item.fat.toFixed(1)}</td>
           <td>${item.carbs.toFixed(1)}</td>
           <td>${item.protein.toFixed(1)}</td>
-          <td>${item.sugar.toFixed(1)}</td>
-          <td>${item.sat_fat.toFixed(1)}</td>
+          <td>${item.sugars.toFixed(1)}</td>
+          <td>${item.satFat.toFixed(1)}</td>
           <td>${item.salt.toFixed(1)}</td>
         `;
         tbody.appendChild(row);
@@ -384,6 +463,65 @@
 
       table.style.display = "table";
     }
+
+        // --- Save Menu Button ---
+    document.getElementById("saveMenuBtn").addEventListener("click", async () => {
+      const menuNameInput = document.getElementById("menuName");
+      const menuName = menuNameInput.value.trim();
+      const saveWarning = document.getElementById("saveWarning");
+      saveWarning.textContent = ""; // reset
+
+      if (!menuName) {
+        saveWarning.textContent = "⚠ Please enter a menu name before saving.";
+        return;
+      }
+
+      if (!lastResult || !lastResult.plan || lastResult.plan.length === 0) {
+        saveWarning.textContent = "⚠ No generated menu to save.";
+        return;
+      }
+
+      const body = {
+        name: menuName,
+        totalKcal: lastResult.totalKcal,
+        totalCost: lastResult.totalCost,
+        totalFat: lastResult.totalFat,
+        totalCarbs: lastResult.totalCarbs,
+        totalProtein: lastResult.totalProtein,
+        totalDairyProtein: lastResult.totalDairyProtein || 0,
+        totalAnimalProtein: lastResult.totalAnimalProtein || 0,
+        totalPlantProtein: lastResult.totalPlantProtein || 0,
+        totalSugar: lastResult.totalSugar,
+        totalSatFat: lastResult.totalSatFat,
+        totalSalt: lastResult.totalSalt,
+        plan: lastResult.plan
+      };
+
+      try {
+        const res = await fetch("/menu/saveMenu", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          saveWarning.textContent = `⚠ ${data.detail || "Error saving menu"}`;
+          return;
+        }
+
+        saveWarning.style.color = "green";
+        saveWarning.textContent = "✅ Menu saved successfully!";
+        setTimeout(() => { saveWarning.textContent = ""; saveWarning.style.color = "red"; }, 3000);
+      } catch (err) {
+        console.error(err);
+        saveWarning.textContent = "⚠ Error saving menu. Check console.";
+      }
+    });
+
+
+
+
   </script>
 </body>
 </html>

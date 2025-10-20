@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumed Products Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-section {
+            margin-bottom: 20px;
+        }
+
+        .control-section h3 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        button {
+            padding: 10px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"] {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .quick-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .quick-buttons button {
+            padding: 12px 20px;
+            width: 100%;
+        }
+
+        .results {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .results h2 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            color: #333;
+            font-weight: 700;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #555;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .suggestion-item:hover {
+            background: #f8f9fa;
+        }
+
+        .suggestion-item.highlighted {
+            background: #f8f9fa;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #721c24;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #155724;
+        }
+
+        .nutritional-badge {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .id-badge {
+            display: inline-block;
+            background: #e7f3ff;
+            color: #0066cc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .control-group {
+                flex-direction: column;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            input[type="date"],
+            button {
+                width: 100%;
+            }
+
+            .table-wrapper {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Consumed Products Dashboard</h1>
+            <p>Track and manage your food consumption</p>
+        </div>
+        <div class="control-section">
+                <div class="control-group">
+                    <a href="/mainPage">
+                        <button>Go to Main Page</button>
+                    </a>
+                </div>
+            </div>
+        <div class="controls">
+            <div id="message"></div>
+
+            <div class="control-section">
+                <h3>Add New Product</h3>
+                <div class="control-group">
+                    <input type="text" id="productName" placeholder="Product name" autocomplete="off" oninput="filterProductSuggestions()">
+                    <div id="suggestionsList" style="position: absolute; background: white; border: 1px solid #e0e0e0; border-radius: 8px; max-height: 200px; overflow-y: auto; width: 240px; display: none; z-index: 1000; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);"></div>
+                    <input type="number" id="amount" placeholder="Amount (grams)" min="1" step="0.1">
+                    <input type="date" id="addDate" value="">
+                    <button onclick="addProduct()">Add Product</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Quick Filters</h3>
+                <div class="quick-buttons">
+                    <button onclick="getAllProducts()">All Products</button>
+                    <button onclick="getToday()">Today</button>
+                    <button onclick="getLast7Days()">Last 7 Days</button>
+                    <button onclick="getLast30Days()">Last 30 Days</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Search by Date</h3>
+                <div class="control-group">
+                    <input type="date" id="dateInput">
+                    <button onclick="getByDate()">Search</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="results">
+            <div class="results-header">
+                <h2>Results</h2>
+                <span class="status loading" id="status" style="display: none;">Loading...</span>
+            </div>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/consumedProducts';
+        const PRODUCTS_API = '/products';
+        const USER_PRODUCTS_API = '/userProducts';
+        let currentProducts = [];
+        let productNames = [];
+        let userProductNames = [];
+        let allProductNames = [];
+        let currentFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set default date to today
+            document.getElementById('addDate').value = new Date().toISOString().split('T')[0];
+        });
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'inline-block';
+            setTimeout(() => statusEl.style.display = 'none', 5000);
+        }
+
+        function showMessage(message, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.innerHTML = `<div class="${type}-message">${message}</div>`;
+            const statusEl = document.getElementById('status');
+            if (type === 'error') {
+                statusEl.style.display = 'none';
+            }
+            setTimeout(() => messageEl.innerHTML = '', 8000);
+        }
+
+        async function addProduct() {
+            const productName = document.getElementById('productName').value.trim();
+            const amount = parseFloat(document.getElementById('amount').value);
+            const date = document.getElementById('addDate').value || new Date().toISOString().split('T')[0];
+
+            if (!productName || !amount) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Adding product...', 'loading');
+                const response = await fetch(`${API_BASE}/saveConsumedProduct`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productName, amount, date })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage(data.detail || 'Product added successfully', 'success');
+                    document.getElementById('productName').value = '';
+                    document.getElementById('amount').value = '';
+                    await sleep(300);
+                    function updateAllProductNames() {
+                    allProductNames = [...new Set([...productNames, ...userProductNames])];
+
+                    if (!currentFilter) return;
+
+                    switch (currentFilter.type) {
+                        case 'all':
+                            getAllProducts();
+                            break;
+                        case 'today':
+                            getToday();
+                            break;
+                        case 'last7days':
+                            getLast7Days();
+                            break;
+                        case 'last30days':
+                            getLast30Days();
+                            break;
+                        case 'byDate':
+                            if (currentFilter.date) {
+                                document.getElementById('dateInput').value = currentFilter.date;
+                                getByDate();
+                            }
+                            break;
+                    }
+                }
+
+        async function loadProductNames() {
+            try {
+                const res = await fetch(`${PRODUCTS_API}/productsNames`);
+                const data = await res.json();
+                productNames = data.productNames || [];
+                updateAllProductNames();
+            } catch (err) {
+                console.error('Error loading products:', err);
+            }
+        }
+
+        async function loadUserProducts() {
+            try {
+                const res = await fetch(`${USER_PRODUCTS_API}/userProductsNames`);
+                const data = await res.json();
+                userProductNames = data.productNames || [];
+                updateAllProductNames();
+            } catch (err) {
+                console.error('Error loading user products:', err);
+            }
+        }
+
+        function filterProductSuggestions() {
+            const input = document.getElementById('productName');
+            const suggestionsList = document.getElementById('suggestionsList');
+            const query = input.value.trim().toLowerCase();
+
+            if (!query) {
+                suggestionsList.style.display = 'none';
+                return;
+            }
+
+            const filtered = allProductNames.filter(name =>
+                name.toLowerCase().includes(query)
+            ).slice(0, 10);
+
+            if (filtered.length === 0) {
+                suggestionsList.style.display = 'none';
+                return;
+            }
+
+            suggestionsList.innerHTML = filtered.map(name =>
+                `<div class="suggestion-item" onclick="selectProduct('${name.replace(/'/g, "\\'")}')">${name}</div>`
+            ).join('');
+            suggestionsList.style.display = 'block';
+        }
+
+        function selectProduct(name) {
+            document.getElementById('productName').value = name;
+            document.getElementById('suggestionsList').style.display = 'none';
+            document.getElementById('amount').focus();
+        }
+
+        document.addEventListener('click', function(e) {
+            const input = document.getElementById('productName');
+            const suggestionsList = document.getElementById('suggestionsList');
+            if (!input.contains(e.target) && !suggestionsList.contains(e.target)) {
+                suggestionsList.style.display = 'none';
+            }
+        });
+
+        loadProductNames();
+        loadUserProducts();
+        getAllProducts();
+                } else {
+                    showMessage(data.detail || 'Error adding product', 'error');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function fetchProducts(endpoint, options = {}) {
+            try {
+                showStatus('Loading...', 'loading');
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentProducts = data;
+                    renderTable(data);
+                    showStatus('Loaded successfully', 'success');
+                } else {
+                    displayNoData(data.detail || data.message || 'No data found');
+                }
+            } catch (error) {
+                displayNoData(`Error: ${error.message}`);
+            }
+        }
+
+        function getAllProducts() {
+            currentFilter = { type: 'all' };
+            fetchProducts('/all');
+        }
+
+        function getToday() {
+            currentFilter = { type: 'today' };
+            fetchProducts('/today');
+        }
+
+        function getLast7Days() {
+            currentFilter = { type: 'last7days' };
+            fetchProducts('/last7days');
+        }
+
+        function getLast30Days() {
+            currentFilter = { type: 'last30days' };
+            fetchProducts('/last30days');
+        }
+
+        async function getByDate() {
+            const date = document.getElementById('dateInput').value;
+            if (!date) {
+                showMessage('Please select a date', 'error');
+                return;
+            }
+            const formattedDate = new Date(date).toISOString().split('T')[0];
+
+            // store filter as object so we can re-run it after delete
+            currentFilter = { type: 'byDate', date: formattedDate };
+
+            try {
+                showStatus('Loading...', 'loading');
+
+                // NOTE: sending JSON body — backend should read request body
+                const response = await fetch(`${API_BASE}/byDate`, {
+                    method: 'POST', // <-- Use POST if you can change backend; if backend *must* stay GET, see note below
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: formattedDate })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    currentProducts = data;
+                    renderTable(data);
+                    showStatus('Loaded successfully', 'success');
+                } else {
+                    displayNoData(data.detail || data.message || 'No data found');
+                }
+            } catch (err) {
+                displayNoData(`Error: ${err.message}`);
+            }
+        }
+
+        // reload current filter after deletion
+        async function reloadCurrentFilter() {
+            await sleep(300); // wait 1s before reload
+            if (!currentFilter) return;
+
+            switch (currentFilter.type) {
+                case 'all':
+                    await fetchProducts('/all');
+                    break;
+                case 'today':
+                    await fetchProducts('/today');
+                    break;
+                case 'last7days':
+                    await fetchProducts('/last7days');
+                    break;
+                case 'last30days':
+                    await fetchProducts('/last30days');
+                    break;
+                case 'byDate':
+                    if (currentFilter.date) {
+                        await fetchProducts('/byDate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ date: currentFilter.date })
+                        });
+                    }
+                    break;
+            }
+        }
+
+        // inside deleteProduct
+        async function deleteProduct(productId) {
+            if (!confirm('Are you sure you want to delete this product?')) return;
+
+            try {
+                showStatus('Deleting...', 'loading');
+                const response = await fetch(`${API_BASE}/deleteProduct`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage('Product deleted successfully', 'success');
+                    await reloadCurrentFilter(); // now it will actually fetch fresh data
+                } else {
+                    showMessage(data.message || 'Error deleting product', 'error');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function fetchProductsByDate(formattedDate) {
+            try {
+                showStatus('Loading...', 'loading');
+                const response = await fetch(`${API_BASE}/byDate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: formattedDate })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    currentProducts = data;
+                    renderTable(data);
+                    showStatus('Loaded successfully', 'success');
+                } else {
+                    displayNoData(data.detail || data.message || 'No data found');
+                }
+            } catch (err) {
+                displayNoData(`Error: ${err.message}`);
+            }
+        }
+
+        function renderTable(products) {
+            if (!products || products.length === 0) {
+                displayNoData('No products found');
+                return;
+            }
+
+            let html = `
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Amount (g)</th>
+                                <th>Kcal</th>
+                                <th>Protein</th>
+                                <th>Carbs</th>
+                                <th>Fat</th>
+                                <th>Nutritional Details</th>
+                                <th>Cost</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            products.forEach(p => {
+                const date = new Date(p.createdAt).toLocaleString();
+                html += `
+                    <tr>
+                        <td><strong>${p.productName}</strong></td>
+                        <td>${p.amount}</td>
+                        <td>${p.kcal.toFixed(2)}</td>
+                        <td><span class="nutritional-badge">${p.protein.toFixed(2)}g</span></td>
+                        <td><span class="nutritional-badge">${p.carbs.toFixed(2)}g</span></td>
+                        <td><span class="nutritional-badge">${p.fat.toFixed(2)}g</span></td>
+                        <td>
+                            <small>
+                                Sat Fat: ${p.satFat.toFixed(2)}g | Sugar: ${p.sugar.toFixed(2)}g<br>
+                                Dairy: ${p.dairyProtein.toFixed(2)}g | Animal: ${p.animalProtein.toFixed(2)}g<br>
+                                Plant: ${p.plantProtein.toFixed(2)}g | Salt: ${p.salt.toFixed(2)}g
+                            </small>
+                        </td>
+                        <td>${p.cost.toFixed(2)}</td>
+                        <td>${date}</td>
+                        <td><button class="delete-btn" onclick="deleteProduct(${p.id})">Delete</button></td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table></div>`;
+            document.getElementById('results').innerHTML = html;
+        }
+
+        function displayNoData(message) {
+            document.getElementById('results').innerHTML = `<div class="no-data">${message}</div>`;
+        }
+
+        getAllProducts();
+    </script>
+</body>
+</html>

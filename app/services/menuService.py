@@ -1,7 +1,8 @@
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
 from app.models.productsProtSep import ProductProtSep
-from app.models.userMenu import UserMenu
+from app.models.userMenus import UserMenu
+from app.models.userMenus import UserMenu
 from app.models.userMenuRecipes import UserMenuRecipes
 from app.models.recipes import Recipe
 from app.schemas.requests.addDietPlanRequest import AddDietPlanRequest
@@ -183,7 +184,7 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
             r_value = r.get("value", None)
 
             for p in products:
-                name = p.id
+                name = normalize(p.productName)
                 if name == r_product:
                     if r_type == "max_weight" and r_value is not None:
                         problem += x[p.id] <= r_value, f"Limit_{p.id}"
@@ -239,7 +240,7 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
 def save_diet_menu(db: Session, request: AddDietPlanRequest, userUuid: int):
     new_plan = UserMenu(
         userUuid=userUuid,
-        name=request.name,  # <-- Save plan name
+        name=request.name.strip().title(),  # <-- Save plan name
         totalKcal=request.totalKcal,
         totalCost=request.totalCost,
         totalFat=request.totalFat,

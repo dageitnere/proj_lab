@@ -100,14 +100,16 @@ def scrape_rimi_product(url: str, mass_g: float = None):
             try:
                 price_elem = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "price-per")))
                 price_text = price_elem.text.strip()
-
+                print("DEBUG:", repr(price_text))  # e.g. '0,32€/gab.'
+                print("mass_g sent is:", mass_g)
                 match = re.search(r"(\d+[.,]?\d*)", price_text)
                 if match:
                     price_value = float(match.group(1).replace(",", "."))
 
                     if "/gab" in price_text.lower():
                         if not mass_g:
-                            raise ValueError("Mass per unit is required when price is per unit (/gab.)")
+                            data["error"] = "Mass in grams required for unit price calculation"
+                            return data
 
                         price_per_kg = round(price_value / (mass_g / 1000), 2)
                         price_per_100g = round(price_per_kg / 10, 2)

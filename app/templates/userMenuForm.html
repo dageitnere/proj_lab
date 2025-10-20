@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diet Menu Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+        }
+
+        .btn-view {
+            background: #3498db;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.9em;
+            margin-right: 10px;
+        }
+
+        .btn-view:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .menu-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .menu-item {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+
+        .menu-item:hover {
+            transform: translateX(5px);
+        }
+
+        .menu-info h3 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .menu-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .menu-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .nutrition-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .nutrition-card.wide {
+            min-width: 200px; /* makes the block wider */
+            white-space: normal; /* allow wrapping if needed */
+        }
+
+        .nutrition-value {
+            word-wrap: break-word; /* ensures date wraps nicely */
+        }
+
+        .nutrition-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .nutrition-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .product-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .product-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .product-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.active {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 968px) {
+            .nutrition-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🥗 Diet Menu Manager</h1>
+            <p class="subtitle">Manage your personalized diet plans</p>
+        </header>
+        <div class="control-section">
+                <div class="control-group">
+                    <a href="/mainPage">
+                        <button>Go to Main Page</button>
+                    </a>
+                </div>
+            </div>
+        <div class="alert alert-success" id="successAlert"></div>
+        <div class="alert alert-error" id="errorAlert"></div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>My Saved Menus</h2>
+                <div id="menuListContainer">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <p>No menus saved yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="menuDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalMenuName"></h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/menu';
+        let userToken = localStorage.getItem('authToken') || ''; // Get token from storage
+
+        function showAlert(message, type = 'success') {
+            const alertId = type === 'success' ? 'successAlert' : 'errorAlert';
+            const alert = document.getElementById(alertId);
+            alert.textContent = message;
+            alert.classList.add('active');
+            setTimeout(() => alert.classList.remove('active'), 5000);
+        }
+
+        function clearAlerts() {
+            document.getElementById('successAlert').classList.remove('active');
+            document.getElementById('errorAlert').classList.remove('active');
+        }
+
+        async function loadMenus() {
+            const container = document.getElementById('menuListContainer');
+
+            try {
+                const response = await fetch(`${API_BASE}/getUserMenus`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <p>No menus saved yet. Create your first menu!</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    throw new Error('Failed to load menus');
+                }
+
+                const menus = await response.json();
+
+                container.innerHTML = `
+                    <div class="menu-list">
+                        ${menus.map(menu => `
+                            <div class="menu-item">
+                                <div class="menu-info">
+                                    <h3>${menu.name}</h3>
+                                    <div class="menu-stats">
+                                        <div class="stat">
+                                            <span class="stat-label">Calories</span>
+                                            <span>${menu.totalKcal} kcal</span>
+                                        </div>
+                                        <div class="stat">
+                                            <span class="stat-label">Cost</span>
+                                            <span>${menu.totalCost.toFixed(2)}</span>
+                                        </div>
+                                        <div class="stat">
+                                            <span class="stat-label">Protein</span>
+                                            <span>${menu.totalProtein}g</span>
+                                        </div>
+                                        <div class="stat">
+                                            <span class="stat-label">Carbs</span>
+                                            <span>${menu.totalCarbs}g</span>
+                                        </div>
+                                        <div class="stat">
+                                            <span class="stat-label">Fat</span>
+                                            <span>${menu.totalFat}g</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="menu-actions">
+                                    <button class="btn btn-view" onclick="viewMenu('${menu.name}')">👁️ View</button>
+                                    <button class="btn btn-danger" onclick="deleteMenu('${menu.name}')">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function viewMenu(menuName) {
+            try {
+                const response = await fetch(`${API_BASE}/getUserMenu`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ menuName }) // send JSON body
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load menu details');
+                }
+                const menu = await response.json();
+
+                document.getElementById('modalMenuName').textContent = menu.name;
+                document.getElementById('modalContent').innerHTML = `
+                    <div class="nutrition-grid">
+                        <div class="nutrition-card">
+                            <div class="nutrition-value">${menu.totalKcal}</div>
+                            <div class="nutrition-label">Calories</div>
+                        </div>
+                        <div class="nutrition-card">
+                            <div class="nutrition-value">${menu.totalCost.toFixed(2)}</div>
+                            <div class="nutrition-label">Cost</div>
+                        </div>
+                        <div class="nutrition-card">
+                            <div class="nutrition-value">${menu.totalProtein}g</div>
+                            <div class="nutrition-label">Protein</div>
+                        </div>
+                        <div class="nutrition-card">
+                            <div class="nutrition-value">${menu.totalCarbs}g</div>
+                            <div class="nutrition-label">Carbs</div>
+                        </div>
+                        <div class="nutrition-card">
+                            <div class="nutrition-value">${menu.totalFat}g</div>
+                            <div class="nutrition-label">Fat</div>
+                        </div>
+                        <div class="nutrition-card wide">
+                            <div class="nutrition-value">${new Date(menu.date).toLocaleString()}</div>
+                            <div class="nutrition-label">Created</div>
+                        </div>
+                    </div>
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Menu Items</h3>
+                    <div class="product-list">
+                        ${menu.plan.length > 0 ? menu.plan.map(item => `
+                            <div class="product-item">
+                                <div class="product-name">${item.productName || 'Unnamed Item'}</div>
+                                <div class="product-details">
+                                    <div><strong>Amount:</strong> ${item.grams || 0}g</div>
+                                    <div><strong>Calories:</strong> ${item.kcal || 0} kcal</div>
+                                    <div><strong>Protein:</strong> ${item.protein || 0}g</div>
+                                    <div><strong>Cost:</strong> ${item.cost || 0}</div>
+                                </div>
+                            </div>
+                        `).join('') : '<p style="text-align: center; color: #999;">No items in this menu yet.</p>'}
+                    </div>
+                `;
+
+                document.getElementById('menuDetailModal').classList.add('active');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('menuDetailModal').classList.remove('active');
+        }
+
+        async function deleteMenu(menuName) {
+            if (!confirm(`Are you sure you want to delete the menu "${menuName}"?`)) {
+                return;
+            }
+
+            clearAlerts();
+
+            try {
+                const response = await fetch(`${API_BASE}/deleteMenu`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({ menuName: menuName })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to delete menu');
+                }
+
+                const result = await response.json();
+                showAlert(result.message || `Menu '${menuName}' deleted successfully!`);
+                loadMenus();
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('menuDetailModal').addEventListener('click', (e) => {
+            if (e.target.id === 'menuDetailModal') closeModal();
+        });
+
+        // Initialize
+        loadMenus();
+    </script>
+</body>
+</html>

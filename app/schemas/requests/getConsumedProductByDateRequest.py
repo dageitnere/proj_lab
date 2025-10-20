@@ -1,7 +1,6 @@
 from pydantic import BaseModel
-from datetime import date
+from datetime import datetime
 
 class GetConsumedProductByDateRequest(BaseModel):
-    userUuid: int
-    date: date
+    date: datetime
 

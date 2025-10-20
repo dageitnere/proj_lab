@@ -30,6 +30,10 @@ def generate_Menu(request: DietRequest, userUuid: int = Depends(get_uuid_from_to
 def showMenuForm(request: Request):
     return templates.TemplateResponse("menuForm.html", {"request": request})
 
+@menu.get("/userMenuForm", response_class=HTMLResponse)
+def showUserMenuForm(request: Request):
+    return templates.TemplateResponse("userMenuForm.html", {"request": request})
+
 @menu.post("/saveMenu")
 def saveDietMenu(request: AddDietPlanRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
     return save_diet_menu(db, request, userUuid)
@@ -38,7 +42,7 @@ def saveDietMenu(request: AddDietPlanRequest, userUuid: int = Depends(get_uuid_f
 def getUserMenus(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
     return get_user_menus(db, userUuid)
 
-@menu.get("/getUserMenu", response_model=DietPlanResponse)
+@menu.post("/getUserMenu", response_model=DietPlanResponse)
 def getSingleMenu(request: GetMenuRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
     return get_single_menu(db, request, userUuid)
 
