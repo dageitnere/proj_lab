@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 import os, json, requests, base64
 from groq import Groq
 
-from app.models.userMenu import UserMenu
+from app.models.userMenus import UserMenu
 from app.models.recipes import Recipe
 from app.models.userMenuRecipes import UserMenuRecipes
 from app.schemas.requests.getRecipeRequest import RecipeProductItem
