@@ -2,7 +2,6 @@ from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
 from app.models.productsProtSep import ProductProtSep
 from app.models.userMenus import UserMenu
-from app.models.userMenus import UserMenu
 from app.models.userMenuRecipes import UserMenuRecipes
 from app.models.recipes import Recipe
 from app.schemas.requests.addDietPlanRequest import AddDietPlanRequest
