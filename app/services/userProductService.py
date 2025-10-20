@@ -9,6 +9,8 @@ from app.schemas.requests.addUserProductRequest import AddUserProductRequest
 from fastapi import HTTPException, status
 from app.schemas.requests.deleteUserProductRequest import DeleteUserProductRequest
 from app.dependencies.scrapeRimi import scrape_rimi_product
+from app.schemas.requests.updateUserProductRequest import UpdateUserProductRequest
+
 
 def zero_if_none(value):
     return value if value is not None else 0
@@ -275,3 +277,170 @@ def add_user_product_by_nutrition_value_url(db: Session, request: AddUserProduct
         print(f"⚠️ Missing nutrition info for: {', '.join(missing_nutrition)}")
 
     return {"message": f"Product '{new_product.productName}' added successfully."}
+
+
+def update_user_product(db: Session, request: UpdateUserProductRequest, userUuid: int):
+    """
+    Update an existing user product - PROTEIN TYPE IS OPTIONAL.
+    If no protein type selected, scales existing distribution.
+    """
+    # Find the product to update
+    product_to_update = (
+        db.query(UserProduct)
+        .filter(UserProduct.userUuid == userUuid)
+        .filter(UserProduct.productName.ilike(request.oldProductName.strip()))
+        .first()
+    )
+
+    if not product_to_update:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product '{request.oldProductName}' not found for this user."
+        )
+
+    # Check name conflicts if changing name
+    if request.productName and request.productName.strip() != request.oldProductName.strip():
+        new_name = request.productName.strip()
+        name_conflict_user = (
+            db.query(UserProduct)
+            .filter(UserProduct.userUuid == userUuid)
+            .filter(UserProduct.productName.ilike(new_name))
+            .first()
+        )
+        if name_conflict_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Product name '{new_name}' already exists."
+            )
+
+    updated_fields = False
+
+    # **1. UPDATE BASIC FIELDS**
+    if request.productName is not None:
+        product_to_update.productName = request.productName.strip().title()
+        updated_fields = True
+
+    if request.kcal is not None:
+        product_to_update.kcal = zero_if_none(request.kcal)
+        updated_fields = True
+
+    if request.fat is not None:
+        product_to_update.fat = zero_if_none(request.fat)
+        updated_fields = True
+
+    if request.satFat is not None:
+        product_to_update.satFat = zero_if_none(request.satFat)
+        updated_fields = True
+
+    if request.carbs is not None:
+        product_to_update.carbs = zero_if_none(request.carbs)
+        updated_fields = True
+
+    if request.sugars is not None:
+        product_to_update.sugars = zero_if_none(request.sugars)
+        updated_fields = True
+
+    if request.salt is not None:
+        product_to_update.salt = zero_if_none(request.salt)
+        updated_fields = True
+
+    if request.price1kg is not None:
+        product_to_update.price1kg = zero_if_none(request.price1kg)
+        product_to_update.price100g = round(product_to_update.price1kg / 10, 2) if product_to_update.price1kg > 0 else 0
+        updated_fields = True
+
+    if request.vegan is not None:
+        product_to_update.vegan = request.vegan
+        updated_fields = True
+
+    if request.vegetarian is not None:
+        product_to_update.vegetarian = request.vegetarian
+        updated_fields = True
+
+    if request.dairyFree is not None:
+        product_to_update.dairyFree = request.dairyFree
+        updated_fields = True
+
+    if request.URL is not None:
+        product_to_update.URL = request.URL.strip() if request.URL.strip() else None
+        updated_fields = True
+
+    # **2. PROTEIN HANDLING - COMPLETELY OPTIONAL**
+    protein_change_detected = (
+            request.protein is not None or
+            request.dairyProtein is not None or
+            request.animalProtein is not None or
+            request.plantProtein is not None
+    )
+
+    if protein_change_detected:
+        updated_fields = True
+
+        # Get new protein value (use existing if not provided)
+        new_protein_value = zero_if_none(request.protein) if request.protein is not None else product_to_update.protein
+
+        # Count explicitly provided protein types (ignoring None values)
+        provided_types = []
+        if request.dairyProtein is not None:
+            provided_types.append(request.dairyProtein)
+        if request.animalProtein is not None:
+            provided_types.append(request.animalProtein)
+        if request.plantProtein is not None:
+            provided_types.append(request.plantProtein)
+
+        selected_count = sum(1 for x in provided_types if x is True)
+
+        # **VALIDATION: Only one protein type can be selected**
+        if selected_count > 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only one protein type can be selected."
+            )
+
+        # **CASE 1: Exactly one protein type explicitly provided**
+        if selected_count == 1:
+            # Reset all protein types
+            product_to_update.dairyProt = 0
+            product_to_update.animalProt = 0
+            product_to_update.plantProt = 0
+
+            # Assign full amount to selected type
+            if request.dairyProtein == True:
+                product_to_update.dairyProt = new_protein_value
+            elif request.animalProtein == True:
+                product_to_update.animalProt = new_protein_value
+            elif request.plantProtein == True:
+                product_to_update.plantProt = new_protein_value
+
+        # **CASE 2: No protein type explicitly provided (or all False)**
+        else:
+            # Keep existing protein type distribution, scale if protein amount changed
+            total_existing_protein = (
+                    product_to_update.dairyProt +
+                    product_to_update.animalProt +
+                    product_to_update.plantProt
+            )
+
+            if total_existing_protein > 0 and request.protein is not None:
+                # Scale existing distribution proportionally
+                scale_factor = new_protein_value / total_existing_protein
+                product_to_update.dairyProt *= scale_factor
+                product_to_update.animalProt *= scale_factor
+                product_to_update.plantProt *= scale_factor
+            elif total_existing_protein == 0 and request.protein is not None:
+                # No existing distribution - default to dairy
+                product_to_update.dairyProt = new_protein_value
+
+        # Always update total protein
+        product_to_update.protein = new_protein_value
+
+    # **FINAL VALIDATION**
+    if not updated_fields:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one field must be provided to update."
+        )
+
+    db.commit()
+    db.refresh(product_to_update)
+    return {"message": f"Product '{product_to_update.productName}' updated successfully."}

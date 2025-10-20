@@ -257,6 +257,100 @@
             color: #999;
             font-size: 16px;
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;        /* Reduced top/bottom margin for more space */
+            padding: 25px;          /* Slightly more padding */
+            border-radius: 8px;
+            width: 90%;
+            max-width: 850px;       /* Slightly wider */
+            max-height: 90vh;       /* Taller max height */
+            min-height: 890px;      /* **NEW: Minimum height to fit messages** */
+            overflow-y: auto;
+            position: relative;
+            box-sizing: border-box; /* Ensure padding is included in height */
+        }
+        .close-modal {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        .close-modal:hover {
+            color: #333;
+        }
+        .update-form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .update-form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .update-form-group input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
+        .update-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .btn-update {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-cancel {
+            background-color: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-edit {
+            background-color: #2196F3;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .btn-edit:hover {
+            background-color: #0b7dda;
+        }
+        .current-name {
+            font-weight: bold;
+            color: #2196F3;
+            background: #e3f2fd;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -480,6 +574,121 @@
         </div>
     </div>
 
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeUpdateModal()">&times;</span>
+            <h2>Update Product</h2>
+            <div id="updateMessage" class="message"></div>
+            <p><strong>Current Product:</strong> <span id="currentProductName" class="current-name"></span></p>
+
+            <form id="updateForm">
+                <input type="hidden" name="oldProductName" id="oldProductName">
+
+                <div class="update-form-group">
+                    <div>
+                        <label>New Product Name (optional)</label>
+                        <input type="text" name="productName" placeholder="Leave empty to keep current name">
+                    </div>
+                    <div>
+                        <label>Kcal (optional)</label>
+                        <input type="number" name="kcal" step="0.1" min="0" placeholder="Leave empty to keep current">
+                    </div>
+                    <div>
+                        <label>Fat (g) (optional)</label>
+                        <input type="number" name="fat" step="0.1" min="0">
+                    </div>
+                    <div>
+                        <label>Sat. Fat (g) (optional)</label>
+                        <input type="number" name="satFat" step="0.1" min="0">
+                    </div>
+                </div>
+
+                <div class="update-form-group">
+                    <div>
+                        <label>Carbs (g) (optional)</label>
+                        <input type="number" name="carbs" step="0.1" min="0">
+                    </div>
+                    <div>
+                        <label>Sugars (g) (optional)</label>
+                        <input type="number" name="sugars" step="0.1" min="0">
+                    </div>
+                    <div>
+                        <label><strong>Protein (g) (optional)</strong></label>
+                        <input type="number" name="protein" step="0.1" min="0" placeholder="Enter total protein amount">
+                    </div>
+                    <div>
+                        <label>Salt (mg) (optional)</label>
+                        <input type="number" name="salt" step="0.1" min="0">
+                    </div>
+                </div>
+
+                <!-- **BOOLEAN PROTEIN TYPE RADIO BUTTONS** -->
+                <div class="update-form-group">
+                    <div>
+                        <label><strong>Protein (g) <span class="optional">(optional)</span></label>
+                        <input type="number" name="protein" step="0.1" min="0" placeholder="Leave empty to keep current">
+                        <small class="help-text">Total protein amount</small>
+                    </div>
+                    <div style="grid-column: span 3;">
+                        <label><strong>Protein Type <span class="optional">(optional)</span></label>
+                        <div class="checkbox-group" style="margin-top: 8px; gap: 15px;">
+                            <div class="checkbox-item" style="width: auto;">
+                                <input type="radio" name="proteinType" id="updateDairy" value="dairy">
+                                <label for="updateDairy" style="margin: 0; cursor: pointer;">
+                                    🥛 <strong>Dairy Protein</strong>
+                                </label>
+                            </div>
+                            <div class="checkbox-item" style="width: auto;">
+                                <input type="radio" name="proteinType" id="updateAnimal" value="animal">
+                                <label for="updateAnimal" style="margin: 0; cursor: pointer;">
+                                    🐔 <strong>Animal Protein</strong>
+                                </label>
+                            </div>
+                            <div class="checkbox-item" style="width: auto;">
+                                <input type="radio" name="proteinType" id="updatePlant" value="plant">
+                                <label for="updatePlant" style="margin: 0; cursor: pointer;">
+                                    🌱 <strong>Plant Protein</strong>
+                                </label>
+                            </div>
+                        </div>
+                        <small class="help-text" style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                            * Leave unselected to keep current protein type. Only needed if changing protein amount.
+                        </small>
+                        <!-- Hidden inputs for boolean flags -->
+                        <input type="hidden" name="isDairyProtein" id="updateIsDairyProtein" value="false">
+                        <input type="hidden" name="isAnimalProtein" id="updateIsAnimalProtein" value="false">
+                        <input type="hidden" name="isPlantProtein" id="updateIsPlantProtein" value="false">
+                    </div>
+                </div>
+
+                <div class="update-form-group">
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="vegan">
+                            <label>Vegan</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="vegetarian">
+                            <label>Vegetarian</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="dairyFree">
+                            <label>Dairy Free</label>
+                        </div>
+                    </div>
+                    <div>
+                        <label>URL (optional)</label>
+                        <input type="url" name="URL" placeholder="Leave empty to keep current">
+                    </div>
+                </div>
+
+                <div class="update-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeUpdateModal()">Cancel</button>
+                    <button type="submit" class="btn-update">Update Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
         const API_BASE = "/userProducts";
 
@@ -551,29 +760,295 @@
                 container.innerHTML = '<div class="empty-msg">No products</div>';
                 return;
             }
-            let html = '<table><thead><tr><th>Name</th><th>Kcal</th><th>Fat</th><th>Carbs</th><th>Protein</th><th>Price (€)</th><th>URL</th><th>Actions</th></tr></thead><tbody>';
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Kcal</th>
+                            <th>Fat</th>
+                            <th>Carbs</th>
+                            <th>Protein</th>
+                            <th>Price (€/kg)</th>
+                            <th>URL</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
             products.forEach(p => {
                 const escapedName = p.productName.replace(/'/g, "\\'");
                 const urlCell = p.URL
-                    ? `<a href="${p.URL}" target="_blank">Go to URL</a>`
-                    : 'No URL';
+                    ? `<a href="${p.URL}" target="_blank">🔗</a>`
+                    : '-';
 
                 html += `
-                  <tr>
-                    <td>${p.productName}</td>
-                    <td>${p.kcal}</td>
-                    <td>${p.fat}</td>
-                    <td>${p.carbs}</td>
-                    <td>${p.protein}</td>
-                    <td>${p.price1kg || "-"}</td>
-                    <td>${urlCell}</td>
-                    <td><button class="delete-btn" onclick="deleteProduct('${escapedName}')">Delete</button></td>
-                  </tr>
+                    <tr>
+                        <td>${p.productName}</td>
+                        <td>${p.kcal || '-'}</td>
+                        <td>${p.fat || '-'}</td>
+                        <td>${p.carbs || '-'}</td>
+                        <td>${p.protein || '-'}</td>
+                        <td>${p.price1kg ? '€' + p.price1kg.toFixed(2) : '-'}</td>
+                        <td>${urlCell}</td>
+                        <td>
+                            <button class="btn-edit" onclick="openUpdateModal('${escapedName}')">Edit</button>
+                            <button class="delete-btn" onclick="deleteProduct('${escapedName}')">Delete</button>
+                        </td>
+                    </tr>
                 `;
             });
-
             html += '</tbody></table>';
             container.innerHTML = html;
+        }
+
+        // Update modal functions
+        async function openUpdateModal(productName) {
+            document.getElementById('oldProductName').value = productName;
+            document.getElementById('currentProductName').textContent = productName;
+
+            const form = document.getElementById('updateForm');
+            form.reset();
+            document.getElementById('updateMessage').classList.remove('show', 'success', 'error');
+
+            // Reset protein type selection
+            document.querySelectorAll('input[name="proteinType"]').forEach(r => r.checked = false);
+            document.getElementById('updateIsDairyProtein').value = 'false';
+            document.getElementById('updateIsAnimalProtein').value = 'false';
+            document.getElementById('updateIsPlantProtein').value = 'false';
+
+            try {
+                const res = await fetch(`${API_BASE}/getUserProduct?productName=${encodeURIComponent(productName)}`, {
+                    credentials: "include"
+                });
+                if (res.ok) {
+                    const product = await res.json();
+
+                    // Set placeholders with current values
+                    const fields = {
+                        kcal: product.kcal,
+                        fat: product.fat,
+                        satFat: product.satFat,
+                        carbs: product.carbs,
+                        sugars: product.sugars,
+                        protein: product.protein,
+                        salt: product.salt,
+                        price1kg: product.price1kg,
+                        URL: product.URL
+                    };
+
+                    Object.entries(fields).forEach(([key, value]) => {
+                        const input = document.querySelector(`input[name="${key}"]`);
+                        if (input && value !== null && value !== undefined) {
+                            input.placeholder = typeof value === 'number' && value >= 0 ? value.toFixed(1) : value;
+                        }
+                    });
+
+                    // Set checkboxes
+                    document.querySelector('input[name="vegan"]').checked = !!product.vegan;
+                    document.querySelector('input[name="vegetarian"]').checked = !!product.vegetarian;
+                    document.querySelector('input[name="dairyFree"]').checked = !!product.dairyFree;
+
+                    // **SET CURRENT PROTEIN TYPE BASED ON EXISTING VALUES**
+                    if (product.dairyProt > 0) {
+                        document.getElementById('updateDairy').checked = true;
+                        document.getElementById('updateIsDairyProtein').value = 'true';
+                    } else if (product.animalProt > 0) {
+                        document.getElementById('updateAnimal').checked = true;
+                        document.getElementById('updateIsAnimalProtein').value = 'true';
+                    } else if (product.plantProt > 0) {
+                        document.getElementById('updatePlant').checked = true;
+                        document.getElementById('updateIsPlantProtein').value = 'true';
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load product details:', err);
+            }
+
+            document.getElementById('updateModal').style.display = 'block';
+            document.querySelector('.modal-content').scrollTop = 0;
+        }
+
+        function closeUpdateModal() {
+            document.getElementById('updateModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('updateModal');
+            if (event.target === modal) {
+                closeUpdateModal();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Protein type radio buttons for update modal
+            document.querySelectorAll('input[name="proteinType"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const selectedType = this.value;
+
+                    // **FIXED: Set correct hidden input names**
+                    document.getElementById('updateIsDairyProtein').value = selectedType === 'dairy' ? 'true' : 'false';
+                    document.getElementById('updateIsAnimalProtein').value = selectedType === 'animal' ? 'true' : 'false';
+                    document.getElementById('updateIsPlantProtein').value = selectedType === 'plant' ? 'true' : 'false';
+                });
+            });
+        });
+        // Update form submission
+        document.getElementById("updateForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Updating...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData(e.target);
+
+            const payload = {
+                oldProductName: formData.get("oldProductName")?.trim(),
+                productName: formData.get("productName")?.trim() || null,
+                kcal: formData.get("kcal") ? parseFloat(formData.get("kcal")) : null,
+                fat: formData.get("fat") ? parseFloat(formData.get("fat")) : null,
+                satFat: formData.get("satFat") ? parseFloat(formData.get("satFat")) : null,
+                carbs: formData.get("carbs") ? parseFloat(formData.get("carbs")) : null,
+                sugars: formData.get("sugars") ? parseFloat(formData.get("sugars")) : null,
+                protein: formData.get("protein") ? parseFloat(formData.get("protein")) : null,
+                // **FIXED: Use dairyProtein, animalProtein, plantProtein**
+                dairyProtein: formData.get("isDairyProtein") === 'true' ? true : null,
+                animalProtein: formData.get("isAnimalProtein") === 'true' ? true : null,
+                plantProtein: formData.get("isPlantProtein") === 'true' ? true : null,
+                salt: formData.get("salt") ? parseFloat(formData.get("salt")) : null,
+                price1kg: formData.get("price1kg") ? parseFloat(formData.get("price1kg")) : null,
+                vegan: formData.get("vegan") === 'on',
+                vegetarian: formData.get("vegetarian") === 'on',
+                dairyFree: formData.get("dairyFree") === 'on',
+                URL: formData.get("URL")?.trim() || null
+            };
+
+            // **UPDATED VALIDATION: Use new field names**
+            const proteinChanged = payload.protein !== null;
+            const proteinTypes = [payload.dairyProtein, payload.animalProtein, payload.plantProtein].filter(Boolean);
+
+            if (proteinTypes.length > 1) {
+                showUpdateMessage("❌ Only one protein type can be selected", "error", true);
+                resetSubmitButton(submitBtn, originalText);
+                return;
+            }
+
+            if (!payload.oldProductName) {
+                showUpdateMessage("❌ Product name is required", "error", true);
+                resetSubmitButton(submitBtn, originalText);
+                return;
+            }
+
+            // Check if at least one field is being updated
+            const hasUpdates = Object.values(payload).some(value =>
+                value !== null && value !== undefined &&
+                (typeof value !== 'boolean' || value !== false) &&
+                value !== payload.oldProductName
+            );
+
+            if (!hasUpdates) {
+                showUpdateMessage("ℹ️ No changes detected. Please modify at least one field.", "error", true);
+                resetSubmitButton(submitBtn, originalText);
+                return;
+            }
+
+            try {
+                console.log("📤 Updating product:", payload);
+
+                const res = await fetch(`${API_BASE}/updateUserProduct`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                console.log("📥 Response:", data);
+
+                if (res.ok) {
+                    // **🎉 SUCCESS: 5-SECOND COUNTDOWN**
+                    startSuccessCountdown(5000); // 5 seconds
+                } else {
+                    showUpdateMessage(`❌ ${data.detail || "Update failed"}`, "error", true);
+                }
+            } catch (err) {
+                console.error("❌ Update error:", err);
+                showUpdateMessage(`❌ Network error: ${err.message}`, "error", true);
+            } finally {
+                // Don't reset button here - let countdown handle it
+                if (!res?.ok) {
+                    resetSubmitButton(submitBtn, originalText);
+                }
+            }
+        });
+
+        // **NEW: Success countdown function**
+        function startSuccessCountdown(durationMs) {
+            const messageEl = document.getElementById('updateMessage');
+            const modal = document.getElementById('updateModal');
+            const submitBtn = document.querySelector('#updateForm button[type="submit"]');
+            const closeBtn = document.querySelector('.close-modal');
+            const cancelBtn = document.querySelector('.btn-cancel');
+
+            // **DISABLE CLOSING DURING COUNTDOWN**
+            closeBtn.style.pointerEvents = 'none';
+            closeBtn.style.opacity = '0.5';
+            cancelBtn.style.pointerEvents = 'none';
+            cancelBtn.style.opacity = '0.5';
+            submitBtn.disabled = true;
+
+            let timeLeft = Math.ceil(durationMs / 1000); // Convert to seconds
+
+            // **SHOW INITIAL SUCCESS MESSAGE**
+            showUpdateMessage(`✅ Product updated successfully! Closing in ${timeLeft} seconds...`, "success", false);
+
+            // **COUNTDOWN TIMER**
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    messageEl.textContent = `✅ Product updated successfully! Closing in ${timeLeft} second${timeLeft > 1 ? 's' : ''}...`;
+                }
+            }, 1000);
+
+            // **AUTO-CLOSE AFTER COUNTDOWN**
+            setTimeout(() => {
+                clearInterval(countdownInterval);
+
+                // **RE-ENABLE BUTTONS (cleanup)**
+                closeBtn.style.pointerEvents = 'auto';
+                closeBtn.style.opacity = '1';
+                cancelBtn.style.pointerEvents = 'auto';
+                cancelBtn.style.opacity = '1';
+                submitBtn.disabled = false;
+
+                // **CLOSE MODAL AND REFRESH**
+                closeUpdateModal();
+                loadProducts(); // Refresh product list
+
+                console.log("✅ Modal closed after 5-second countdown");
+            }, durationMs);
+        }
+
+        // **HELPER: Reset submit button**
+        function resetSubmitButton(submitBtn, originalText) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+
+        function showUpdateMessage(message, type, persistent = false) {
+            const el = document.getElementById('updateMessage');
+            el.textContent = message;
+            el.className = `message show ${type}`;
+
+            if (persistent) {
+                el.innerHTML = `<span>${message}</span>
+                    <button type="button" onclick="this.parentElement.classList.remove('show')">&times;</button>`;
+            } else {
+                setTimeout(() => el.classList.remove("show"), 4000);
+            }
         }
 
         async function deleteProduct(productName) {

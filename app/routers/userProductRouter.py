@@ -6,12 +6,14 @@ from app.dependencies.getUserUuidFromToken import get_uuid_from_token
 from app.schemas.requests.addUserProductByNutritionValueRequest import AddUserProductByNutritionValueUrlRequest
 from app.schemas.requests.addUserProductByRimiUrlRequest import AddUserProductByRimiUrlRequest
 from app.schemas.requests.addUserProductRequest import AddUserProductRequest
+from app.schemas.requests.updateUserProductRequest import UpdateUserProductRequest
 from app.services import userProductService
 from sqlalchemy.orm import Session
 from app.schemas.responses.userProductBaseResponse import UserProductsListResponse
 from app.schemas.responses.productsNamesResponse import ProductsNamesResponse
 from app.schemas.requests.deleteUserProductRequest import DeleteUserProductRequest
-from app.services.userProductService import add_user_product_by_rimi_url, add_user_product_by_nutrition_value_url
+from app.services.userProductService import add_user_product_by_rimi_url, add_user_product_by_nutrition_value_url, \
+    update_user_product
 
 userProduct = APIRouter()
 
@@ -52,3 +54,8 @@ def addUserProductByNutritionValueUrl(request: AddUserProductByNutritionValueUrl
 @userProduct.delete("/deleteUserProduct")
 def deleteUserProduct(request: DeleteUserProductRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
     return userProductService.delete_user_product(db, request, userUuid)
+
+
+@userProduct.put("/updateUserProduct")
+def update_user_product_endpoint(request: UpdateUserProductRequest, db: Session = Depends(get_db), user_uuid: int = Depends(get_uuid_from_token)):
+    return update_user_product(db, request, user_uuid)

@@ -345,6 +345,42 @@
       document.getElementById("restrictions").appendChild(container);
     });
 
+    document.addEventListener('DOMContentLoaded', function() {
+        const veganCheckbox = document.querySelector('input[name="vegan"]');
+        const dairyFreeCheckbox = document.querySelector('input[name="dairyFree"]');
+
+        if (veganCheckbox && dairyFreeCheckbox) {
+            function syncDairyFreeWithVegan() {
+                if (veganCheckbox.checked) {
+                    // Vegan ON → force dairy-free ON and disable
+                    dairyFreeCheckbox.checked = true;
+                    dairyFreeCheckbox.disabled = true;
+                    dairyFreeCheckbox.parentElement.classList.add('vegan-auto');
+                } else {
+                    // Vegan OFF → uncheck AND enable dairy-free
+                    dairyFreeCheckbox.checked = false;
+                    dairyFreeCheckbox.disabled = false;
+                    dairyFreeCheckbox.parentElement.classList.remove('vegan-auto');
+                }
+            }
+
+            // When vegan changes → sync dairy-free
+            veganCheckbox.addEventListener('change', syncDairyFreeWithVegan);
+
+            // Prevent manual unchecking of dairy-free when vegan is ON
+            dairyFreeCheckbox.addEventListener('change', function() {
+                if (veganCheckbox.checked && !this.checked) {
+                    // Force back to checked if user tries to uncheck while vegan is ON
+                    this.checked = true;
+                    return false;
+                }
+            });
+
+            // Initial state sync
+            syncDairyFreeWithVegan();
+        }
+    });
+
     document.getElementById("dietForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const form = e.target;
