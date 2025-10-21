@@ -128,6 +128,26 @@
             transform: translateY(-1px);
         }
 
+        /* Regenerate Button Style */
+        .btn-regenerate {
+            background: #2ecc71;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-regenerate:hover {
+            background: #27ae60;
+            transform: translateY(-1px);
+        }
+        /* END NEW */
+
         .menu-list {
             display: grid;
             gap: 15px;
@@ -196,7 +216,7 @@
             background: white;
             border-radius: 15px;
             padding: 30px;
-            max-width: 900px;
+            max-width: 1100px;
             max-height: 90vh;
             overflow-y: auto;
             width: 90%;
@@ -215,6 +235,13 @@
             color: #667eea;
             margin: 0;
         }
+
+        .modal-title-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
 
         .close-btn {
             background: none;
@@ -245,18 +272,15 @@
         }
 
         .nutrition-card.wide {
-            min-width: 200px; /* makes the block wider */
-            white-space: normal; /* allow wrapping if needed */
-        }
-
-        .nutrition-value {
-            word-wrap: break-word; /* ensures date wraps nicely */
+            min-width: 200px;
+            white-space: normal;
         }
 
         .nutrition-value {
             font-size: 1.8em;
             font-weight: bold;
             margin-bottom: 5px;
+            word-wrap: break-word;
         }
 
         .nutrition-label {
@@ -289,6 +313,156 @@
             gap: 10px;
             font-size: 0.9em;
             color: #555;
+        }
+
+        /* Recipe styles */
+        .recipes-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .recipes-header-container { /* NEW: Container for H3 and Button */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .recipes-section h3 {
+            color: #667eea;
+            margin: 0; /* Reset margin */
+            font-size: 1.5em;
+        }
+
+        .recipe-batch-header {
+            background-color: #f0f8ff;
+            padding: 10px 15px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-left: 5px solid #3498db;
+            color: #2c3e50;
+            font-weight: 600;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+
+        .recipe-grid {
+            display: grid;
+            gap: 25px;
+        }
+
+        .recipe-card {
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        /* Highlight new recipes */
+        .recipe-card.new-recipe {
+            border: 3px solid #2ecc71;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .recipe-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recipe-card.new-recipe .recipe-header {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .recipe-meal-type {
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        .recipe-calories {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .recipe-image-container {
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            background: #f0f0f0;
+        }
+
+        .recipe-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .recipe-body {
+            padding: 20px;
+        }
+
+        .recipe-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .recipe-description {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .recipe-instructions-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .recipe-instructions {
+            color: #444;
+            line-height: 1.8;
+            white-space: pre-line;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .alert {
@@ -333,6 +507,10 @@
             h1 {
                 font-size: 2em;
             }
+
+            .recipe-image-container {
+                height: 200px;
+            }
         }
     </style>
 </head>
@@ -343,12 +521,12 @@
             <p class="subtitle">Manage your personalized diet plans</p>
         </header>
         <div class="control-section">
-                <div class="control-group">
-                    <a href="/mainPage">
-                        <button>Go to Main Page</button>
-                    </a>
-                </div>
+            <div class="control-group">
+                <a href="/mainPage">
+                    <button>Go to Main Page</button>
+                </a>
             </div>
+        </div>
         <div class="alert alert-success" id="successAlert"></div>
         <div class="alert alert-error" id="errorAlert"></div>
 
@@ -368,7 +546,9 @@
     <div class="modal" id="menuDetailModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalMenuName"></h2>
+                <div class="modal-title-actions">
+                    <h2 id="modalMenuName"></h2>
+                </div>
                 <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
             <div id="modalContent"></div>
@@ -377,7 +557,34 @@
 
     <script>
         const API_BASE = '/menu';
-        let userToken = localStorage.getItem('authToken') || ''; // Get token from storage
+        const RECIPE_API_BASE = '/recipes';
+        let userToken = localStorage.getItem('authToken') || '';
+        let currentMenuId = null;
+
+        // Utility to handle fetch errors and parse JSON or text response
+        async function handleResponse(response) {
+            if (response.ok) {
+                // If OK (2xx status), always assume and return JSON data
+                return response.json();
+            }
+
+            // If NOT OK (4xx, 5xx), try to extract error detail
+            let errorDetail = 'Unknown error';
+            try {
+                // 1. Try reading it as a JSON error object (FastAPI's default)
+                const errorJson = await response.json();
+                errorDetail = errorJson.detail || errorJson.message || JSON.stringify(errorJson);
+            } catch (e) {
+                // 2. If JSON parsing fails (e.g., received HTML or plain text error)
+                try {
+                    errorDetail = await response.text();
+                } catch (textError) {
+                    errorDetail = `Could not read response body. ${response.statusText}`;
+                }
+            }
+            // Throw a structured error
+            throw new Error(`Failed to process request (Status: ${response.status}). Detail: ${errorDetail}`);
+        }
 
         function showAlert(message, type = 'success') {
             const alertId = type === 'success' ? 'successAlert' : 'errorAlert';
@@ -394,6 +601,12 @@
 
         async function loadMenus() {
             const container = document.getElementById('menuListContainer');
+            container.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading menus...</p>
+                </div>
+            `;
 
             try {
                 const response = await fetch(`${API_BASE}/getUserMenus`, {
@@ -403,20 +616,17 @@
                     }
                 });
 
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        container.innerHTML = `
+                const menus = await handleResponse(response);
+
+                if (menus.length === 0) {
+                     container.innerHTML = `
                             <div class="empty-state">
                                 <div class="empty-state-icon">📋</div>
                                 <p>No menus saved yet. Create your first menu!</p>
                             </div>
                         `;
-                        return;
-                    }
-                    throw new Error('Failed to load menus');
+                    return;
                 }
-
-                const menus = await response.json();
 
                 container.innerHTML = `
                     <div class="menu-list">
@@ -448,7 +658,7 @@
                                     </div>
                                 </div>
                                 <div class="menu-actions">
-                                    <button class="btn btn-view" onclick="viewMenu('${menu.name}')">👁️ View</button>
+                                    <button class="btn btn-view" onclick="viewMenu('${menu.name}', ${menu.id})">👁️ View</button>
                                     <button class="btn btn-danger" onclick="deleteMenu('${menu.name}')">🗑️ Delete</button>
                                 </div>
                             </div>
@@ -462,26 +672,29 @@
                         <p>${error.message}</p>
                     </div>
                 `;
+                showAlert('Could not load menus: ' + error.message, 'error');
             }
         }
 
-        async function viewMenu(menuName) {
+        async function viewMenu(menuName, menuId) {
+            currentMenuId = menuId;
+
             try {
-                const response = await fetch(`${API_BASE}/getUserMenu`, {
+                // Fetch menu details
+                const menuResponse = await fetch(`${API_BASE}/getUserMenu`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${userToken}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ menuName }) // send JSON body
+                    body: JSON.stringify({ menuName })
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to load menu details');
-                }
-                const menu = await response.json();
+                const menu = await handleResponse(menuResponse);
 
                 document.getElementById('modalMenuName').textContent = menu.name;
+
+                // Display menu info and show loading for recipes
                 document.getElementById('modalContent').innerHTML = `
                     <div class="nutrition-grid">
                         <div class="nutrition-card">
@@ -523,16 +736,219 @@
                             </div>
                         `).join('') : '<p style="text-align: center; color: #999;">No items in this menu yet.</p>'}
                     </div>
+                    <div class="recipes-section">
+                        <div class="recipes-header-container">
+                            <h3>🍽️ Recipes</h3>
+                            <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">🔄 Regenerate Recipes</button>
+                        </div>
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>Loading recipes...</p>
+                        </div>
+                    </div>
                 `;
 
                 document.getElementById('menuDetailModal').classList.add('active');
+
+                // Fetch recipes
+                await loadRecipes(menuId);
+
             } catch (error) {
                 showAlert(error.message, 'error');
             }
         }
 
+        async function loadRecipes(menuId, isRegeneration = false, previousRecipeCount = 0) {
+            const recipesSection = document.querySelector('.recipes-section');
+            const currentContent = recipesSection.innerHTML;
+
+            // Show loading state *inside* the section while preserving the header/button
+            recipesSection.innerHTML = `
+                ${document.querySelector('.recipes-header-container').outerHTML}
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading recipes...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${RECIPE_API_BASE}/${menuId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+
+                const data = await handleResponse(response);
+                const recipes = data.recipes || [];
+
+                if (data.status === 'NoRecipes' || recipes.length === 0) {
+                    recipesSection.innerHTML = `
+                        <div class="recipes-header-container">
+                            <h3>🍽️ Recipes</h3>
+                            <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">🔄 Regenerate Recipes</button>
+                        </div>
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🍳</div>
+                            <p>No recipes generated yet for this menu. Click 'Regenerate Recipes' to create some!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let htmlContent = `<div class="recipes-header-container">
+                                        <h3>🍽️ Recipes</h3>
+                                        <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">🔄 Regenerate Recipes</button>
+                                    </div>`;
+
+                // Calculate the index where the new recipes start (if regenerated)
+                const newRecipeStartIndex = previousRecipeCount;
+
+                // Group the recipes: Original Batch (first set)
+                if (newRecipeStartIndex > 0) {
+                    htmlContent += `<div class="recipe-batch-header">Batch 1 (Original)</div>`;
+                    htmlContent += `<div class="recipe-grid">`;
+                    for (let i = 0; i < newRecipeStartIndex; i++) {
+                        htmlContent += buildRecipeCard(recipes[i], false);
+                    }
+                    htmlContent += `</div>`;
+                }
+
+                // Group the recipes: Regeneration Batches
+                let currentBatchStart = newRecipeStartIndex;
+                let batchCounter = (isRegeneration ? 2 : (newRecipeStartIndex === 0 ? 1 : Math.ceil(newRecipeStartIndex / 4) + 1));
+
+                // Assuming regeneration adds a fixed number of recipes (e.g., 4)
+                const batchSize = 4;
+
+                // Group the remaining (or all, if newRecipeStartIndex=0) recipes
+                while (currentBatchStart < recipes.length) {
+                    const batchEnd = Math.min(currentBatchStart + batchSize, recipes.length);
+
+                    // Determine if it's the first batch of any kind
+                    const isFirstBatch = currentBatchStart === 0 && newRecipeStartIndex === 0;
+
+                    if (isFirstBatch) {
+                         htmlContent += `<div class="recipe-batch-header">Batch 1 (Generated)</div>`;
+                    } else if (currentBatchStart >= newRecipeStartIndex) { // It's a regeneration batch
+                        htmlContent += `<div class="recipe-batch-header">Batch ${batchCounter} (Regenerated)</div>`;
+                    }
+
+                    htmlContent += `<div class="recipe-grid">`;
+                    for (let i = currentBatchStart; i < batchEnd; i++) {
+                        // Mark recipes generated in the latest call as 'new'
+                        const isNew = isRegeneration && i >= previousRecipeCount;
+                        htmlContent += buildRecipeCard(recipes[i], isNew);
+                    }
+                    htmlContent += `</div>`;
+
+                    currentBatchStart = batchEnd;
+                    batchCounter++;
+                }
+
+                recipesSection.innerHTML = htmlContent;
+
+            } catch (error) {
+                recipesSection.innerHTML = `
+                    <div class="recipes-header-container">
+                        <h3>🍽️ Recipes</h3>
+                        <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">🔄 Regenerate Recipes</button>
+                    </div>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>Error loading recipes: ${error.message}</p>
+                    </div>
+                `;
+                showAlert('Error loading recipes: ' + error.message, 'error');
+            }
+        }
+
+        // Helper function to build a single recipe card HTML
+        function buildRecipeCard(recipe, isNew) {
+            return `
+                <div class="recipe-card ${isNew ? 'new-recipe' : ''}">
+                    <div class="recipe-header">
+                        <span class="recipe-meal-type">${recipe.mealType}</span>
+                        <span class="recipe-calories">${recipe.calories || 0} kcal ${isNew ? ' (NEW)' : ''}</span>
+                    </div>
+                    ${recipe.pictureBase64 ? `
+                        <div class="recipe-image-container">
+                            <img src="data:image/png;base64,${recipe.pictureBase64}"
+                                 alt="${recipe.name}"
+                                 class="recipe-image">
+                        </div>
+                    ` : ''}
+                    <div class="recipe-body">
+                        <div class="recipe-title">${recipe.name}</div>
+                        ${recipe.description ? `
+                            <div class="recipe-description">${recipe.description}</div>
+                        ` : ''}
+                        <div class="recipe-instructions-title">Instructions:</div>
+                        <div class="recipe-instructions">${recipe.instructions}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Handles the regeneration request
+        async function regenerateRecipes() {
+            if (!currentMenuId) {
+                showAlert('Please view a menu before attempting to regenerate recipes.', 'error');
+                return;
+            }
+
+            const recipesSection = document.querySelector('.recipes-section');
+            const currentRecipeCount = recipesSection.querySelectorAll('.recipe-card').length;
+            const regenerateBtn = document.getElementById('regenerateBtn');
+
+            regenerateBtn.disabled = true;
+            regenerateBtn.textContent = 'Generating...';
+            clearAlerts();
+
+            // Temporarily replace content with loading spinner while preserving header
+            recipesSection.innerHTML = `
+                <div class="recipes-header-container">
+                    <h3>🍽️ Recipes</h3>
+                    <button class="btn btn-regenerate" id="regenerateBtn" disabled>Generating...</button>
+                </div>
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Generating new recipes with AI (this may take up to a minute)...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${RECIPE_API_BASE}/${currentMenuId}/regenerate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+
+                const result = await handleResponse(response);
+
+                showAlert(result.message || 'Recipes regenerated successfully!', 'success');
+
+                // Re-load recipes, passing the regeneration flag and the previous count
+                await loadRecipes(currentMenuId, true, currentRecipeCount);
+
+            } catch (error) {
+                showAlert(error.message, 'error');
+                // Revert to original content if regeneration fails to show the error
+                await loadRecipes(currentMenuId);
+            } finally {
+                // Ensure the button is re-enabled if loadRecipes fails for some reason
+                const finalBtn = document.getElementById('regenerateBtn');
+                if (finalBtn) {
+                    finalBtn.disabled = false;
+                    finalBtn.textContent = '🔄 Regenerate Recipes';
+                }
+            }
+        }
+
         function closeModal() {
             document.getElementById('menuDetailModal').classList.remove('active');
+            currentMenuId = null;
         }
 
         async function deleteMenu(menuName) {
@@ -552,12 +968,8 @@
                     body: JSON.stringify({ menuName: menuName })
                 });
 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to delete menu');
-                }
+                const result = await handleResponse(response);
 
-                const result = await response.json();
                 showAlert(result.message || `Menu '${menuName}' deleted successfully!`);
                 loadMenus();
             } catch (error) {

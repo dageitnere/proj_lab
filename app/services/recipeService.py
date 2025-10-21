@@ -24,6 +24,7 @@ SDXL_ENGINE_ID = "stable-diffusion-xl-1024-v1-0"
 if not SDXL_API_KEY:
     raise ValueError("STABILITY_API_KEY is not set in environment variables")
 
+
 # ---------------- AI Recipe Generation ----------------
 def call_ai_generate_recipes(products: list[RecipeProductItem]):
     product_lines = "\n".join([f"{p.productName} ({p.grams}g, {p.kcal} kcal)" for p in products])
@@ -36,10 +37,10 @@ Requirements:
 1. Generate exactly 3 main meals (breakfast, lunch, dinner) and optionally 1 snack
 2. Use ONLY the ingredients listed above, use them fully - do not add any unlisted ingredients, you may add water.
 3. Distribute calories appropriately: breakfast (25-30%), lunch (35-40%), dinner (30-35%), snack (5-10%)
-4. Each meal must include specific gram amounts from the ingredient list, calories of each meal are calculated from the amount of product used
-5. Provide detailed step-by-step cooking instructions with exact times and temperatures
-6. Make recipes practical and easy to follow
-7. Find a photo that shows the ready food from recipe
+4. Each meal must include specific gram amounts from the ingredient list.
+5. Show calories for each recipe. Sum all kcal from used products. If you use only a part of the product then calculate accordingly.
+6. Provide detailed step-by-step cooking instructions with exact times and temperatures
+7. Make recipes practical and easy to follow
 
 Output ONLY valid JSON (no markdown, no code blocks) in this exact format:
 [
@@ -65,6 +66,7 @@ Output ONLY valid JSON (no markdown, no code blocks) in this exact format:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"AI recipe generation failed: {str(e)}"
         )
+
 
 # ---------------- Stability AI Image Generation ----------------
 def generate_sdxl_image_base64(prompt: str, width=1024, height=1024, steps=30, cfg_scale=7, samples=1, retries=2) -> str:
@@ -114,6 +116,7 @@ def generate_sdxl_image_base64(prompt: str, width=1024, height=1024, steps=30, c
         detail=f"Failed to generate image via SDXL: {last_error}"
     )
 
+
 # ---------------- Create Recipes ----------------
 def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[RecipeProductItem]) -> GenerateRecipesResponse:
     if not products:
@@ -140,7 +143,7 @@ def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[Reci
             name=r["name"],
             description=r.get("description"),
             instructions=r["instructions"],
-            pictureBase64=photo_base64,  # store full base64
+            pictureBase64=photo_base64,
             calories=r.get("calories")
         )
         db.add(recipe)
@@ -167,6 +170,7 @@ def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[Reci
     db.commit()
     return GenerateRecipesResponse(status="Optimal", recipes=response_recipes)
 
+
 # ---------------- Get Recipes ----------------
 def get_recipes_by_menu(db: Session, userUuid: int, menuId: int) -> GenerateRecipesResponse:
     links = db.query(UserMenuRecipes).join(UserMenu).filter(
@@ -184,7 +188,7 @@ def get_recipes_by_menu(db: Session, userUuid: int, menuId: int) -> GenerateReci
                     name=recipe.name,
                     description=recipe.description,
                     instructions=recipe.instructions,
-                    pictureBase64=recipe.pictureBase64,  # full 1024x1024 base64
+                    pictureBase64=recipe.pictureBase64,
                     calories=recipe.calories
                 )
             )
@@ -194,4 +198,48 @@ def get_recipes_by_menu(db: Session, userUuid: int, menuId: int) -> GenerateReci
         status=status_str,
         recipes=recipes_list if recipes_list else None,
         message=None if recipes_list else "No recipes found for this menu."
+    )
+
+def regenerate_recipes_for_menu(db: Session, userUuid: int, menuId: int) -> GenerateRecipesResponse:
+    # 1️⃣ Validate user + menu
+    menu = db.query(UserMenu).filter(UserMenu.id == menuId, UserMenu.userUuid == userUuid).first()
+    if not menu:
+        raise HTTPException(status_code=404, detail="Menu not found")
+
+    # 2️⃣ FIX: Access products from the 'plan' column (JSON data)
+    # The 'plan' attribute holds the list of products (ingredients) as JSON data.
+    if not menu.plan or not isinstance(menu.plan, list):
+        # This resolves the 400 Bad Request error if the menu has no products
+        raise HTTPException(status_code=400, detail="No products found for this menu")
+
+    # 3️⃣ Convert the list of dictionaries (from the JSON column) to Pydantic schemas
+    try:
+        # Pydantic is used to validate the dictionary items from the JSON field
+        product_items = [
+            RecipeProductItem(**p)
+            for p in menu.plan
+        ]
+    except Exception as e:
+        # Catch unexpected data format in the JSON column
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal Error: Could not parse product data from menu plan: {str(e)}"
+        )
+
+    # 4️⃣ Generate and SAVE new recipes via AI
+    # This call handles the AI request, image generation, and database commit.
+    # Note: create_recipes_from_menu must be imported or defined in this file.
+    new_recipes_response = create_recipes_from_menu(db, menu.id, product_items)
+
+    # 5️⃣ Fetch ALL recipes (existing + newly generated) for this menu
+    # Note: get_recipes_by_menu must be imported or defined in this file.
+    all_recipes_response = get_recipes_by_menu(db, userUuid, menuId)
+
+    # 6️⃣ Return the full list with an updated message
+    num_new_recipes = len(new_recipes_response.recipes or [])
+
+    return GenerateRecipesResponse(
+        status=all_recipes_response.status,
+        recipes=all_recipes_response.recipes,
+        message=f"Recipes successfully regenerated. Added {num_new_recipes} new recipes."
     )
