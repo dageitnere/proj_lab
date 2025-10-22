@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class RegisterOut(BaseModel):
+class RegisterResponse(BaseModel):
     ok: bool
     uuid: int | None = None
     username: str | None = None
