@@ -3,7 +3,7 @@ from sqlalchemy import or_
 from passlib.context import CryptContext
 from app.models.users import User
 from app.schemas.requests.getLoginRequest import LoginInRequest
-from app.schemas.requests.getRegisterRequest import RegisterInRequest
+from app.schemas.requests.postRegisterRequest import RegisterRequest
 
 import os, time, jwt
 
@@ -45,7 +45,7 @@ def login_user(db: Session, request: LoginInRequest) -> tuple[str, str]:
 def _hash(raw: str) -> str:
     return _pwd.hash(raw)
 
-def register_user(db: Session, request: RegisterInRequest) -> tuple[int, str]:
+def register_user(db: Session, request: RegisterRequest) -> tuple[int, str]:
     # unique check
     exists = db.query(User).filter(or_(User.username == request.username,
                                        User.email == request.email)).first()

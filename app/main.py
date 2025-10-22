@@ -85,7 +85,7 @@ app.include_router(mainPageRouter.mainPage, tags=["main_page"])
 app.include_router(userProductRouter.userProduct, prefix="/userProducts", tags=["userProducts"])
 app.include_router(consumedProductRouter.consumedProduct, prefix="/consumedProducts", tags=["consumedProducts"])
 app.include_router(statisticsRouter.statistics, prefix="/statistics", tags=["statistics"])
-app.include_router(userRouter.router, prefix="/auth", tags=["auth"])
+app.include_router(userRouter.user, prefix="/auth", tags=["auth"])
 app.include_router(recipeRouter.recipes, prefix="/recipes", tags=["recipes"])
 
 
