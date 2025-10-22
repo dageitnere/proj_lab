@@ -1,9 +1,11 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy import func
 from passlib.context import CryptContext
 from app.models.users import User
 from app.schemas.requests.getLoginRequest import LoginInRequest
 from app.schemas.requests.postRegisterRequest import RegisterRequest
+from app.services.verificationService import start_verification
 
 import os, time, jwt
 
@@ -28,19 +30,28 @@ def decode_access_token(token: str) -> dict:
     return jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG])
 
 def login_user(db: Session, request: LoginInRequest) -> tuple[str, str]:
-    """Return (jwt, username) or raise ValueError for invalid creds."""
+    key = request.login.strip()
+    email_key = key.lower()
+
     u: User | None = (
         db.query(User)
-        .filter(or_(User.username == request.login, User.email == request.login))
+        .filter(
+            or_(
+                User.username == key,                 # username exact
+                func.lower(User.email) == email_key   # email case-insensitive
+            )
+        )
         .first()
     )
 
     if not u or not _verify_password(request.password, u.password):
         raise ValueError("Invalid credentials")
+    if not u.emailVerified:
+        raise ValueError("Email not verified")
 
     token = _create_access_token(sub=str(u.uuid), extra={"username": u.username})
-
     return token, u.username
+
 
 def _hash(raw: str) -> str:
     return _pwd.hash(raw)
@@ -75,4 +86,7 @@ def register_user(db: Session, request: RegisterRequest) -> tuple[int, str]:
     db.add(u)
     db.commit()
     db.refresh(u)
+
+    start_verification(db, u.email)
+
     return u.uuid, u.username

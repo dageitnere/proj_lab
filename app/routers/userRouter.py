@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import Literal
+from fastapi.responses import RedirectResponse
 
 from app.database import get_db
 from app.schemas.requests.getLoginRequest import LoginInRequest
@@ -11,6 +12,9 @@ from app.services.userService import login_user
 from app.schemas.requests.postRegisterRequest import RegisterRequest
 from app.schemas.responses.registerResponse import RegisterResponse
 from app.services.userService import register_user
+from app.schemas.requests.postRegisterRequest import VerifyRequest, VerifyCodeRequest
+from app.schemas.responses.registerResponse import VerifyResponse
+from app.services.verificationService import start_verification, confirm_verification
 
 user = APIRouter(tags=["auth"])
 tpl = Jinja2Templates(directory="app/templates")
@@ -52,3 +56,22 @@ def logout():
     resp = JSONResponse({"ok": True, "message": "logged out"})
     resp.delete_cookie(COOKIE, path="/")
     return resp
+
+@user.get("/verify", response_class=HTMLResponse)
+def verify_page(request: Request):
+    if request.cookies.get("access_token"):
+        return RedirectResponse("/mainPage")
+    return tpl.TemplateResponse("verify.html", {"request": request})
+
+@user.post("/verification/start", response_model=VerifyResponse)
+def verification_start(request: VerifyRequest, db: Session = Depends(get_db)):
+    start_verification(db, str(request.email))
+    return JSONResponse({"ok": True})
+
+@user.post("/verification/confirm", response_model=VerifyResponse)
+def verification_confirm(request: VerifyCodeRequest, db: Session = Depends(get_db)):
+    try:
+        confirm_verification(db, str(request.email), request.code)
+        return {"ok": True}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
