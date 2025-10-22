@@ -29,21 +29,34 @@
     <button type="submit">Reģistrēties</button>
     <div id="m" class="msg"></div>
   </form>
+
+  <p style="margin-top:.5rem">
+    Jau ir konts? <a href="/auth/login">Pieteikties</a>
+  </p>
+
   <script>
   const f = document.getElementById('f'), m = document.getElementById('m');
   f.addEventListener('submit', async (e) => {
     e.preventDefault(); m.textContent='';
+    const email = f.email.value.trim();
     const body = {
       username: f.username.value.trim(),
-      email: f.email.value.trim(),
+      email,
       password: f.password.value
     };
     const r = await fetch('/auth/register', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
     });
     const j = await r.json().catch(()=>({detail:'Kļūda'}));
-    if (r.ok) { m.textContent='Izveidots. Tagad vari ieiet.'; m.className='msg ok'; }
-    else { m.textContent=j.detail || 'Neizdevās'; m.className='msg err'; }
+    if (r.ok) {
+      // redirect user to verification page after registration
+      location.href = '/auth/verify?email=' + encodeURIComponent(email);
+    } else {
+      m.textContent = j.detail || 'Neizdevās';
+      m.className = 'msg err';
+    }
   });
   </script>
 </body>
