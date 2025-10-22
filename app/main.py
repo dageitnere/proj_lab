@@ -12,6 +12,7 @@ from app.dependencies.firefoxDriver import init_firefox_pool, get_firefox_pool
 from fastapi.responses import RedirectResponse
 from app.services.userService import decode_access_token
 
+# Test comment
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
