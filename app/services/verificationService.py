@@ -3,12 +3,19 @@ from sqlalchemy.orm import Session
 from app.models.users import User
 from app.services.emailService import send_email
 
-def _now_utc(): return dt.datetime.now(dt.timezone.utc)
+def _now_utc():
+    """Return current UTC datetime."""
+    return dt.datetime.now(dt.timezone.utc)
 
 def _gen_code(n=6) -> int:
+    """Generate a numeric verification code of length n."""
     return int("".join(str(secrets.randbelow(10)) for _ in range(n)))
 
 def start_verification(db: Session, email: str) -> None:
+    """
+        Generate and send a verification code to the user's email.
+        Code expires in 30 minutes.
+    """
     u = db.query(User).filter(User.email == email.lower().strip()).first()
 
     if not u:
@@ -25,6 +32,11 @@ def start_verification(db: Session, email: str) -> None:
     )
 
 def confirm_verification(db: Session, email: str, code: int) -> None:
+    """
+        Confirm a user's email by validating the provided verification code.
+        Raises ValueError for invalid, expired, or missing codes.
+        Marks user as emailVerified on success.
+    """
     u = db.query(User).filter(User.email == email.lower().strip()).first()
 
     if not u:

@@ -9,10 +9,7 @@ from app.services import productService
 
 product = APIRouter()
 
-
-# Initialize templates here — no need to import from main.py
 templates = Jinja2Templates(directory="app/templates")
-
 
 @product.get("/showProducts", response_model=ProductsListResponse, response_class=HTMLResponse)
 def getAllProducts(request: Request, db=Depends(get_db)):

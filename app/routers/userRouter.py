@@ -4,20 +4,19 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import Literal
 from fastapi.responses import RedirectResponse
-
 from app.database import get_db
-from app.schemas.requests.getLoginRequest import LoginInRequest
 from app.schemas.responses.loginResponse import LoginOut
-from app.services.profileService import complete_registration
-from app.services.userService import login_user, decode_access_token
-from app.schemas.requests.postRegisterRequest import RegisterRequest
-from app.schemas.responses.registerResponse import RegisterResponse
-from app.services.userService import register_user
-from app.schemas.requests.postRegisterRequest import VerifyRequest, VerifyCodeRequest, CompleteRegistrationRequest
 from app.schemas.responses.registerResponse import VerifyResponse
-from app.services.verificationService import start_verification, confirm_verification
+from app.schemas.responses.registerResponse import RegisterResponse
+from app.schemas.requests.postRegisterRequest import VerifyRequest, VerifyCodeRequest, CompleteRegistrationRequest
+from app.schemas.requests.postRegisterRequest import RegisterRequest
+from app.schemas.requests.getLoginRequest import LoginInRequest
 from app.schemas.requests.postForgetRequest import ForgotRequest, ForgotConfirmRequest
 from app.services.passwordService import start_reset, confirm_reset
+from app.services.profileService import complete_registration
+from app.services.userService import login_user, decode_access_token
+from app.services.verificationService import start_verification, confirm_verification
+from app.services.userService import register_user
 
 user = APIRouter(tags=["auth"])
 tpl = Jinja2Templates(directory="app/templates")

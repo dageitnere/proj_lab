@@ -1,28 +1,26 @@
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
+from typing import Optional
+from datetime import datetime
 from app.models.productsProtSep import ProductProtSep
 from app.models.userMenus import UserMenu
 from app.models.userMenuRecipes import UserMenuRecipes
 from app.models.recipes import Recipe
-from app.schemas.requests.addDietPlanRequest import AddDietPlanRequest
+from app.schemas.requests.postDietPlanRequest import PostDietPlanRequest
 from app.schemas.requests.deleteUserMenuRequest import DeleteUserMenuRequest
 from app.schemas.requests.dietRequest import DietRequest
 from app.schemas.requests.getMenuRequest import GetMenuRequest
+from app.schemas.requests.getRecipeRequest import RecipeProductItem
 from app.schemas.responses.dietPlanResponse import DietPlanListResponse, DietPlanResponse
 from app.schemas.responses.generateMenuResponse import GenerateMenuResponse, ProductItem
 from app.services.userProductService import get_user_products
 from app.services.recipeService import create_recipes_from_menu
-from app.schemas.requests.getRecipeRequest import RecipeProductItem
-from fastapi import HTTPException, status
-from typing import Optional
-from datetime import datetime
 
 def normalize(s: str):
     return s.strip().lower()
 
 def make_product_key(p):
-    # Key based on all distinguishing attributes
-    # Convert floats to rounded values for stable comparison
     return (
         p.id,
         round(p.kcal or 0, 2),
@@ -236,7 +234,7 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
     return GenerateMenuResponse(status="Optimal", plan=result, **totals)
 
 
-def save_diet_menu(db: Session, request: AddDietPlanRequest, userUuid: int):
+def save_diet_menu(db: Session, request: PostDietPlanRequest, userUuid: int):
     new_plan = UserMenu(
         userUuid=userUuid,
         name=request.name.strip().title(),  # <-- Save plan name
@@ -257,8 +255,8 @@ def save_diet_menu(db: Session, request: AddDietPlanRequest, userUuid: int):
 
     existing = (
         db.query(UserMenu)
-        .filter(UserMenu.userUuid == userUuid)  # optional, check only this user's menus
-        .filter(UserMenu.name.ilike(request.name.strip()))  # <-- strip the input string, not the column
+        .filter(UserMenu.userUuid == userUuid)
+        .filter(UserMenu.name.ilike(request.name.strip()))
         .first()
     )
     if existing:
@@ -346,11 +344,6 @@ def get_single_menu(db: Session, request: GetMenuRequest, userUuid: int) -> Opti
     )
 
 def delete_user_menu(db: Session, request: DeleteUserMenuRequest, userUuid: int):
-    """
-    Deletes a specific user menu by userUuid and menuName.
-    Also removes any recipes that are no longer linked to other menus.
-    """
-    # Find the menu
     menu = (
         db.query(UserMenu)
         .filter(UserMenu.userUuid == userUuid)
@@ -364,19 +357,15 @@ def delete_user_menu(db: Session, request: DeleteUserMenuRequest, userUuid: int)
             detail=f"No menu found with name '{request.menuName}' for this user."
         )
 
-    # Collect all linked recipe IDs
     linked_recipe_ids = [
         link.recipeId for link in db.query(UserMenuRecipes).filter(UserMenuRecipes.userMenuId == menu.id).all()
     ]
 
-    # Delete all UserMenuRecipes for this menu
     db.query(UserMenuRecipes).filter(UserMenuRecipes.userMenuId == menu.id).delete()
 
-    # Delete the menu itself
     db.delete(menu)
     db.commit()
 
-    # Remove recipes that are no longer linked to any menus
     for recipe_id in linked_recipe_ids:
         still_used = (
             db.query(UserMenuRecipes)
