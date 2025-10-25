@@ -46,7 +46,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-PUBLIC_PREFIXES = ("/auth/login", "/auth/register", "/auth/verify", "/auth/verification/start", "/auth/verification/confirm", "/static", "/docs", "/openapi.json",)
+PUBLIC_PREFIXES = ("/auth/login", "/auth/register", "/auth/verify", "/auth/verification/start", "/auth/verification/confirm", "/auth/forgot-password", "/auth/reset-password", "/static", "/docs", "/openapi.json",)
 COOKIE = "access_token"
 
 @app.middleware("http")
