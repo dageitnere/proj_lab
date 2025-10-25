@@ -8,11 +8,12 @@ from fastapi.responses import RedirectResponse
 from app.database import get_db
 from app.schemas.requests.getLoginRequest import LoginInRequest
 from app.schemas.responses.loginResponse import LoginOut
-from app.services.userService import login_user
+from app.services.profileService import complete_registration
+from app.services.userService import login_user, decode_access_token
 from app.schemas.requests.postRegisterRequest import RegisterRequest
 from app.schemas.responses.registerResponse import RegisterResponse
 from app.services.userService import register_user
-from app.schemas.requests.postRegisterRequest import VerifyRequest, VerifyCodeRequest
+from app.schemas.requests.postRegisterRequest import VerifyRequest, VerifyCodeRequest, CompleteRegistrationRequest
 from app.schemas.responses.registerResponse import VerifyResponse
 from app.services.verificationService import start_verification, confirm_verification
 from app.schemas.requests.postForgetRequest import ForgotRequest, ForgotConfirmRequest
@@ -99,6 +100,28 @@ def reset_page(request: Request):
 def reset_confirm(request: ForgotConfirmRequest, db: Session = Depends(get_db)):
     try:
         confirm_reset(db, request.token, request.new_password)
+        return JSONResponse({"ok": True})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@user.get("/complete", response_class=HTMLResponse)
+def complete_page(request: Request):
+    tok = request.cookies.get("access_token")
+    if not tok:
+        return RedirectResponse("/auth/login")
+    return tpl.TemplateResponse("finishRegistration.html", {"request": request})
+
+@user.post("/complete")
+def complete_submit(body: CompleteRegistrationRequest, request: Request, db: Session = Depends(get_db)):
+    tok = request.cookies.get("access_token")
+    if not tok:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        sub = int(decode_access_token(tok)["sub"])
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        complete_registration(db, sub, body)
         return JSONResponse({"ok": True})
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
