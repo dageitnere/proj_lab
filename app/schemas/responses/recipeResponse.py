@@ -8,6 +8,7 @@ class RecipeItem(BaseModel):
     instructions: str
     pictureBase64: Optional[str] = None
     calories: Optional[float] = None
+    recipeBatch: int
 
 
 class GenerateRecipesResponse(BaseModel):
