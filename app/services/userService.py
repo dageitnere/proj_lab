@@ -12,12 +12,18 @@ import os, time, jwt
 _pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 _JWT_SECRET = os.getenv("JWT_SECRET")
 _JWT_ALG = "HS256"
-_TTL = 60 * 60 * 24
+_TTL = 60 * 60 * 24 # Expires in 1 day
 
 def _verify_password(raw: str, hashed: str) -> bool:
+    """
+        Compare raw password with hashed password.
+    """
     return _pwd.verify(raw, hashed)
 
 def _create_access_token(sub: str, extra: dict | None = None, ttl: int = _TTL) -> str:
+    """
+        Generate a JWT access token with optional extra payload.
+    """
     now = int(time.time())
     payload = {"sub": sub, "iat": now, "exp": now + ttl, "typ": "access"}
 
@@ -27,9 +33,17 @@ def _create_access_token(sub: str, extra: dict | None = None, ttl: int = _TTL) -
     return jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALG)
 
 def decode_access_token(token: str) -> dict:
+    """
+        Decode a JWT token and return its payload.
+    """
     return jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG])
 
 def login_user(db: Session, request: LoginInRequest) -> tuple[str, str]:
+    """
+        Authenticate a user by username or email.
+        Returns JWT token and username if successful.
+        Raises ValueError on invalid credentials or unverified email.
+    """
     key = request.login.strip()
     email_key = key.lower()
 
@@ -37,8 +51,8 @@ def login_user(db: Session, request: LoginInRequest) -> tuple[str, str]:
         db.query(User)
         .filter(
             or_(
-                User.username == key,                 # username exact
-                func.lower(User.email) == email_key   # email case-insensitive
+                User.username == key,
+                func.lower(User.email) == email_key
             )
         )
         .first()
@@ -54,10 +68,17 @@ def login_user(db: Session, request: LoginInRequest) -> tuple[str, str]:
 
 
 def _hash(raw: str) -> str:
+    """
+        Hash a raw password using bcrypt.
+    """
     return _pwd.hash(raw)
 
 def register_user(db: Session, request: RegisterRequest) -> tuple[int, str]:
-    # unique check
+    """
+        Register a new user in the system.
+        Ensures username and email uniqueness.
+        Initiates email verification process.
+    """
     exists = db.query(User).filter(or_(User.username == request.username,
                                        User.email == request.email)).first()
     if exists:
@@ -69,8 +90,6 @@ def register_user(db: Session, request: RegisterRequest) -> tuple[int, str]:
         username=request.username.strip(),
         email=email,
         password=_hash(request.password),
-
-        # todo - likt lietotajam kkur so info ievadit
         age=0,
         gender="UNSET",
         weight=0,

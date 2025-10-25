@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-import os, json, requests, base64
+import os, json, requests
 from groq import Groq
-
 from app.models.userMenus import UserMenu
 from app.models.recipes import Recipe
 from app.models.userMenuRecipes import UserMenuRecipes
@@ -10,13 +9,11 @@ from app.schemas.requests.getRecipeRequest import RecipeProductItem
 from app.schemas.responses.recipeResponse import GenerateRecipesResponse, RecipeItem
 
 # ---------------- Initialize AI Clients ----------------
-# Groq client
 groq_api_key = os.getenv("GROQ_API_KEY")
 if not groq_api_key:
     raise ValueError("GROQ_API_KEY is not set in environment variables")
 client = Groq(api_key=groq_api_key)
 
-# Stability AI SDXL configuration
 SDXL_API_KEY = os.getenv("STABILITY_API_KEY")
 SDXL_API_HOST = os.getenv("API_HOST", "https://api.stability.ai")
 SDXL_ENGINE_ID = "stable-diffusion-xl-1024-v1-0"
@@ -24,9 +21,18 @@ SDXL_ENGINE_ID = "stable-diffusion-xl-1024-v1-0"
 if not SDXL_API_KEY:
     raise ValueError("STABILITY_API_KEY is not set in environment variables")
 
-
 # ---------------- AI Recipe Generation ----------------
 def call_ai_generate_recipes(products: list[RecipeProductItem]):
+    """
+        Use Groq API to generate meal recipes based on a list of food items.
+
+        - Creates an AI prompt describing available ingredients
+        - Requests exactly 3 main meals (+ optional snack)
+        - Returns parsed JSON list of recipes
+
+        Raises:
+            HTTPException: If AI fails to return valid JSON
+    """
     product_lines = "\n".join([f"{p.productName} ({p.grams}g, {p.kcal} kcal)" for p in products])
 
     prompt = f"""You are a professional chef and nutritionist. Create a balanced meal plan using ONLY these ingredients:
@@ -69,8 +75,16 @@ Output ONLY valid JSON (no markdown, no code blocks) in this exact format:
 
 
 # ---------------- Stability AI Image Generation ----------------
-def generate_sdxl_image_base64(prompt: str, width=1024, height=1024, steps=30, cfg_scale=7, samples=1,
-                               retries=2) -> str:
+def generate_sdxl_image_base64(prompt: str, width=1024, height=1024, steps=30, cfg_scale=7, samples=1, retries=2) -> str:
+    """
+        Generate a realistic recipe image via Stability AI API.
+
+        Args:
+            prompt: Text describing the food
+            retries: Number of retry attempts in case of transient errors
+        Returns:
+            Base64-encoded image string
+    """
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -119,8 +133,15 @@ def generate_sdxl_image_base64(prompt: str, width=1024, height=1024, steps=30, c
 
 
 # ---------------- Create Recipes ----------------
-def create_recipes_from_menu(db: Session, user_menu_id: int,
-                             products: list[RecipeProductItem]) -> GenerateRecipesResponse:
+def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[RecipeProductItem]) -> GenerateRecipesResponse:
+    """
+        Generate and store new AI recipes for a specific diet menu.
+
+        Steps:
+            1. Generate recipe data using AI
+            2. Generate image for each recipe via SDXL
+            3. Save recipe + menu linkage in DB
+    """
     if not products:
         return GenerateRecipesResponse(status="Error", message="No products found to generate recipes.")
 
@@ -128,7 +149,6 @@ def create_recipes_from_menu(db: Session, user_menu_id: int,
     if not menu:
         raise HTTPException(status_code=404, detail="Menu not found")
 
-    # Get the next batch number for this menu
     max_batch = db.query(UserMenuRecipes.recipeBatch).filter(
         UserMenuRecipes.userMenuId == menu.id
     ).order_by(UserMenuRecipes.recipeBatch.desc()).first()
@@ -156,7 +176,7 @@ def create_recipes_from_menu(db: Session, user_menu_id: int,
             calories=r.get("calories")
         )
         db.add(recipe)
-        db.flush()  # Ensure recipe.id exists
+        db.flush()
 
         link = UserMenuRecipes(
             userMenuId=menu.id,
@@ -184,6 +204,9 @@ def create_recipes_from_menu(db: Session, user_menu_id: int,
 
 # ---------------- Get Recipes ----------------
 def get_recipes_by_menu(db: Session, userUuid: int, menuId: int) -> GenerateRecipesResponse:
+    """
+            Get all menu recipes by menu ID.
+    """
     links = db.query(UserMenuRecipes).join(UserMenu).filter(
         UserMenu.id == menuId,
         UserMenu.userUuid == userUuid
@@ -215,20 +238,17 @@ def get_recipes_by_menu(db: Session, userUuid: int, menuId: int) -> GenerateReci
 
 # ---------------- Regenerate Recipes ----------------
 def regenerate_recipes_for_menu(db: Session, userUuid: int, menuId: int) -> GenerateRecipesResponse:
-    # 1️⃣ Validate user + menu
+    """
+                Generate new recipes for the menu.
+    """
     menu = db.query(UserMenu).filter(UserMenu.id == menuId, UserMenu.userUuid == userUuid).first()
     if not menu:
         raise HTTPException(status_code=404, detail="Menu not found")
 
-    # 2️⃣ FIX: Access products from the 'plan' column (JSON data)
-    # The 'plan' attribute holds the list of products (ingredients) as JSON data.
     if not menu.plan or not isinstance(menu.plan, list):
-        # This resolves the 400 Bad Request error if the menu has no products
         raise HTTPException(status_code=400, detail="No products found for this menu")
 
-    # 3️⃣ Convert the list of dictionaries (from the JSON column) to Pydantic schemas
     try:
-        # Pydantic is used to validate the dictionary items from the JSON field
         product_items = [
             RecipeProductItem(**p)
             for p in menu.plan
@@ -240,16 +260,10 @@ def regenerate_recipes_for_menu(db: Session, userUuid: int, menuId: int) -> Gene
             detail=f"Internal Error: Could not parse product data from menu plan: {str(e)}"
         )
 
-    # 4️⃣ Generate and SAVE new recipes via AI
-    # This call handles the AI request, image generation, and database commit.
-    # Note: create_recipes_from_menu must be imported or defined in this file.
     new_recipes_response = create_recipes_from_menu(db, menu.id, product_items)
 
-    # 5️⃣ Fetch ALL recipes (existing + newly generated) for this menu
-    # Note: get_recipes_by_menu must be imported or defined in this file.
     all_recipes_response = get_recipes_by_menu(db, userUuid, menuId)
 
-    # 6️⃣ Return the full list with an updated message
     num_new_recipes = len(new_recipes_response.recipes or [])
 
     return GenerateRecipesResponse(
@@ -262,9 +276,8 @@ def regenerate_recipes_for_menu(db: Session, userUuid: int, menuId: int) -> Gene
 # ---------------- Delete Recipes Batch ----------------
 def delete_recipes_batch(db: Session, userUuid: int, menuId: int, batchId: int) -> dict:
     """
-    Delete all recipes for a specific batch in a user's menu
+                Delete all recipes for the menu (by batch).
     """
-    # 1️⃣ Validate user owns this menu
     menu = db.query(UserMenu).filter(
         UserMenu.id == menuId,
         UserMenu.userUuid == userUuid
@@ -273,7 +286,6 @@ def delete_recipes_batch(db: Session, userUuid: int, menuId: int, batchId: int) 
     if not menu:
         raise HTTPException(status_code=404, detail="Menu not found")
 
-    # 2️⃣ Find all recipe links for this batch
     recipe_links = db.query(UserMenuRecipes).filter(
         UserMenuRecipes.userMenuId == menuId,
         UserMenuRecipes.recipeBatch == batchId
@@ -282,17 +294,14 @@ def delete_recipes_batch(db: Session, userUuid: int, menuId: int, batchId: int) 
     if not recipe_links:
         raise HTTPException(status_code=404, detail=f"No recipes found for batch {batchId}")
 
-    # 3️⃣ Collect recipe IDs before deletion
     recipe_ids = [link.recipeId for link in recipe_links]
     deleted_count = len(recipe_links)
 
-    # 4️⃣ Delete the links (this will cascade delete if configured)
     db.query(UserMenuRecipes).filter(
         UserMenuRecipes.userMenuId == menuId,
         UserMenuRecipes.recipeBatch == batchId
     ).delete(synchronize_session=False)
 
-    # 5️⃣ Optional: Delete orphaned recipes (recipes not used in any other menu)
     for recipe_id in recipe_ids:
         # Check if this recipe is used in other menus
         other_usage = db.query(UserMenuRecipes).filter(

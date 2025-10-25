@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 
 mainPage = APIRouter()
 
-# Initialize templates here — no need to import from main.py
+# Initialize templates
 templates = Jinja2Templates(directory="app/templates")
 
 @mainPage.get("/mainPage", response_class=HTMLResponse)

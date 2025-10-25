@@ -4,8 +4,8 @@ from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
-
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # SQLAlchemy engine
@@ -19,6 +19,10 @@ Base = declarative_base()
 
 # Dependency to inject DB session
 def get_db():
+    """
+        Dependency function to provide a database session to FastAPI endpoints.
+        Ensures session is closed after request.
+    """
     db = SessionLocal()
     try:
         yield db

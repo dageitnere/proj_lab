@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 class UserProductBase(BaseModel):
-    """Base representation of a user's product entry"""
     id: int
     productName: str
     kcal: float

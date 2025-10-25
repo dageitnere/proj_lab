@@ -14,4 +14,4 @@ class UserStatisticsResponse(BaseModel):
     averageSalt: float
     averageCost: float
     averageProducts: float
-    period: Optional[str] = None  # "daily", "last_7_days", "last_30_days"
+    period: Optional[str] = None

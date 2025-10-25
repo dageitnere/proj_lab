@@ -1,7 +1,6 @@
 from pydantic import BaseModel
-from typing import Optional
 
-class AddUserProductRequest(BaseModel):
+class PostUserProductRequest(BaseModel):
     productName: str
     kcal: int
     fat: float

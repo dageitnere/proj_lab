@@ -1,28 +1,41 @@
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
+from typing import Optional
+from datetime import datetime
 from app.models.productsProtSep import ProductProtSep
 from app.models.userMenus import UserMenu
 from app.models.userMenuRecipes import UserMenuRecipes
 from app.models.recipes import Recipe
-from app.schemas.requests.addDietPlanRequest import AddDietPlanRequest
+from app.schemas.requests.postDietPlanRequest import PostDietPlanRequest
 from app.schemas.requests.deleteUserMenuRequest import DeleteUserMenuRequest
 from app.schemas.requests.dietRequest import DietRequest
 from app.schemas.requests.getMenuRequest import GetMenuRequest
+from app.schemas.requests.getRecipeRequest import RecipeProductItem
 from app.schemas.responses.dietPlanResponse import DietPlanListResponse, DietPlanResponse
 from app.schemas.responses.generateMenuResponse import GenerateMenuResponse, ProductItem
 from app.services.userProductService import get_user_products
 from app.services.recipeService import create_recipes_from_menu
-from app.schemas.requests.getRecipeRequest import RecipeProductItem
-from fastapi import HTTPException, status
-from typing import Optional
-from datetime import datetime
+
 
 def normalize(s: str):
+    """
+    Normalize a string by stripping whitespace and converting to lowercase.
+    Used for case-insensitive product name comparison.
+    """
     return s.strip().lower()
 
+
 def make_product_key(p):
-    # Key based on all distinguishing attributes
-    # Convert floats to rounded values for stable comparison
+    """
+    Create a unique key for a product based on its nutritional and cost properties.
+
+    Args:
+        p: Product object with nutritional attributes
+
+    Returns:
+        Tuple containing all relevant product attributes for comparison
+    """
     return (
         p.id,
         round(p.kcal or 0, 2),
@@ -38,30 +51,65 @@ def make_product_key(p):
         getattr(p, "dairyFree", False),
     )
 
+
 def combine_products(db: Session, userUuid: int):
-    # 1. Fetch all general products
+    """
+    Combine general products from the database with user-specific products.
+    Deduplicates products based on their nutritional profile and properties.
+
+    Args:
+        db: Database session
+        userUuid: User's unique identifier
+
+    Returns:
+        List of unique products available for diet planning
+    """
+    # Fetch all general products from the database
     all_products = db.query(ProductProtSep).all()
 
-    # 2. Fetch user's products
+    # Fetch products specific to this user
     user_products = get_user_products(db, userUuid)
 
+    # Prefix user product IDs to distinguish them from general products
     for p in user_products:
         p.id = f"user_{p.id}"
 
-    # 3. Combine and deduplicate by full product data (not just name)
+    # Combine and deduplicate by full product data (not just name)
+    # This ensures products with identical nutritional profiles aren't duplicated
     combined_dict = {}
     for p in all_products + user_products:
         key = make_product_key(p)
         if key not in combined_dict:
             combined_dict[key] = p
 
-    # 4. Result list
+    # Return deduplicated list of products
     products = list(combined_dict.values())
     return products
 
-def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
 
-    # Unpack directly from request object
+def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
+    """
+    Generate an optimized diet menu using linear programming to minimize cost
+    while meeting nutritional requirements and dietary preferences.
+
+    Uses PuLP library to solve a linear optimization problem that:
+    - Minimizes total cost
+    - Meets calorie, protein, fat, carb, sugar, and salt targets (with tolerance ranges)
+    - Respects protein source distribution (animal/dairy/plant)
+    - Ensures dietary restrictions (vegan, vegetarian, dairy-free)
+    - Applies custom product restrictions (min/max weights, exclusions)
+    - Requires minimum 15 different products with minimum 50g each
+
+    Args:
+        db: Database session
+        request: DietRequest object with nutritional targets and preferences
+        userUuid: User's unique identifier
+
+    Returns:
+        GenerateMenuResponse with optimized product list and nutritional totals,
+        or error response if constraints cannot be satisfied
+    """
+    # Extract nutritional targets from request
     kcalTarget = request.kcal
     proteinTarget = request.protein
     fatTarget = request.fat
@@ -69,43 +117,52 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
     carbsTarget = request.carbs
     sugarTarget = request.sugars
     saltTarget = request.salt
+
+    # Extract dietary preferences
     vegan = request.vegan
     vegetarian = request.vegetarian
     dairyFree = request.dairyFree
     restrictions = request.restrictions
 
-
+    # Validate that vegan diets are also marked as dairy-free
     if vegan and not dairyFree:
         return {"error": "Vegan diets are always dairy-free — please set dairyFree=True."}
 
+    # Get combined list of all available products
     products = combine_products(db, userUuid)
 
     if not products:
         return {"error": "No products found in database."}
 
-    # 1.1 Filter based on user preferences
+    # Filter products based on dietary preferences
     if vegan:
+        # Vegan users can only have vegan products
         products = [p for p in products if p.vegan]
     elif vegetarian:
+        # Vegetarians can have vegetarian or vegan products
         products = [p for p in products if p.vegetarian or p.vegan]
 
     if dairyFree:
+        # Filter out products containing dairy
         products = [p for p in products if p.dairyFree]
 
     if not products:
         return {"error": "No products match dietary preferences."}
 
-    # 1.2 Validate restrictions BEFORE creating the optimization problem
+    # Validate that restricted products exist in the filtered product list
+    # This prevents optimization failures due to invalid restrictions
     if restrictions:
-        # Create a set of normalized product names for fast lookup
+        # Create lookup set of normalized product names for validation
         valid_product_names = {normalize(str(p.productName)) for p in products}
         invalidProducts = []
 
+        # Check each restriction against available products
         for r in restrictions:
             r_product = normalize(r.get("product", ""))
             if r_product and r_product not in valid_product_names:
                 invalidProducts.append(r.get("product", ""))
 
+        # Return error if any restricted products don't exist
         if invalidProducts:
             return GenerateMenuResponse(
                 status="InvalidProducts",
@@ -113,96 +170,127 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
                 message=f"The following products were not found in the database: {', '.join(invalidProducts)}"
             )
 
-    # 2. Create PuLP problem
+    # Create linear programming problem to minimize cost
     problem = LpProblem("Balanced_Diet", LpMinimize)
 
-    # 3. Decision variables (grams of each product)
+    # Decision variables: grams of each product to include (continuous, ≥ 0)
     x = {p.id: LpVariable(f"x_{p.id}", lowBound=0) for p in products}
 
-    # Binary indicator variables (1 if product is used)
+    # Binary indicator variables: 1 if product is used, 0 otherwise
     y = {p.id: LpVariable(f"y_{p.id}", cat="Binary") for p in products}
 
-    # 4. Objective: minimize total cost
+    # Objective function: minimize total cost of all products
+    # cost = sum(grams * price_per_100g / 100) for all products
     problem += lpSum([x[p.id] * p.price100g / 100 for p in products])
 
-    # Protein source targets
+    # Define protein source distribution targets
+    # For balanced nutrition, aim for 40% animal, 30% dairy, 30% plant protein
     animal_target = 0.4 * proteinTarget
     dairy_target = 0.3 * proteinTarget
     plant_target = 0.3 * proteinTarget
 
-    # 5. Nutritional constraints
+    # === NUTRITIONAL CONSTRAINTS ===
+    # Each constraint has min/max bounds with tolerance ranges
+
+    # Calorie constraints (90-130% of target)
     problem += lpSum([x[p.id] * p.kcal / 100 for p in products]) >= kcalTarget * 0.9, "caloriesMin"
     problem += lpSum([x[p.id] * p.kcal / 100 for p in products]) <= kcalTarget * 1.3, "caloriesMax"
 
+    # Total protein constraints (90-160% of target)
     problem += lpSum([x[p.id] * p.protein / 100 for p in products]) >= proteinTarget * 0.9
     problem += lpSum([x[p.id] * p.protein / 100 for p in products]) <= proteinTarget * 1.6
 
-    # Protein source constraints (conditional)
+    # Protein source distribution constraints (conditional based on diet type)
     if not vegan and not vegetarian:
-        # Omnivore
+        # Omnivore: enforce animal protein requirements (70-110% of target)
         problem += lpSum([x[p.id] * (p.animalProt or 0) / 100 for p in products]) >= animal_target * 0.7
         problem += lpSum([x[p.id] * (p.animalProt or 0) / 100 for p in products]) <= animal_target * 1.1
 
     if not vegan and not dairyFree:
-        # Dairy allowed
+        # Dairy allowed: enforce dairy protein requirements (70-110% of target)
         problem += lpSum([x[p.id] * (p.dairyProt or 0) / 100 for p in products]) >= dairy_target * 0.7
         problem += lpSum([x[p.id] * (p.dairyProt or 0) / 100 for p in products]) <= dairy_target * 1.1
 
-    # Always include plant protein constraints (everyone can eat plants)
+    # Plant protein constraints apply to all diets (70-110% of target)
     problem += lpSum([x[p.id] * (p.plantProt or 0) / 100 for p in products]) >= plant_target * 0.7
     problem += lpSum([x[p.id] * (p.plantProt or 0) / 100 for p in products]) <= plant_target * 1.1
 
-
+    # Fat constraints (60-110% of target)
     problem += lpSum([x[p.id] * p.fat / 100 for p in products]) >= fatTarget * 0.6, "fatMin"
     problem += lpSum([x[p.id] * p.fat / 100 for p in products]) <= fatTarget * 1.1, "fatMax"
+
+    # Carbohydrate constraints (60-110% of target)
     problem += lpSum([x[p.id] * p.carbs / 100 for p in products]) >= carbsTarget * 0.6, "carbsMin"
     problem += lpSum([x[p.id] * p.carbs / 100 for p in products]) <= carbsTarget * 1.1, "carbsMax"
+
+    # Sugar constraints (60-110% of target)
     problem += lpSum([x[p.id] * p.sugars / 100 for p in products]) >= sugarTarget * 0.6, "sugarsMin"
     problem += lpSum([x[p.id] * p.sugars / 100 for p in products]) <= sugarTarget * 1.1, "sugarsMax"
+
+    # Saturated fat constraints (60-110% of target)
     problem += lpSum([x[p.id] * p.satFat / 100 for p in products]) >= satFatTarget * 0.6, "saturatedFatMin"
     problem += lpSum([x[p.id] * p.satFat / 100 for p in products]) <= satFatTarget * 1.1, "saturatedFatMax"
+
+    # Salt constraints (60-110% of target)
     problem += lpSum([x[p.id] * p.salt / 100 for p in products]) >= saltTarget * 0.6, "saltMin"
     problem += lpSum([x[p.id] * p.salt / 100 for p in products]) <= saltTarget * 1.1, "saltMax"
 
+    # === BIG-M CONSTRAINTS ===
+    # Link continuous variable x (grams) with binary variable y (used/not used)
+    M = 400  # Maximum grams per product (upper bound)
+    m = 50  # Minimum grams if product is used (ensures meaningful portions)
 
-    # Big-M constraint: link x and y
-    M = 400  # max grams per product
-    m = 50  # min grams if product is used
     for p in products:
+        # If product is not used (y=0), then x must be 0
+        # If product is used (y=1), then x can be up to M grams
         problem += x[p.id] <= M * y[p.id], f"MaxLink_{p.id}"
+
+        # If product is used (y=1), then x must be at least m grams
+        # This ensures we don't include tiny amounts of products
         problem += x[p.id] >= m * y[p.id], f"MinLink_{p.id}"
 
-    # Require at least 15 different products
+    # Require at least 15 different products for diet variety
     problem += lpSum([y[p.id] for p in products]) >= 15, "Min_15_Products"
 
-    # 7. Apply custom restrictions (we already validated these exist)
+    # Apply user-defined custom restrictions (already validated above)
     if restrictions:
         for r in restrictions:
             r_type = r.get("type")
             r_product = normalize(r.get("product", ""))
             r_value = r.get("value", None)
 
+            # Find matching product and apply restriction
             for p in products:
                 name = normalize(p.productName)
                 if name == r_product:
                     if r_type == "max_weight" and r_value is not None:
+                        # Limit maximum grams for this product
                         problem += x[p.id] <= r_value, f"Limit_{p.id}"
                     elif r_type == "min_weight" and r_value is not None:
+                        # Require minimum grams for this product
                         problem += x[p.id] >= r_value, f"Min_{p.id}"
                     elif r_type == "exclude":
+                        # Completely exclude this product from the diet
                         problem += x[p.id] == 0, f"Exclude_{p.id}"
                         problem += y[p.id] == 0, f"Exclude_y_{p.id}"
 
-    # 8. Solve problem
+    # Solve the optimization problem
     problem.solve()
 
+    # Check if an optimal solution was found
     if LpStatus[problem.status] != "Optimal":
-        return GenerateMenuResponse(status=LpStatus[problem.status], message="No optimal solution found.", plan=[])
+        return GenerateMenuResponse(
+            status=LpStatus[problem.status],
+            message="No optimal solution found.",
+            plan=[]
+        )
 
+    # Extract solution: build list of products with non-zero quantities
     result = []
     for p in products:
         grams = x[p.id].varValue
         if grams and grams > 0:
+            # Calculate nutritional values based on selected grams
             result.append(ProductItem(
                 productName=str(p.productName),
                 grams=round(grams, 1),
@@ -219,6 +307,7 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
                 salt=round(p.salt * grams / 100, 1)
             ))
 
+    # Calculate total nutritional values across all selected products
     totals = {
         "totalKcal": round(sum(r.kcal for r in result), 1),
         "totalCost": round(sum(r.cost for r in result), 2),
@@ -233,13 +322,29 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
         "totalSalt": round(sum(r.salt for r in result), 1)
     }
 
+    # Return successful response with optimized menu
     return GenerateMenuResponse(status="Optimal", plan=result, **totals)
 
 
-def save_diet_menu(db: Session, request: AddDietPlanRequest, userUuid: int):
+def save_diet_menu(db: Session, request: PostDietPlanRequest, userUuid: int):
+    """
+    Save a generated diet menu to the database and automatically create recipes.
+
+    Args:
+        db: Database session
+        request: PostDietPlanRequest containing menu name, products, and totals
+        userUuid: User's unique identifier
+
+    Returns:
+        Success message dict
+
+    Raises:
+        HTTPException: If a menu with the same name already exists for this user
+    """
+    # Create new menu record with all nutritional totals
     new_plan = UserMenu(
         userUuid=userUuid,
-        name=request.name.strip().title(),  # <-- Save plan name
+        name=request.name.strip().title(),  # Normalize name (strip whitespace, title case)
         totalKcal=request.totalKcal,
         totalCost=request.totalCost,
         totalFat=request.totalFat,
@@ -252,13 +357,14 @@ def save_diet_menu(db: Session, request: AddDietPlanRequest, userUuid: int):
         totalSatFat=request.totalSatFat,
         totalSalt=request.totalSalt,
         date=datetime.now(),
-        plan=[p.model_dump() for p in request.plan]
+        plan=[p.model_dump() for p in request.plan]  # Convert Pydantic models to dicts
     )
 
+    # Check if menu name already exists for this user (case-insensitive)
     existing = (
         db.query(UserMenu)
-        .filter(UserMenu.userUuid == userUuid)  # optional, check only this user's menus
-        .filter(UserMenu.name.ilike(request.name.strip()))  # <-- strip the input string, not the column
+        .filter(UserMenu.userUuid == userUuid)
+        .filter(UserMenu.name.ilike(request.name.strip()))
         .first()
     )
     if existing:
@@ -267,27 +373,39 @@ def save_diet_menu(db: Session, request: AddDietPlanRequest, userUuid: int):
             detail=f"Menu '{request.name}' already exists in your list - choose different name."
         )
 
-    # 3. Save menu
+    # Save menu to database
     db.add(new_plan)
     db.commit()
-    db.refresh(new_plan)
+    db.refresh(new_plan)  # Refresh to get the auto-generated ID
 
-    # 4. Convert menu.plan JSON to RecipeProductItem list
+    # Convert JSON plan to list of RecipeProductItem objects
     products = [RecipeProductItem(**p) for p in new_plan.plan]
 
-    # 5. Generate recipes for this menu using the **menu.id value**
+    # Generate recipes from this menu's products
+    # Recipes are linked to the menu via UserMenuRecipes join table
     create_recipes_from_menu(db, new_plan.id, products)
 
-    # 6. Return success message
     return {"message": "Diet plan saved and recipes generated successfully."}
 
 
 def get_user_menus(db: Session, userUuid: int) -> DietPlanListResponse:
     """
-    Retrieve all diet menus for a given user.
+    Retrieve all saved diet menus for a specific user.
+
+    Args:
+        db: Database session
+        userUuid: User's unique identifier
+
+    Returns:
+        List of DietPlanResponse objects containing all menu details
+
+    Raises:
+        HTTPException: If no menus are found for the user
     """
+    # Query all menus for this user
     menus = db.query(UserMenu).filter(UserMenu.userUuid == int(userUuid)).all()
 
+    # Convert database models to response objects
     response: DietPlanListResponse = []
     for menu in menus:
         response.append(
@@ -307,9 +425,11 @@ def get_user_menus(db: Session, userUuid: int) -> DietPlanListResponse:
                 totalSatFat=menu.totalSatFat,
                 totalSalt=menu.totalSalt,
                 date=menu.date,
-                plan=menu.plan  # JSON -> List[ProductItem]
+                plan=menu.plan  # JSON stored in DB is automatically deserialized
             )
         )
+
+    # Return 404 if user has no saved menus
     if not response:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -319,12 +439,34 @@ def get_user_menus(db: Session, userUuid: int) -> DietPlanListResponse:
 
 
 def get_single_menu(db: Session, request: GetMenuRequest, userUuid: int) -> Optional[DietPlanResponse]:
-    menu = db.query(UserMenu).filter(UserMenu.name == request.menuName).filter(UserMenu.userUuid == userUuid).first()
+    """
+    Retrieve a specific diet menu by name for a user.
+
+    Args:
+        db: Database session
+        request: GetMenuRequest containing the menu name
+        userUuid: User's unique identifier
+
+    Returns:
+        DietPlanResponse object with menu details
+
+    Raises:
+        HTTPException: If menu is not found
+    """
+    # Query for menu by name and user
+    menu = db.query(UserMenu).filter(
+        UserMenu.name == request.menuName
+    ).filter(
+        UserMenu.userUuid == userUuid
+    ).first()
+
     if not menu:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No diet menu found with '{request.menuName}' name."
         )
+
+    # Convert database model to response object
     return DietPlanResponse(
         id=str(menu.id),
         userUuid=str(menu.userUuid),
@@ -342,15 +484,30 @@ def get_single_menu(db: Session, request: GetMenuRequest, userUuid: int) -> Opti
         totalSalt=menu.totalSalt,
         date=menu.date,
         plan=menu.plan
-
     )
+
 
 def delete_user_menu(db: Session, request: DeleteUserMenuRequest, userUuid: int):
     """
-    Deletes a specific user menu by userUuid and menuName.
-    Also removes any recipes that are no longer linked to other menus.
+    Delete a user's diet menu and clean up associated recipes.
+
+    This function:
+    1. Finds and deletes the specified menu
+    2. Removes links between the menu and its recipes
+    3. Deletes recipes that are no longer linked to any menu (orphaned recipes)
+
+    Args:
+        db: Database session
+        request: DeleteUserMenuRequest containing the menu name
+        userUuid: User's unique identifier
+
+    Returns:
+        Success message dict
+
+    Raises:
+        HTTPException: If menu is not found
     """
-    # Find the menu
+    # Find menu by name and user (case-insensitive)
     menu = (
         db.query(UserMenu)
         .filter(UserMenu.userUuid == userUuid)
@@ -364,25 +521,28 @@ def delete_user_menu(db: Session, request: DeleteUserMenuRequest, userUuid: int)
             detail=f"No menu found with name '{request.menuName}' for this user."
         )
 
-    # Collect all linked recipe IDs
+    # Get all recipe IDs linked to this menu before deletion
     linked_recipe_ids = [
-        link.recipeId for link in db.query(UserMenuRecipes).filter(UserMenuRecipes.userMenuId == menu.id).all()
+        link.recipeId
+        for link in db.query(UserMenuRecipes).filter(UserMenuRecipes.userMenuId == menu.id).all()
     ]
 
-    # Delete all UserMenuRecipes for this menu
+    # Delete all menu-recipe links for this menu
     db.query(UserMenuRecipes).filter(UserMenuRecipes.userMenuId == menu.id).delete()
 
     # Delete the menu itself
     db.delete(menu)
     db.commit()
 
-    # Remove recipes that are no longer linked to any menus
+    # Clean up orphaned recipes (recipes not linked to any other menu)
     for recipe_id in linked_recipe_ids:
+        # Check if this recipe is still linked to other menus
         still_used = (
             db.query(UserMenuRecipes)
             .filter(UserMenuRecipes.recipeId == recipe_id)
             .count()
         )
+        # If recipe is orphaned, delete it
         if still_used == 0:
             db.query(Recipe).filter(Recipe.id == recipe_id).delete()
 

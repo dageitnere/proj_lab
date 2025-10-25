@@ -2,8 +2,8 @@ from pydantic import BaseModel
 from typing import List
 from app.schemas.responses.generateMenuResponse import ProductItem
 
-class AddDietPlanRequest(BaseModel):
-    name: str  # <-- Added plan name
+class PostDietPlanRequest(BaseModel):
+    name: str
     totalKcal: float
     totalCost: float
     totalFat: float
