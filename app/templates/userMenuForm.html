@@ -146,7 +146,25 @@
             background: #27ae60;
             transform: translateY(-1px);
         }
-        /* END NEW */
+
+        /* Delete Batch Button Style */
+        .btn-delete-batch {
+            background: #e74c3c;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            margin-left: 15px;
+        }
+
+        .btn-delete-batch:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+        }
 
         .menu-list {
             display: grid;
@@ -242,7 +260,6 @@
             gap: 15px;
         }
 
-
         .close-btn {
             background: none;
             border: none;
@@ -322,7 +339,7 @@
             border-top: 2px solid #e0e0e0;
         }
 
-        .recipes-header-container { /* NEW: Container for H3 and Button */
+        .recipes-header-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -331,7 +348,7 @@
 
         .recipes-section h3 {
             color: #667eea;
-            margin: 0; /* Reset margin */
+            margin: 0;
             font-size: 1.5em;
         }
 
@@ -345,6 +362,9 @@
             font-weight: 600;
             border-radius: 5px;
             font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .recipe-grid {
@@ -564,25 +584,20 @@
         // Utility to handle fetch errors and parse JSON or text response
         async function handleResponse(response) {
             if (response.ok) {
-                // If OK (2xx status), always assume and return JSON data
                 return response.json();
             }
 
-            // If NOT OK (4xx, 5xx), try to extract error detail
             let errorDetail = 'Unknown error';
             try {
-                // 1. Try reading it as a JSON error object (FastAPI's default)
                 const errorJson = await response.json();
                 errorDetail = errorJson.detail || errorJson.message || JSON.stringify(errorJson);
             } catch (e) {
-                // 2. If JSON parsing fails (e.g., received HTML or plain text error)
                 try {
                     errorDetail = await response.text();
                 } catch (textError) {
                     errorDetail = `Could not read response body. ${response.statusText}`;
                 }
             }
-            // Throw a structured error
             throw new Error(`Failed to process request (Status: ${response.status}). Detail: ${errorDetail}`);
         }
 
@@ -680,7 +695,6 @@
             currentMenuId = menuId;
 
             try {
-                // Fetch menu details
                 const menuResponse = await fetch(`${API_BASE}/getUserMenu`, {
                     method: 'POST',
                     headers: {
@@ -694,7 +708,6 @@
 
                 document.getElementById('modalMenuName').textContent = menu.name;
 
-                // Display menu info and show loading for recipes
                 document.getElementById('modalContent').innerHTML = `
                     <div class="nutrition-grid">
                         <div class="nutrition-card">
@@ -750,7 +763,6 @@
 
                 document.getElementById('menuDetailModal').classList.add('active');
 
-                // Fetch recipes
                 await loadRecipes(menuId);
 
             } catch (error) {
@@ -760,9 +772,7 @@
 
         async function loadRecipes(menuId, isRegeneration = false, previousRecipeCount = 0) {
             const recipesSection = document.querySelector('.recipes-section');
-            const currentContent = recipesSection.innerHTML;
 
-            // Show loading state *inside* the section while preserving the header/button
             recipesSection.innerHTML = `
                 ${document.querySelector('.recipes-header-container').outerHTML}
                 <div class="loading-spinner">
@@ -801,50 +811,38 @@
                                         <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">🔄 Regenerate Recipes</button>
                                     </div>`;
 
-                // Calculate the index where the new recipes start (if regenerated)
-                const newRecipeStartIndex = previousRecipeCount;
-
-                // Group the recipes: Original Batch (first set)
-                if (newRecipeStartIndex > 0) {
-                    htmlContent += `<div class="recipe-batch-header">Batch 1 (Original)</div>`;
-                    htmlContent += `<div class="recipe-grid">`;
-                    for (let i = 0; i < newRecipeStartIndex; i++) {
-                        htmlContent += buildRecipeCard(recipes[i], false);
+                // Group recipes by batch
+                const recipesByBatch = {};
+                recipes.forEach(recipe => {
+                    const batchId = recipe.recipeBatch || 1;
+                    if (!recipesByBatch[batchId]) {
+                        recipesByBatch[batchId] = [];
                     }
-                    htmlContent += `</div>`;
-                }
+                    recipesByBatch[batchId].push(recipe);
+                });
 
-                // Group the recipes: Regeneration Batches
-                let currentBatchStart = newRecipeStartIndex;
-                let batchCounter = (isRegeneration ? 2 : (newRecipeStartIndex === 0 ? 1 : Math.ceil(newRecipeStartIndex / 4) + 1));
+                // Sort batch IDs
+                const sortedBatchIds = Object.keys(recipesByBatch).sort((a, b) => a - b);
 
-                // Assuming regeneration adds a fixed number of recipes (e.g., 4)
-                const batchSize = 4;
+                // Render each batch
+                sortedBatchIds.forEach(batchId => {
+                    const batchRecipes = recipesByBatch[batchId];
+                    const isNewBatch = isRegeneration && batchRecipes.some((_, idx) =>
+                        (previousRecipeCount + idx) >= previousRecipeCount
+                    );
 
-                // Group the remaining (or all, if newRecipeStartIndex=0) recipes
-                while (currentBatchStart < recipes.length) {
-                    const batchEnd = Math.min(currentBatchStart + batchSize, recipes.length);
-
-                    // Determine if it's the first batch of any kind
-                    const isFirstBatch = currentBatchStart === 0 && newRecipeStartIndex === 0;
-
-                    if (isFirstBatch) {
-                         htmlContent += `<div class="recipe-batch-header">Batch 1 (Generated)</div>`;
-                    } else if (currentBatchStart >= newRecipeStartIndex) { // It's a regeneration batch
-                        htmlContent += `<div class="recipe-batch-header">Batch ${batchCounter} (Regenerated)</div>`;
-                    }
-
-                    htmlContent += `<div class="recipe-grid">`;
-                    for (let i = currentBatchStart; i < batchEnd; i++) {
-                        // Mark recipes generated in the latest call as 'new'
-                        const isNew = isRegeneration && i >= previousRecipeCount;
-                        htmlContent += buildRecipeCard(recipes[i], isNew);
-                    }
-                    htmlContent += `</div>`;
-
-                    currentBatchStart = batchEnd;
-                    batchCounter++;
-                }
+                    htmlContent += `
+                        <div class="recipe-batch-header">
+                            <span>Batch ${batchId}</span>
+                            <button class="btn-delete-batch" onclick="deleteBatch(${batchId})">
+                                🗑️ Delete Batch
+                            </button>
+                        </div>
+                        <div class="recipe-grid">
+                            ${batchRecipes.map(recipe => buildRecipeCard(recipe, isNewBatch)).join('')}
+                        </div>
+                    `;
+                });
 
                 recipesSection.innerHTML = htmlContent;
 
@@ -863,7 +861,6 @@
             }
         }
 
-        // Helper function to build a single recipe card HTML
         function buildRecipeCard(recipe, isNew) {
             return `
                 <div class="recipe-card ${isNew ? 'new-recipe' : ''}">
@@ -890,7 +887,37 @@
             `;
         }
 
-        // Handles the regeneration request
+        async function deleteBatch(batchId) {
+            if (!currentMenuId) {
+                showAlert('No menu selected', 'error');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete Batch ${batchId}? This will remove all recipes in this batch.`)) {
+                return;
+            }
+
+            clearAlerts();
+
+            try {
+                const response = await fetch(`${RECIPE_API_BASE}/${currentMenuId}/batch/${batchId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+
+                const result = await handleResponse(response);
+                showAlert(result.message || `Batch ${batchId} deleted successfully!`, 'success');
+
+                // Reload recipes
+                await loadRecipes(currentMenuId);
+
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
         async function regenerateRecipes() {
             if (!currentMenuId) {
                 showAlert('Please view a menu before attempting to regenerate recipes.', 'error');
@@ -905,7 +932,6 @@
             regenerateBtn.textContent = 'Generating...';
             clearAlerts();
 
-            // Temporarily replace content with loading spinner while preserving header
             recipesSection.innerHTML = `
                 <div class="recipes-header-container">
                     <h3>🍽️ Recipes</h3>
@@ -916,7 +942,6 @@
                     <p>Generating new recipes with AI (this may take up to a minute)...</p>
                 </div>
             `;
-
             try {
                 const response = await fetch(`${RECIPE_API_BASE}/${currentMenuId}/regenerate`, {
                     method: 'POST',
@@ -929,15 +954,12 @@
 
                 showAlert(result.message || 'Recipes regenerated successfully!', 'success');
 
-                // Re-load recipes, passing the regeneration flag and the previous count
                 await loadRecipes(currentMenuId, true, currentRecipeCount);
 
             } catch (error) {
                 showAlert(error.message, 'error');
-                // Revert to original content if regeneration fails to show the error
                 await loadRecipes(currentMenuId);
             } finally {
-                // Ensure the button is re-enabled if loadRecipes fails for some reason
                 const finalBtn = document.getElementById('regenerateBtn');
                 if (finalBtn) {
                     finalBtn.disabled = false;

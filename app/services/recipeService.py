@@ -69,7 +69,8 @@ Output ONLY valid JSON (no markdown, no code blocks) in this exact format:
 
 
 # ---------------- Stability AI Image Generation ----------------
-def generate_sdxl_image_base64(prompt: str, width=1024, height=1024, steps=30, cfg_scale=7, samples=1, retries=2) -> str:
+def generate_sdxl_image_base64(prompt: str, width=1024, height=1024, steps=30, cfg_scale=7, samples=1,
+                               retries=2) -> str:
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -118,13 +119,21 @@ def generate_sdxl_image_base64(prompt: str, width=1024, height=1024, steps=30, c
 
 
 # ---------------- Create Recipes ----------------
-def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[RecipeProductItem]) -> GenerateRecipesResponse:
+def create_recipes_from_menu(db: Session, user_menu_id: int,
+                             products: list[RecipeProductItem]) -> GenerateRecipesResponse:
     if not products:
         return GenerateRecipesResponse(status="Error", message="No products found to generate recipes.")
 
     menu = db.query(UserMenu).filter(UserMenu.id == user_menu_id).first()
     if not menu:
         raise HTTPException(status_code=404, detail="Menu not found")
+
+    # Get the next batch number for this menu
+    max_batch = db.query(UserMenuRecipes.recipeBatch).filter(
+        UserMenuRecipes.userMenuId == menu.id
+    ).order_by(UserMenuRecipes.recipeBatch.desc()).first()
+
+    next_batch = (max_batch[0] + 1) if max_batch else 1
 
     ai_recipes = call_ai_generate_recipes(products)
     response_recipes = []
@@ -152,7 +161,8 @@ def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[Reci
         link = UserMenuRecipes(
             userMenuId=menu.id,
             recipeId=recipe.id,
-            mealType=r.get("mealType", "lunch")
+            mealType=r.get("mealType", "lunch"),
+            recipeBatch=next_batch
         )
         db.add(link)
 
@@ -163,7 +173,8 @@ def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[Reci
                 description=r.get("description"),
                 instructions=r["instructions"],
                 pictureBase64=photo_base64,
-                calories=r.get("calories")
+                calories=r.get("calories"),
+                recipeBatch=next_batch
             )
         )
 
@@ -189,7 +200,8 @@ def get_recipes_by_menu(db: Session, userUuid: int, menuId: int) -> GenerateReci
                     description=recipe.description,
                     instructions=recipe.instructions,
                     pictureBase64=recipe.pictureBase64,
-                    calories=recipe.calories
+                    calories=recipe.calories,
+                    recipeBatch=link.recipeBatch
                 )
             )
 
@@ -200,6 +212,8 @@ def get_recipes_by_menu(db: Session, userUuid: int, menuId: int) -> GenerateReci
         message=None if recipes_list else "No recipes found for this menu."
     )
 
+
+# ---------------- Regenerate Recipes ----------------
 def regenerate_recipes_for_menu(db: Session, userUuid: int, menuId: int) -> GenerateRecipesResponse:
     # 1️⃣ Validate user + menu
     menu = db.query(UserMenu).filter(UserMenu.id == menuId, UserMenu.userUuid == userUuid).first()
@@ -243,3 +257,55 @@ def regenerate_recipes_for_menu(db: Session, userUuid: int, menuId: int) -> Gene
         recipes=all_recipes_response.recipes,
         message=f"Recipes successfully regenerated. Added {num_new_recipes} new recipes."
     )
+
+
+# ---------------- Delete Recipes Batch ----------------
+def delete_recipes_batch(db: Session, userUuid: int, menuId: int, batchId: int) -> dict:
+    """
+    Delete all recipes for a specific batch in a user's menu
+    """
+    # 1️⃣ Validate user owns this menu
+    menu = db.query(UserMenu).filter(
+        UserMenu.id == menuId,
+        UserMenu.userUuid == userUuid
+    ).first()
+
+    if not menu:
+        raise HTTPException(status_code=404, detail="Menu not found")
+
+    # 2️⃣ Find all recipe links for this batch
+    recipe_links = db.query(UserMenuRecipes).filter(
+        UserMenuRecipes.userMenuId == menuId,
+        UserMenuRecipes.recipeBatch == batchId
+    ).all()
+
+    if not recipe_links:
+        raise HTTPException(status_code=404, detail=f"No recipes found for batch {batchId}")
+
+    # 3️⃣ Collect recipe IDs before deletion
+    recipe_ids = [link.recipeId for link in recipe_links]
+    deleted_count = len(recipe_links)
+
+    # 4️⃣ Delete the links (this will cascade delete if configured)
+    db.query(UserMenuRecipes).filter(
+        UserMenuRecipes.userMenuId == menuId,
+        UserMenuRecipes.recipeBatch == batchId
+    ).delete(synchronize_session=False)
+
+    # 5️⃣ Optional: Delete orphaned recipes (recipes not used in any other menu)
+    for recipe_id in recipe_ids:
+        # Check if this recipe is used in other menus
+        other_usage = db.query(UserMenuRecipes).filter(
+            UserMenuRecipes.recipeId == recipe_id
+        ).first()
+
+        if not other_usage:
+            # Recipe is not used anywhere else, safe to delete
+            db.query(Recipe).filter(Recipe.id == recipe_id).delete()
+
+    db.commit()
+
+    return {
+        "status": "Success",
+        "message": f"Deleted batch {batchId} ({deleted_count} recipes) from menu {menuId}"
+    }

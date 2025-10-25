@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, Text, ForeignKey
+from sqlalchemy import Column, BigInteger, Text, Integer, ForeignKey
 from app.database import Base
 
 class UserMenuRecipes(Base):
@@ -7,3 +7,4 @@ class UserMenuRecipes(Base):
     userMenuId = Column(BigInteger, ForeignKey("userMenu.id", ondelete="CASCADE"), primary_key=True)
     recipeId = Column(BigInteger, ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True)
     mealType = Column(Text, primary_key=True)
+    recipeBatch = Column(Integer, primary_key=True, default=1)
