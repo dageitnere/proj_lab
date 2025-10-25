@@ -12,6 +12,7 @@
     button { padding: .7rem .9rem; border: 0; border-radius: .6rem; background:#2255ee; color:#fff; cursor:pointer; }
     .msg { min-height: 1.2rem; margin-top:.5rem; }
     .ok { color:#0a7a26; } .err { color:#b40018; }
+    .links { margin-top:.5rem; display:flex; justify-content:space-between; font-size:.95rem; }
   </style>
 </head>
 <body>
@@ -27,14 +28,18 @@
     <div id="m" class="msg"></div>
   </form>
 
-  <p style="margin-top:.5rem">Nav konta? <a href="/auth/register">Reģistrēties</a></p>
+  <div class="links">
+    <a href="/auth/register">Reģistrēties</a>
+    <a href="/auth/forgot-password">Aizmirsi paroli?</a>
+  </div>
 
   <script>
   const f = document.getElementById('f'), m = document.getElementById('m');
   f.addEventListener('submit', async (e) => {
     e.preventDefault(); m.textContent='';
     const r = await fetch('/auth/login', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ login: f.login.value.trim(), password: f.password.value })
     });
     if (r.ok) { location.href = '/'; }

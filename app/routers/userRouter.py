@@ -15,6 +15,8 @@ from app.services.userService import register_user
 from app.schemas.requests.postRegisterRequest import VerifyRequest, VerifyCodeRequest
 from app.schemas.responses.registerResponse import VerifyResponse
 from app.services.verificationService import start_verification, confirm_verification
+from app.schemas.requests.postForgetRequest import ForgotRequest, ForgotConfirmRequest
+from app.services.passwordService import start_reset, confirm_reset
 
 user = APIRouter(tags=["auth"])
 tpl = Jinja2Templates(directory="app/templates")
@@ -73,5 +75,30 @@ def verification_confirm(request: VerifyCodeRequest, db: Session = Depends(get_d
     try:
         confirm_verification(db, str(request.email), request.code)
         return {"ok": True}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@user.get("/forgot-password", response_class=HTMLResponse)
+def forgot_page(request: Request):
+    if request.cookies.get("access_token"):
+        return RedirectResponse("/mainPage")
+    return tpl.TemplateResponse("forgotPassword.html", {"request": request})
+
+@user.post("/forgot-password/start", response_model=VerifyResponse)
+def forgot_start(request: ForgotRequest, db: Session = Depends(get_db)):
+    start_reset(db, str(request.email))
+    return JSONResponse({"ok": True})
+
+@user.get("/reset-password", response_class=HTMLResponse)
+def reset_page(request: Request):
+    if request.cookies.get("access_token"):
+        return RedirectResponse("/mainPage")
+    return tpl.TemplateResponse("resetPassword.html", {"request": request})
+
+@user.post("/reset-password/confirm", response_model=VerifyResponse)
+def reset_confirm(request: ForgotConfirmRequest, db: Session = Depends(get_db)):
+    try:
+        confirm_reset(db, request.token, request.new_password)
+        return JSONResponse({"ok": True})
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
