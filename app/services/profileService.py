@@ -1,0 +1,66 @@
+from sqlalchemy.orm import Session
+from app.models.users import User
+from app.schemas.requests.postRegisterRequest import CompleteRegistrationRequest
+
+_ACTIVITY_MULT = {
+    "SEDENTARY": 1.2,
+    "LIGHT": 1.375,
+    "MODERATE": 1.55,
+    "ACTIVE": 1.725,
+    "VERY_ACTIVE": 1.9,
+}
+
+def _bmi(weight_kg: float, height_cm: float) -> float:
+    m = height_cm / 100.0
+    return round(weight_kg / (m*m), 1)
+
+def _bmr(gender: str, weight_kg: float, height_cm: float, age: int) -> float:
+    # Mifflin–St Jeor
+    if gender == "MALE":
+        val = 10*weight_kg + 6.25*height_cm - 5*age + 5
+    else:
+        val = 10*weight_kg + 6.25*height_cm - 5*age - 161
+    return round(val)
+
+def _kcal_target(bmr: float, activity: str, goal: str) -> int:
+    tdee = bmr * _ACTIVITY_MULT[activity]
+    if goal == "MAINTAIN":
+        target = tdee
+    elif goal == "LOSE":
+        target = tdee - 500   # standard deficit
+    else:  # GAIN
+        target = tdee + 300   # moderate surplus
+    return int(round(max(target, 1200)))  # floor for safety
+
+def complete_registration(db: Session, user_uuid: int, body: CompleteRegistrationRequest) -> None:
+    u: User | None = db.query(User).get(user_uuid)
+    if not u:
+        raise ValueError("User not found")
+
+    bmi = _bmi(body.weight, body.height)
+    bmr = _bmr(body.gender, body.weight, body.height, body.age)
+    kcal = _kcal_target(bmr, body.activityFactor, body.goal)
+
+    u.age = body.age
+    u.gender = body.gender
+    u.weight = body.weight
+    u.height = body.height
+    u.bmi = bmi
+    u.bmr = bmr
+    u.activityFactor = body.activityFactor
+    u.goal = body.goal
+    u.isVegan = body.isVegan
+    u.isDairyInt = body.isDairyInt
+    u.isVegetarian = body.isVegetarian
+    u.calculatedKcal = kcal
+
+    db.commit()
+
+def needs_completion(u: User) -> bool:
+    return (
+        not u.emailVerified or
+        not u.weight or not u.height or
+        u.activityFactor in (None, "UNSET") or
+        u.goal is None or
+        (u.bmr is None) or (u.bmi is None) or (u.calculatedKcal is None)
+    )

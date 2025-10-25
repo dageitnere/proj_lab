@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Profila pabeigšana</title>
+  <style>
+    body { font-family: system-ui, Arial; max-width: 520px; margin: 6rem auto; padding: 0 1rem; }
+    form { display: grid; gap: .75rem; }
+    label { display: grid; gap: .25rem; }
+    input, select { padding: .6rem .7rem; border: 1px solid #bbb; border-radius: .5rem; }
+    button { padding: .7rem .9rem; border: 0; border-radius: .6rem; background:#2255ee; color:#fff; cursor:pointer; }
+    .row { display:flex; gap:.75rem }
+    .row > label { flex:1 }
+    .msg { min-height: 1.2rem; margin-top:.5rem; }
+    .ok { color:#0a7a26 } .err { color:#b40018 }
+  </style>
+</head>
+<body>
+  <h1>Pabeidz reģistrāciju</h1>
+  <form id="f">
+    <div class="row">
+      <label>Vecums
+        <input name="age" type="number" min="10" max="120" required>
+      </label>
+      <label>Dzimums
+        <select name="gender" required>
+          <option value="MALE">Vīrietis</option>
+          <option value="FEMALE">Sieviete</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="row">
+      <label>Svars (kg)
+        <input name="weight" type="number" step="0.1" min="1" required>
+      </label>
+      <label>Augums (cm)
+        <input name="height" type="number" step="0.1" min="50" required>
+      </label>
+    </div>
+
+    <div class="row">
+      <label>Vegāns?
+        <select name="isVegan">
+          <option value="false">Nē</option>
+          <option value="true">Jā</option>
+        </select>
+      </label>
+      <label>Veģetārietis?
+        <select name="isVegetarian">
+          <option value="false">Nē</option>
+          <option value="true">Jā</option>
+        </select>
+      </label>
+      <label>Ēd piena produktus?
+        <select name="isDairyInt">
+          <option value="false">Jā</option>
+          <option value="true">Nē (nepanesība)</option>
+        </select>
+      </label>
+    </div>
+
+    <label>Mērķis
+      <select name="goal" required>
+        <option value="MAINTAIN">Uzturēt svaru</option>
+        <option value="LOSE">Samazināt svaru</option>
+        <option value="GAIN">Palielināt svaru</option>
+      </select>
+    </label>
+
+    <label>Aktivitātes līmenis
+      <select name="activityFactor" required>
+        <option value="SEDENTARY">Sēdošs (maz kustību)</option>
+        <option value="LIGHT">Viegls (1–3x nedēļā)</option>
+        <option value="MODERATE">Mērens (3–5x nedēļā)</option>
+        <option value="ACTIVE">Aktīvs (6–7x nedēļā)</option>
+        <option value="VERY_ACTIVE">Ļoti aktīvs (2x dienā)</option>
+      </select>
+    </label>
+
+    <button type="submit">Saglabāt</button>
+    <div id="m" class="msg"></div>
+  </form>
+
+  <script>
+    const f = document.getElementById('f'), m = document.getElementById('m');
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault(); m.textContent='';
+      const body = {
+        age: Number(f.age.value),
+        gender: f.gender.value,
+        weight: Number(f.weight.value),
+        height: Number(f.height.value),
+        isVegan: f.isVegan.value === 'true',
+        isVegetarian: f.isVegetarian.value === 'true',
+        isDairyInt: f.isDairyInt.value === 'true',
+        goal: f.goal.value,
+        activityFactor: f.activityFactor.value
+      };
+      const r = await fetch('/auth/complete', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      if (r.ok) {
+        m.textContent='Saglabāts. Dodamies uz galveno lapu.';
+        m.className='msg ok';
+        setTimeout(()=>location.href='/',800);
+      } else {
+        const j = await r.json().catch(()=>({detail:'Neizdevās'}));
+        m.textContent=j.detail||'Neizdevās';
+        m.className='msg err';
+      }
+    });
+  </script>
+</body>
+</html>
