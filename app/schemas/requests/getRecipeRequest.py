@@ -6,6 +6,9 @@ class RecipeProductItem(BaseModel):
     grams: float
     kcal: float
 
-class GenerateRecipesRequest(BaseModel):
-    userMenuId: int  # The menu we want to generate recipes for
-    products: List[RecipeProductItem]
+class RegenerateRecipesRequest(BaseModel):
+    menuId: int
+
+class DeleteRecipesBatchRequest(BaseModel):
+    menuId: int
+    batchId: int

@@ -6,5 +6,5 @@ class UserMenuRecipes(Base):
 
     userMenuId = Column(BigInteger, ForeignKey("userMenu.id", ondelete="CASCADE"), primary_key=True)
     recipeId = Column(BigInteger, ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True)
-    mealType = Column(Text, primary_key=True)
-    recipeBatch = Column(Integer, primary_key=True, default=1)
+    mealType = Column(Text, nullable=False)
+    recipeBatch = Column(Integer, nullable=False, default=1)

@@ -66,7 +66,32 @@ Output ONLY valid JSON (no markdown, no code blocks) in this exact format:
             messages=[{"role": "user", "content": prompt}],
         )
         text = response.choices[0].message.content
-        return json.loads(text)
+
+        # Clean up the response - remove markdown code blocks if present
+        text = text.strip()
+        if text.startswith("```"):
+            # Remove markdown code block markers
+            lines = text.split('\n')
+            # Remove first line (```json or ```)
+            lines = lines[1:]
+            # Remove last line (```)
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            text = '\n'.join(lines).strip()
+
+        # Parse JSON
+        recipes = json.loads(text)
+
+        # Validate that it's a list
+        if not isinstance(recipes, list):
+            raise ValueError("AI returned invalid format - expected a list of recipes")
+
+        return recipes
+    except json.JSONDecodeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"AI recipe generation failed - invalid JSON: {str(e)}. Response text: {text[:200]}"
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -155,18 +180,33 @@ def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[Reci
 
     next_batch = (max_batch[0] + 1) if max_batch else 1
 
-    ai_recipes = call_ai_generate_recipes(products)
+    print(f"[DEBUG] Starting recipe generation for menu {user_menu_id}, batch {next_batch}")
+
+    try:
+        ai_recipes = call_ai_generate_recipes(products)
+        print(f"[DEBUG] AI generated {len(ai_recipes)} recipes")
+    except Exception as e:
+        print(f"[ERROR] AI recipe generation failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"AI recipe generation failed: {str(e)}"
+        )
+
     response_recipes = []
 
-    for r in ai_recipes:
+    for idx, r in enumerate(ai_recipes):
+        print(f"[DEBUG] Processing recipe {idx + 1}/{len(ai_recipes)}: {r.get('name', 'Unknown')}")
         image_prompt = f"{r['name']}: {r.get('description', '')} - appetizing food, realistic, vibrant"
         try:
             photo_base64 = generate_sdxl_image_base64(image_prompt)
+            print(f"[DEBUG] Image generated successfully for recipe: {r['name']}")
         except HTTPException as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Cannot generate image for recipe '{r['name']}': {e.detail}"
-            )
+            # If image generation fails, use None for the image but still save the recipe
+            print(f"[WARNING] Could not generate image for recipe '{r['name']}': {e.detail}")
+            photo_base64 = None
+        except Exception as e:
+            print(f"[WARNING] Unexpected error generating image for recipe '{r['name']}': {str(e)}")
+            photo_base64 = None
 
         recipe = Recipe(
             name=r["name"],
@@ -177,6 +217,7 @@ def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[Reci
         )
         db.add(recipe)
         db.flush()
+        print(f"[DEBUG] Recipe saved to DB with ID: {recipe.id}")
 
         link = UserMenuRecipes(
             userMenuId=menu.id,
@@ -198,7 +239,18 @@ def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[Reci
             )
         )
 
-    db.commit()
+    try:
+        db.commit()
+        print(f"[DEBUG] Successfully committed {len(response_recipes)} recipes to database")
+    except Exception as e:
+        db.rollback()
+        print(f"[ERROR] Database commit failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error while saving recipes: {str(e)}"
+        )
+
+    print(f"[DEBUG] Returning response with {len(response_recipes)} recipes")
     return GenerateRecipesResponse(status="Optimal", recipes=response_recipes)
 
 
@@ -260,8 +312,19 @@ def regenerate_recipes_for_menu(db: Session, userUuid: int, menuId: int) -> Gene
             detail=f"Internal Error: Could not parse product data from menu plan: {str(e)}"
         )
 
-    new_recipes_response = create_recipes_from_menu(db, menu.id, product_items)
+    try:
+        new_recipes_response = create_recipes_from_menu(db, menu.id, product_items)
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
+    except Exception as e:
+        # Catch any unexpected errors during recipe generation
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error creating recipes: {str(e)}"
+        )
 
+    # Get all recipes including the newly created ones
     all_recipes_response = get_recipes_by_menu(db, userUuid, menuId)
 
     num_new_recipes = len(new_recipes_response.recipes or [])

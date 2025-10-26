@@ -11,11 +11,9 @@ from app.schemas.requests.postDietPlanRequest import PostDietPlanRequest
 from app.schemas.requests.deleteUserMenuRequest import DeleteUserMenuRequest
 from app.schemas.requests.dietRequest import DietRequest
 from app.schemas.requests.getMenuRequest import GetMenuRequest
-from app.schemas.requests.getRecipeRequest import RecipeProductItem
 from app.schemas.responses.dietPlanResponse import DietPlanListResponse, DietPlanResponse
 from app.schemas.responses.generateMenuResponse import GenerateMenuResponse, ProductItem
 from app.services.userProductService import get_user_products
-from app.services.recipeService import create_recipes_from_menu
 
 
 def normalize(s: str):
@@ -378,14 +376,11 @@ def save_diet_menu(db: Session, request: PostDietPlanRequest, userUuid: int):
     db.commit()
     db.refresh(new_plan)  # Refresh to get the auto-generated ID
 
-    # Convert JSON plan to list of RecipeProductItem objects
-    products = [RecipeProductItem(**p) for p in new_plan.plan]
+    # Note: Recipes are NOT automatically generated here to avoid timeout issues.
+    # Users can generate recipes manually using the "Regenerate Recipes" button
+    # in the menu detail view, which calls the /recipes/regenerate endpoint.
 
-    # Generate recipes from this menu's products
-    # Recipes are linked to the menu via UserMenuRecipes join table
-    create_recipes_from_menu(db, new_plan.id, products)
-
-    return {"message": "Diet plan saved and recipes generated successfully."}
+    return {"message": "Diet plan saved successfully. Use 'Regenerate Recipes' button to create recipes."}
 
 
 def get_user_menus(db: Session, userUuid: int) -> DietPlanListResponse:
