@@ -796,11 +796,11 @@
                     recipesSection.innerHTML = `
                         <div class="recipes-header-container">
                             <h3>🍽️ Recipes</h3>
-                            <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">🔄 Regenerate Recipes</button>
+                            <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">✨ Generate Recipes</button>
                         </div>
                         <div class="empty-state">
                             <div class="empty-state-icon">🍳</div>
-                            <p>No recipes generated yet for this menu. Click 'Regenerate Recipes' to create some!</p>
+                            <p>No recipes generated yet for this menu. Click 'Generate Recipes' to create some!</p>
                         </div>
                     `;
                     return;
@@ -900,11 +900,16 @@
             clearAlerts();
 
             try {
-                const response = await fetch(`${RECIPE_API_BASE}/${currentMenuId}/batch/${batchId}`, {
+                const response = await fetch(`${RECIPE_API_BASE}/batch`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Bearer ${userToken}`
-                    }
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        menuId: currentMenuId,
+                        batchId: batchId
+                    })
                 });
 
                 const result = await handleResponse(response);
@@ -920,13 +925,18 @@
 
         async function regenerateRecipes() {
             if (!currentMenuId) {
-                showAlert('Please view a menu before attempting to regenerate recipes.', 'error');
+                showAlert('Please view a menu before attempting to generate recipes.', 'error');
                 return;
             }
 
             const recipesSection = document.querySelector('.recipes-section');
             const currentRecipeCount = recipesSection.querySelectorAll('.recipe-card').length;
             const regenerateBtn = document.getElementById('regenerateBtn');
+
+            // Check if this is first-time generation or regeneration
+            const isFirstTime = currentRecipeCount === 0;
+            const actionText = isFirstTime ? 'Generate Recipes' : 'Regenerate Recipes';
+            const progressText = isFirstTime ? 'Generating recipes' : 'Generating new batch';
 
             regenerateBtn.disabled = true;
             regenerateBtn.textContent = 'Generating...';
@@ -939,20 +949,27 @@
                 </div>
                 <div class="loading-spinner">
                     <div class="spinner"></div>
-                    <p>Generating new recipes with AI (this may take up to a minute)...</p>
+                    <p>${progressText} with AI (this may take up to a minute)...</p>
                 </div>
             `;
             try {
-                const response = await fetch(`${RECIPE_API_BASE}/${currentMenuId}/regenerate`, {
+                const response = await fetch(`${RECIPE_API_BASE}/regenerate`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${userToken}`
-                    }
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        menuId: currentMenuId
+                    })
                 });
 
                 const result = await handleResponse(response);
 
-                showAlert(result.message || 'Recipes regenerated successfully!', 'success');
+                const successMsg = isFirstTime
+                    ? 'Recipes generated successfully!'
+                    : (result.message || 'New recipe batch generated successfully!');
+                showAlert(successMsg, 'success');
 
                 await loadRecipes(currentMenuId, true, currentRecipeCount);
 
@@ -960,10 +977,13 @@
                 showAlert(error.message, 'error');
                 await loadRecipes(currentMenuId);
             } finally {
+                // Button text will be set by loadRecipes based on recipe count
                 const finalBtn = document.getElementById('regenerateBtn');
                 if (finalBtn) {
                     finalBtn.disabled = false;
-                    finalBtn.textContent = '🔄 Regenerate Recipes';
+                    // Update button text based on final state
+                    const finalRecipeCount = document.querySelectorAll('.recipe-card').length;
+                    finalBtn.textContent = finalRecipeCount > 0 ? '🔄 Regenerate Recipes' : '✨ Generate Recipes';
                 }
             }
         }
