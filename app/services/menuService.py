@@ -13,6 +13,7 @@ from app.schemas.requests.dietRequest import DietRequest
 from app.schemas.requests.getMenuRequest import GetMenuRequest
 from app.schemas.responses.dietPlanResponse import DietPlanListResponse, DietPlanResponse
 from app.schemas.responses.generateMenuResponse import GenerateMenuResponse, ProductItem
+from app.schemas.responses.userMenuNamesResponse import UserMenuNamesResponse
 from app.services.userProductService import get_user_products
 
 
@@ -327,22 +328,19 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
 def save_diet_menu(db: Session, request: PostDietPlanRequest, userUuid: int):
     """
     Save a generated diet menu to the database and automatically create recipes.
-
     Args:
         db: Database session
         request: PostDietPlanRequest containing menu name, products, and totals
         userUuid: User's unique identifier
-
     Returns:
         Success message dict
-
     Raises:
         HTTPException: If a menu with the same name already exists for this user
     """
     # Create new menu record with all nutritional totals
     new_plan = UserMenu(
         userUuid=userUuid,
-        name=request.name.strip().title(),  # Normalize name (strip whitespace, title case)
+        name=request.name.strip().title(), # Normalize name (strip whitespace, title case)
         totalKcal=request.totalKcal,
         totalCost=request.totalCost,
         totalFat=request.totalFat,
@@ -355,10 +353,13 @@ def save_diet_menu(db: Session, request: PostDietPlanRequest, userUuid: int):
         totalSatFat=request.totalSatFat,
         totalSalt=request.totalSalt,
         date=datetime.now(),
-        plan=[p.model_dump() for p in request.plan]  # Convert Pydantic models to dicts
+        plan=[p.model_dump() for p in request.plan], # Convert Pydantic models to dicts
+        vegan=request.vegan,
+        vegetarian=request.vegetarian,
+        dairyFree=request.dairyFree,
+        restrictions=request.restrictions
     )
 
-    # Check if menu name already exists for this user (case-insensitive)
     existing = (
         db.query(UserMenu)
         .filter(UserMenu.userUuid == userUuid)
@@ -370,18 +371,31 @@ def save_diet_menu(db: Session, request: PostDietPlanRequest, userUuid: int):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Menu '{request.name}' already exists in your list - choose different name."
         )
-
     # Save menu to database
     db.add(new_plan)
     db.commit()
-    db.refresh(new_plan)  # Refresh to get the auto-generated ID
-
+    db.refresh(new_plan) # Refresh to get the auto-generated ID
     # Note: Recipes are NOT automatically generated here to avoid timeout issues.
     # Users can generate recipes manually using the "Regenerate Recipes" button
     # in the menu detail view, which calls the /recipes/regenerate endpoint.
-
     return {"message": "Diet plan saved successfully. Use 'Regenerate Recipes' button to create recipes."}
 
+def get_user_menus_names(db: Session, userUuid: int) -> UserMenuNamesResponse:
+    """
+    Retrieve the names of all saved diet menus for a specific user.
+
+    Args:
+        db: Database session
+        userUuid: User's unique identifier
+
+    Returns:
+        UserMenuNamesResponse: A response object containing a list of menu names.
+    """
+    menus = db.query(UserMenu.name).filter(UserMenu.userUuid == int(userUuid)).all()
+
+    menu_names = [menu.name for menu in menus]
+
+    return UserMenuNamesResponse(menus=menu_names)
 
 def get_user_menus(db: Session, userUuid: int) -> DietPlanListResponse:
     """
@@ -420,7 +434,11 @@ def get_user_menus(db: Session, userUuid: int) -> DietPlanListResponse:
                 totalSatFat=menu.totalSatFat,
                 totalSalt=menu.totalSalt,
                 date=menu.date,
-                plan=menu.plan  # JSON stored in DB is automatically deserialized
+                plan=menu.plan,  # JSON stored in DB is automatically deserialized
+                vegan=menu.vegan,
+                vegetarian=menu.vegetarian,
+                dairyFree=menu.dairyFree,
+                restrictions=menu.restrictions
             )
         )
 
@@ -436,15 +454,12 @@ def get_user_menus(db: Session, userUuid: int) -> DietPlanListResponse:
 def get_single_menu(db: Session, request: GetMenuRequest, userUuid: int) -> Optional[DietPlanResponse]:
     """
     Retrieve a specific diet menu by name for a user.
-
     Args:
         db: Database session
         request: GetMenuRequest containing the menu name
         userUuid: User's unique identifier
-
     Returns:
         DietPlanResponse object with menu details
-
     Raises:
         HTTPException: If menu is not found
     """
@@ -454,13 +469,11 @@ def get_single_menu(db: Session, request: GetMenuRequest, userUuid: int) -> Opti
     ).filter(
         UserMenu.userUuid == userUuid
     ).first()
-
     if not menu:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No diet menu found with '{request.menuName}' name."
         )
-
     # Convert database model to response object
     return DietPlanResponse(
         id=str(menu.id),
@@ -478,7 +491,11 @@ def get_single_menu(db: Session, request: GetMenuRequest, userUuid: int) -> Opti
         totalSatFat=menu.totalSatFat,
         totalSalt=menu.totalSalt,
         date=menu.date,
-        plan=menu.plan
+        plan=menu.plan,
+        vegan=menu.vegan,
+        vegetarian=menu.vegetarian,
+        dairyFree=menu.dairyFree,
+        restrictions=menu.restrictions or []
     )
 
 

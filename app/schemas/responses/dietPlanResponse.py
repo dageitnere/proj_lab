@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict, Any, Optional
 from app.schemas.responses.generateMenuResponse import ProductItem
 from datetime import datetime
 
@@ -20,6 +20,10 @@ class DietPlanResponse(BaseModel):
     totalSalt: float
     date: datetime
     plan: List[ProductItem]
+    vegan: bool
+    vegetarian: bool
+    dairyFree: bool
+    restrictions: Optional[List[Dict[str, Any]]] = None
 
 
 DietPlanListResponse = List[DietPlanResponse]
