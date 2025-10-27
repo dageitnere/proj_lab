@@ -10,7 +10,9 @@ from app.schemas.requests.getMenuRequest import GetMenuRequest
 from app.schemas.requests.dietRequest import DietRequest
 from app.schemas.responses.generateMenuResponse import GenerateMenuResponse
 from app.schemas.responses.dietPlanResponse import DietPlanListResponse, DietPlanResponse
-from app.services.menuService import generate_diet_menu, save_diet_menu, get_user_menus, get_single_menu, delete_user_menu
+from app.schemas.responses.userMenuNamesResponse import UserMenuNamesResponse
+from app.services.menuService import generate_diet_menu, save_diet_menu, get_user_menus, get_single_menu, \
+    delete_user_menu, get_user_menus_names
 
 templates = Jinja2Templates(directory="app/templates")
 
@@ -44,3 +46,7 @@ def getSingleMenu(request: GetMenuRequest, userUuid: int = Depends(get_uuid_from
 @menu.delete("/deleteMenu")
 def deleteMenu(request: DeleteUserMenuRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
     return delete_user_menu(db, request, userUuid)
+
+@menu.get("/getUserMenusNames", response_model=UserMenuNamesResponse)
+def getUserMenusNames(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
+    return get_user_menus_names(db, userUuid)

@@ -234,7 +234,7 @@
             background: white;
             border-radius: 15px;
             padding: 30px;
-            max-width: 1100px;
+            max-width: 1400px;
             max-height: 90vh;
             overflow-y: auto;
             width: 90%;
@@ -532,6 +532,37 @@
                 height: 200px;
             }
         }
+
+        .dietary-tags {
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .diet-tag {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .diet-tag.vegan {
+            background-color: #22c55e; /* green */
+        }
+
+        .diet-tag.vegetarian {
+            background-color: #84cc16; /* lime */
+        }
+
+        .diet-tag.dairyfree {
+            background-color: #f97316; /* orange */
+        }
+
+        .diet-tag.none {
+            background-color: #9ca3af; /* gray */
+        }
     </style>
 </head>
 <body>
@@ -735,6 +766,41 @@
                             <div class="nutrition-label">Created</div>
                         </div>
                     </div>
+
+                    <!-- 🥦 Dietary tags -->
+                    <div class="dietary-tags">
+                        ${menu.vegan ? '<span class="diet-tag vegan">🌱 Vegan</span>' : ''}
+                        ${menu.vegetarian ? '<span class="diet-tag vegetarian">🥕 Vegetarian</span>' : ''}
+                        ${menu.dairyFree ? '<span class="diet-tag dairyfree">🥛❌ Dairy-Free</span>' : ''}
+                        ${!menu.vegan && !menu.vegetarian && !menu.dairyFree ? '<span class="diet-tag none">No dietary restrictions</span>' : ''}
+                    </div>
+
+                    <!-- 🚫 Restrictions -->
+                    ${menu.restrictions && menu.restrictions.length > 0 ? `
+                        <div class="restrictions-section">
+                            <h3>⚙️ Restrictions</h3>
+                            <ul class="restriction-list">
+                                ${menu.restrictions.map(r => {
+                                    switch (r.type) {
+                                        case 'exclude':
+                                            return `<li>❌ Exclude: <strong>${r.product}</strong></li>`;
+                                        case 'min_weight':
+                                            return `<li>⚖️ Min weight for <strong>${r.product}</strong>: ${r.value}g</li>`;
+                                        case 'max_weight':
+                                            return `<li>⚖️ Max weight for <strong>${r.product}</strong>: ${r.value}g</li>`;
+                                        default:
+                                            return `<li>ℹ️ Unknown restriction: ${JSON.stringify(r)}</li>`;
+                                    }
+                                }).join('')}
+                            </ul>
+                        </div>
+                    ` : `
+                        <div class="restrictions-section">
+                            <h3>⚙️ Restrictions</h3>
+                            <p style="color: #999;">No restrictions set.</p>
+                        </div>
+                    `}
+
                     <h3 style="margin-bottom: 15px; color: #667eea;">Menu Items</h3>
                     <div class="product-list">
                         ${menu.plan.length > 0 ? menu.plan.map(item => `
@@ -749,6 +815,7 @@
                             </div>
                         `).join('') : '<p style="text-align: center; color: #999;">No items in this menu yet.</p>'}
                     </div>
+
                     <div class="recipes-section">
                         <div class="recipes-header-container">
                             <h3>🍽️ Recipes</h3>
