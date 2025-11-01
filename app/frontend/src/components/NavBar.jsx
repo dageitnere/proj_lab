@@ -23,7 +23,7 @@ export default function Navbar() {
       </nav>
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <h2 className="text-2xl font-bold mb-4 text-brandGreen">Login</h2>
+        <h2 className="text-2xl font-bold mb-4 text-black brandGreen">Login</h2>
         <input
           type="text"
           placeholder="Username"

@@ -3,7 +3,7 @@ export default function Hero() {
   return (
     <section className="pt-40 sm:pt-32 lg:pt-48">
       <div className="mx-auto max-w-7xl px-6 grid gap-6 lg:grid-cols-12">
-        {/* Левая колонка: заголовок */}
+
         <div className="lg:col-span-6">
           <h1 className="text-white font-medium tracking-tight leading-[0.95]
                          text-5xl sm:text-7xl lg:text-8xl">
@@ -13,7 +13,7 @@ export default function Hero() {
           </h1>
         </div>
 
-        {/* Правая колонка: описание + CTA (сдвинута левее) */}
+
         <div className="lg:col-span-6 lg:col-start-10 text-white/90 lg:mt-6">
           <p className="text-base sm:text-lg leading-relaxed max-w-sm">
             NutriMax lets you plan dishes for the whole week, organize ingredients,
