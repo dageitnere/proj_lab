@@ -71,7 +71,7 @@ def login_user(db: Session, request: LoginInRequest) -> tuple[str, str]:
     if not u.emailVerified:
         raise ValueError("Email not verified")
 
-    token = _create_access_token(sub=str(u.uuid), extra={"username": u.username})
+    token = _create_access_token(sub=str(u.uuid), extra={"username": u.username, "email": u.email})
     return token, u.username
 
 
