@@ -7,12 +7,20 @@ from app.schemas.requests.getLoginRequest import LoginInRequest
 from app.schemas.requests.postRegisterRequest import RegisterRequest
 from app.services.verificationService import start_verification
 
-import os, time, jwt
+import os, re, time, jwt
 
+_PASS_RX = re.compile(r"^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$")
 _pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 _JWT_SECRET = os.getenv("JWT_SECRET")
 _JWT_ALG = "HS256"
 _TTL = 60 * 60 * 24 # Expires in 1 day
+
+def _require_strong_password(pw: str) -> None:
+    """
+        Check if the password matches requirements.
+    """
+    if not _PASS_RX.match(pw or ""):
+        raise ValueError("The password must be at least 8 characters long, contain atleast one special character, one uppercase letter and a number.")
 
 def _verify_password(raw: str, hashed: str) -> bool:
     """
@@ -84,6 +92,7 @@ def register_user(db: Session, request: RegisterRequest) -> tuple[int, str]:
     if exists:
         raise ValueError("User with this username or email already exists")
 
+    _require_strong_password(request.password)
     email = str(request.email).lower().strip()
 
     u = User(
