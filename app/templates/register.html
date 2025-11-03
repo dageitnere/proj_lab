@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="lv">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Reģistrācija</title>
+  <title>Registration</title>
   <style>
     body {
       font-family: system-ui, Arial;
@@ -32,31 +32,31 @@
   </style>
 </head>
 <body>
-  <h1>Reģistrācija</h1>
+  <h1>Registration</h1>
 
   <form id="f">
-    <label>Lietotājvārds
+    <label>Username
       <input name="username" minlength="3" maxlength="50" required />
     </label>
 
-    <label>E-pasts
+    <label>Email
       <input name="email" type="email" required />
     </label>
 
-    <label>Parole
+    <label>Password
       <input name="password" type="password" minlength="8" required
-             title="Parolei jābūt vismaz 8 simboliem un jāsatur 1 lielais burts, 1 cipars un 1 speciāls simbols" />
+             title="Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 special symbol." />
       <small style="color:#555; font-size:0.85rem;">
-        Vismaz 8 simboli, 1 lielais burts, 1 cipars un 1 speciāls simbols
+        At least 8 characters, 1 uppercase letter, 1 number, and 1 special symbol.
       </small>
     </label>
 
-    <button type="submit">Reģistrēties</button>
+    <button type="submit">Register</button>
     <div id="m" class="msg"></div>
   </form>
 
   <p style="margin-top:.5rem">
-    Jau ir konts? <a href="/auth/login">Pieteikties</a>
+    Already have an account? <a href="/auth/login">Log in</a>
   </p>
 
   <script>
@@ -81,12 +81,12 @@
       body: JSON.stringify(body)
     });
 
-    const j = await r.json().catch(() => ({ detail: 'Kļūda' }));
+    const j = await r.json().catch(() => ({ detail: 'Error' }));
 
     if (r.ok) {
       location.href = '/auth/verify?email=' + encodeURIComponent(email);
     } else {
-      let msg = 'Neizdevās';
+      let msg = 'Registration failed';
       if (typeof j.detail === 'string') msg = j.detail;
       else if (Array.isArray(j.detail))
         msg = j.detail.map(e => e.msg || e.detail || '').filter(Boolean).join(', ');

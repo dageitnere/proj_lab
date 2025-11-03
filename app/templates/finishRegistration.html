@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="lv">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Profila pabeigšana</title>
+  <title>Complete Profile</title>
   <style>
     body { font-family: system-ui, Arial; max-width: 520px; margin: 6rem auto; padding: 0 1rem; }
     form { display: grid; gap: .75rem; }
@@ -17,69 +17,69 @@
   </style>
 </head>
 <body>
-  <h1>Pabeidz reģistrāciju</h1>
+  <h1>Complete Your Registration</h1>
   <form id="f">
     <div class="row">
-      <label>Vecums
+      <label>Age
         <input name="age" type="number" min="10" max="120" required>
       </label>
-      <label>Dzimums
+      <label>Gender
         <select name="gender" required>
-          <option value="MALE">Vīrietis</option>
-          <option value="FEMALE">Sieviete</option>
+          <option value="MALE">Male</option>
+          <option value="FEMALE">Female</option>
         </select>
       </label>
     </div>
 
     <div class="row">
-      <label>Svars (kg)
+      <label>Weight (kg)
         <input name="weight" type="number" step="0.1" min="1" required>
       </label>
-      <label>Augums (cm)
+      <label>Height (cm)
         <input name="height" type="number" step="0.1" min="50" required>
       </label>
     </div>
 
     <div class="row">
-      <label>Vegāns?
+      <label>Vegan?
         <select name="isVegan">
-          <option value="false">Nē</option>
-          <option value="true">Jā</option>
+          <option value="false">No</option>
+          <option value="true">Yes</option>
         </select>
       </label>
-      <label>Veģetārietis?
+      <label>Vegetarian?
         <select name="isVegetarian">
-          <option value="false">Nē</option>
-          <option value="true">Jā</option>
+          <option value="false">No</option>
+          <option value="true">Yes</option>
         </select>
       </label>
-      <label>Ēd piena produktus?
+      <label>Dairy products?
         <select name="isDairyInt">
-          <option value="false">Jā</option>
-          <option value="true">Nē (nepanesība)</option>
+          <option value="false">Yes</option>
+          <option value="true">No (intolerance)</option>
         </select>
       </label>
     </div>
 
-    <label>Mērķis
+    <label>Goal
       <select name="goal" required>
-        <option value="MAINTAIN">Uzturēt svaru</option>
-        <option value="LOSE">Samazināt svaru</option>
-        <option value="GAIN">Palielināt svaru</option>
+        <option value="MAINTAIN">Maintain weight</option>
+        <option value="LOSE">Lose weight</option>
+        <option value="GAIN">Gain weight</option>
       </select>
     </label>
 
-    <label>Aktivitātes līmenis
+    <label>Activity Level
       <select name="activityFactor" required>
-        <option value="SEDENTARY">Sēdošs (maz kustību)</option>
-        <option value="LIGHT">Viegls (1–3x nedēļā)</option>
-        <option value="MODERATE">Mērens (3–5x nedēļā)</option>
-        <option value="ACTIVE">Aktīvs (6–7x nedēļā)</option>
-        <option value="VERY_ACTIVE">Ļoti aktīvs (2x dienā)</option>
+        <option value="SEDENTARY">Sedentary (little movement)</option>
+        <option value="LIGHT">Light (1–3x per week)</option>
+        <option value="MODERATE">Moderate (3–5x per week)</option>
+        <option value="ACTIVE">Active (6–7x per week)</option>
+        <option value="VERY_ACTIVE">Very active (2x per day)</option>
       </select>
     </label>
 
-    <button type="submit">Saglabāt</button>
+    <button type="submit">Save</button>
     <div id="m" class="msg"></div>
   </form>
 
@@ -104,12 +104,12 @@
         body: JSON.stringify(body)
       });
       if (r.ok) {
-        m.textContent='Saglabāts. Dodamies uz galveno lapu.';
+        m.textContent='Saved. Redirecting to the main page...';
         m.className='msg ok';
         setTimeout(()=>location.href='/',800);
       } else {
-        const j = await r.json().catch(()=>({detail:'Neizdevās'}));
-        m.textContent=j.detail||'Neizdevās';
+        const j = await r.json().catch(()=>({detail:'Error'}));
+        m.textContent=j.detail||'Failed';
         m.className='msg err';
       }
     });
