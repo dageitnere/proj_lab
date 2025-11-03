@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="lv">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>E-pasta verifikācija</title>
+  <title>Email Verification</title>
   <style>
     body { font-family: system-ui, Arial; max-width: 420px; margin: 6rem auto; padding: 0 1rem; }
     form { display: grid; gap: .75rem; }
@@ -15,44 +15,52 @@
   </style>
 </head>
 <body>
-  <h1>E-pasta verifikācija</h1>
+  <h1>Email Verification</h1>
 
+  <!-- Send code form -->
   <form id="start">
-    <label>E-pasts
+    <label>Email
       <input name="email" type="email" required />
     </label>
-    <button type="submit">Sūtīt kodu</button>
+    <button type="submit">Send Code</button>
     <div class="msg" id="m1"></div>
   </form>
 
   <hr style="margin:1rem 0">
 
+  <!-- Confirm code form -->
   <form id="confirm">
-    <label>E-pasts
+    <label>Email
       <input name="email" type="email" required />
     </label>
-    <label>Kods (6 cipari)
+    <label>Verification Code (6 digits)
       <input name="code" inputmode="numeric" pattern="\d{6}" maxlength="6" required />
     </label>
-    <button type="submit">Apstiprināt</button>
+    <button type="submit">Confirm</button>
     <div class="msg" id="m2"></div>
   </form>
 
-  <p style="margin-top:.5rem"><a href="/auth/login">Atpakaļ uz login</a></p>
+  <p style="margin-top:.5rem">
+    <a href="/auth/login">Back to Login</a>
+  </p>
 
   <script>
-  document.getElementById('start').addEventListener('submit', async (e)=>{
+  // Send verification code
+  document.getElementById('start').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const f=e.target, m=document.getElementById('m1');
-    m.textContent='';
-    const r=await fetch('/auth/verification/start',{method:'POST',headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email: f.email.value.trim()})});
-    m.textContent = r.ok ? 'Kods nosūtīts.' : 'Neizdevās.';
-    m.className='msg ' + (r.ok ? 'ok' : 'err');
+    const f = e.target, m = document.getElementById('m1');
+    m.textContent = '';
+    const r = await fetch('/auth/verification/start', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email: f.email.value.trim() })
+    });
+    m.textContent = r.ok ? 'Verification code sent.' : 'Failed to send code.';
+    m.className = 'msg ' + (r.ok ? 'ok' : 'err');
   });
 
-    // JS for confirming verification code
-  document.getElementById('confirm').addEventListener('submit', async (e)=>{
+  // Confirm verification code
+  document.getElementById('confirm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const f = e.target, m = document.getElementById('m2');
     m.textContent = '';
@@ -64,11 +72,13 @@
         code: f.code.value.trim()
       })
     });
+
     if (r.redirected) {
       window.location.href = r.url;
     } else {
-      m.textContent = r.ok ? 'Apstiprināts!' : 'Nederīgs kods.';
+      m.textContent = r.ok ? 'Email verified successfully!' : 'Invalid or expired code.';
       m.className = 'msg ' + (r.ok ? 'ok' : 'err');
+      if (r.ok) setTimeout(() => window.location.href = '/auth/login', 1000);
     }
   });
   </script>

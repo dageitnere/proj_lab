@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="lv">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pieteikšanās</title>
+  <title>Login</title>
   <style>
     body { font-family: system-ui, Arial; max-width: 420px; margin: 6rem auto; padding: 0 1rem; }
     form { display: grid; gap: .75rem; }
@@ -16,21 +16,21 @@
   </style>
 </head>
 <body>
-  <h1>Pieteikšanās</h1>
+  <h1>Login</h1>
   <form id="f">
-    <label>Lietotājvārds vai e-pasts
+    <label>Username or Email
       <input name="login" autocomplete="username" required />
     </label>
-    <label>Parole
+    <label>Password
       <input name="password" type="password" autocomplete="current-password" required />
     </label>
-    <button type="submit">Ieiet</button>
+    <button type="submit">Sign In</button>
     <div id="m" class="msg"></div>
   </form>
 
   <div class="links">
-    <a href="/auth/register">Reģistrēties</a>
-    <a href="/auth/forgot-password">Aizmirsi paroli?</a>
+    <a href="/auth/register">Register</a>
+    <a href="/auth/forgot-password">Forgot Password?</a>
   </div>
 
   <script>
@@ -42,10 +42,12 @@
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ login: f.login.value.trim(), password: f.password.value })
     });
-    if (r.ok) { location.href = '/'; }
-    else {
-      const j = await r.json().catch(()=>({detail:'Kļūda'}));
-      m.textContent = j.detail || 'Neizdevās'; m.className='msg err';
+    if (r.ok) {
+      location.href = '/';
+    } else {
+      const j = await r.json().catch(()=>({detail:'Error'}));
+      m.textContent = j.detail || 'Login failed';
+      m.className='msg err';
     }
   });
   </script>
