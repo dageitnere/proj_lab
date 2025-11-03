@@ -30,7 +30,7 @@ def start_reset(db: Session, email: str) -> None:
     if not u:
         return  # Silent fail for privacy
     tok = _create_reset_token(str(u.uuid))
-    reset_url = f"/auth/reset-password?token={tok}"
+    reset_url = f"http://localhost:8000/auth/reset-password?token={tok}"
 
     send_email(
         to=str(u.email),

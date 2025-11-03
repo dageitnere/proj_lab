@@ -8,8 +8,10 @@ def _now_utc():
     return dt.datetime.now(dt.timezone.utc)
 
 def _gen_code(n=6) -> int:
-    """Generate a numeric verification code of length n."""
-    return int("".join(str(secrets.randbelow(10)) for _ in range(n)))
+    """Generate an integer verification code with n digits, not starting with 0."""
+    first = secrets.randbelow(9) + 1  # ensures 1–9
+    rest = "".join(str(secrets.randbelow(10)) for _ in range(n - 1))
+    return int(str(first) + rest)
 
 def start_verification(db: Session, email: str) -> None:
     """
@@ -31,7 +33,7 @@ def start_verification(db: Session, email: str) -> None:
         body=f"Your verification code is: {code}\nIt expires in 30 minutes."
     )
 
-def confirm_verification(db: Session, email: str, code: int) -> None:
+def confirm_verification(db: Session, email: str, code: int) -> User:
     """
         Confirm a user's email by validating the provided verification code.
         Raises ValueError for invalid, expired, or missing codes.
@@ -50,3 +52,4 @@ def confirm_verification(db: Session, email: str, code: int) -> None:
     u.verificationCode = None
     u.verificationExpiresAt = None
     db.commit()
+    return u
