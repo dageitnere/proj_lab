@@ -51,18 +51,26 @@
     m.className='msg ' + (r.ok ? 'ok' : 'err');
   });
 
-    document.getElementById('confirm').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const f=e.target, m=document.getElementById('m2');
-      m.textContent='';
-      const r=await fetch('/auth/verification/confirm',{
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ email: f.email.value.trim(), code: Number(f.code.value) })
-      });
-      if(r.ok){ location.href='/auth/login'; }
-      else{ const j=await r.json().catch(()=>({detail:'Neizdevās'}));
-            m.textContent=j.detail||'Neizdevās'; m.className='msg err'; }
+    // JS for confirming verification code
+  document.getElementById('confirm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const f = e.target, m = document.getElementById('m2');
+    m.textContent = '';
+    const r = await fetch('/auth/verification/confirm', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        email: f.email.value.trim(),
+        code: f.code.value.trim()
+      })
     });
+    if (r.redirected) {
+      window.location.href = r.url;
+    } else {
+      m.textContent = r.ok ? 'Apstiprināts!' : 'Nederīgs kods.';
+      m.className = 'msg ' + (r.ok ? 'ok' : 'err');
+    }
+  });
   </script>
 </body>
 </html>

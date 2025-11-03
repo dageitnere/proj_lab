@@ -14,7 +14,7 @@ from app.schemas.requests.getLoginRequest import LoginInRequest
 from app.schemas.requests.postForgetRequest import ForgotRequest, ForgotConfirmRequest
 from app.services.passwordService import start_reset, confirm_reset
 from app.services.profileService import complete_registration
-from app.services.userService import login_user, decode_access_token
+from app.services.userService import login_user, decode_access_token, _create_access_token
 from app.services.verificationService import start_verification, confirm_verification
 from app.services.userService import register_user
 
@@ -61,8 +61,6 @@ def logout():
 
 @user.get("/verify", response_class=HTMLResponse)
 def verify_page(request: Request):
-    if request.cookies.get("access_token"):
-        return RedirectResponse("/mainPage")
     return tpl.TemplateResponse("verify.html", {"request": request})
 
 @user.post("/verification/start", response_model=VerifyResponse)
@@ -73,15 +71,19 @@ def verification_start(request: VerifyRequest, db: Session = Depends(get_db)):
 @user.post("/verification/confirm", response_model=VerifyResponse)
 def verification_confirm(request: VerifyCodeRequest, db: Session = Depends(get_db)):
     try:
-        confirm_verification(db, str(request.email), request.code)
-        return {"ok": True}
+        user = confirm_verification(db, str(request.email), request.code)
+        token = _create_access_token(sub=str(user.uuid), extra={"username": user.username, "email": user.email})
+        response = RedirectResponse("/auth/complete", status_code=303)
+        response.set_cookie(
+            key=COOKIE, value=token, httponly=True, secure=SECURE,
+            samesite=SAMESITE, max_age=60 * 60 * 24, path="/"
+        )
+        return response
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @user.get("/forgot-password", response_class=HTMLResponse)
 def forgot_page(request: Request):
-    if request.cookies.get("access_token"):
-        return RedirectResponse("/mainPage")
     return tpl.TemplateResponse("forgotPassword.html", {"request": request})
 
 @user.post("/forgot-password/start", response_model=VerifyResponse)
@@ -91,8 +93,6 @@ def forgot_start(request: ForgotRequest, db: Session = Depends(get_db)):
 
 @user.get("/reset-password", response_class=HTMLResponse)
 def reset_page(request: Request):
-    if request.cookies.get("access_token"):
-        return RedirectResponse("/mainPage")
     return tpl.TemplateResponse("resetPassword.html", {"request": request})
 
 @user.post("/reset-password/confirm", response_model=VerifyResponse)
@@ -105,9 +105,6 @@ def reset_confirm(request: ForgotConfirmRequest, db: Session = Depends(get_db)):
 
 @user.get("/complete", response_class=HTMLResponse)
 def complete_page(request: Request):
-    tok = request.cookies.get("access_token")
-    if not tok:
-        return RedirectResponse("/auth/login")
     return tpl.TemplateResponse("finishRegistration.html", {"request": request})
 
 @user.post("/complete")

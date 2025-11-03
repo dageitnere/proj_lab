@@ -48,12 +48,13 @@ COOKIE = "access_token"
 @app.middleware("http")
 async def redirects(request: Request, call_next):
     """
-        Middleware to handle:
-        - Root path redirection
-        - Public vs protected routes
-        - Logged-in user restrictions
-        - Token validation and session checks
-        - Enforcing registration completion
+    Middleware to handle:
+    - Root path redirection
+    - Public vs protected routes
+    - Logged-in user restrictions
+    - Token validation and session checks
+    - Enforcing registration completion
+    - Redirecting auth pages for logged-in users
     """
     path = request.url.path
     tok = request.cookies.get(COOKIE)
@@ -62,19 +63,22 @@ async def redirects(request: Request, call_next):
     if path == "/":
         return RedirectResponse("/mainPage" if tok else "/auth/login")
 
-    # logged-in user should not access login/register
-    if tok and (path.startswith("/auth/login") or path.startswith("/auth/register")):
+    # pages for anonymous users only
+    ANON_ONLY_PATHS = ("/auth/login", "/auth/register", "/auth/forgot-password", "/auth/reset-password", "/auth/verify")
+
+    # logged-in user accessing login/register/forgot/reset → redirect to main
+    if tok and path.startswith(ANON_ONLY_PATHS):
         return RedirectResponse("/mainPage")
 
-    # allow public paths
+    # allow all public prefixes (e.g. static, assets)
     if path.startswith(PUBLIC_PREFIXES):
         return await call_next(request)
 
-    # protect all other routes
+    # protected pages: require token
     if not tok:
         return RedirectResponse("/auth/login")
 
-    # decode token
+    # decode & validate token
     try:
         payload = decode_access_token(tok)
         if payload.get("typ") != "access":
@@ -82,16 +86,6 @@ async def redirects(request: Request, call_next):
         user_uuid = int(payload["sub"])
     except Exception:
         return RedirectResponse("/auth/login")
-
-    # enforce registration completion
-    if not path.startswith("/auth/complete"):
-        db = SessionLocal()
-        try:
-            u = db.query(User).get(user_uuid)
-            if u and needs_completion(u):
-                return RedirectResponse("/auth/complete")
-        finally:
-            db.close()
 
     return await call_next(request)
 
