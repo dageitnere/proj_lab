@@ -2,6 +2,7 @@ import os, time, jwt
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from app.services.emailService import send_email
+from app.services.userService import _require_strong_password
 from app.models.users import User
 
 # Security constants
@@ -54,6 +55,7 @@ def confirm_reset(db: Session, token: str, new_password: str) -> None:
     except Exception:
         raise ValueError("Invalid or expired token")
 
+    _require_strong_password(new_password)
     u = db.query(User).get(uid)
     if not u:
         raise ValueError("User not found")
