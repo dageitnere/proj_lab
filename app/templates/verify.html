@@ -17,7 +17,7 @@
 <body>
   <h1>Email Verification</h1>
 
-  <!-- Send code form -->
+  <!-- Enter email once -->
   <form id="start">
     <label>Email
       <input name="email" type="email" required />
@@ -28,11 +28,8 @@
 
   <hr style="margin:1rem 0">
 
-  <!-- Confirm code form -->
+  <!-- Only code here; we reuse the stored email -->
   <form id="confirm">
-    <label>Email
-      <input name="email" type="email" required />
-    </label>
     <label>Verification Code (6 digits)
       <input name="code" inputmode="numeric" pattern="\d{6}" maxlength="6" required />
     </label>
@@ -40,45 +37,63 @@
     <div class="msg" id="m2"></div>
   </form>
 
-  <p style="margin-top:.5rem">
-    <a href="/auth/login">Back to Login</a>
-  </p>
+  <p style="margin-top:.5rem"><a href="/auth/login">Back to Login</a></p>
 
   <script>
-  // Send verification code
-  document.getElementById('start').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const f = e.target, m = document.getElementById('m1');
+  function getStoredEmail() {
+    const qp = new URL(location.href).searchParams.get('email');
+    if (qp) { sessionStorage.setItem('verify_email', qp); return qp; }
+    const st = sessionStorage.getItem('verify_email');
+    if (st) return st;
+    return '';
+  }
+
+  // Prefill email if available
+  (function init() {
+    const e = getStoredEmail();
+    if (e) document.querySelector('#start [name=email]').value = e;
+  })();
+
+  // Send code
+  document.getElementById('start').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const f = ev.target, m = document.getElementById('m1');
     m.textContent = '';
+    const email = f.email.value.trim();
+    sessionStorage.setItem('verify_email', email);
     const r = await fetch('/auth/verification/start', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email: f.email.value.trim() })
+      body: JSON.stringify({ email })
     });
     m.textContent = r.ok ? 'Verification code sent.' : 'Failed to send code.';
     m.className = 'msg ' + (r.ok ? 'ok' : 'err');
+    if (r.ok) document.querySelector('#confirm [name=code]').focus();
   });
 
-  // Confirm verification code
-  document.getElementById('confirm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const f = e.target, m = document.getElementById('m2');
+  // Confirm code using stored email
+  document.getElementById('confirm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const f = ev.target, m = document.getElementById('m2');
     m.textContent = '';
+    const email = getStoredEmail() || document.querySelector('#start [name=email]').value.trim();
+    if (!email) { m.textContent = 'Email required.'; m.className = 'msg err'; return; }
+
     const r = await fetch('/auth/verification/confirm', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        email: f.email.value.trim(),
-        code: f.code.value.trim()
-      })
+      body: JSON.stringify({ email, code: f.code.value.trim() })
     });
 
-    if (r.redirected) {
-      window.location.href = r.url;
+    if (r.ok) {
+      m.textContent = 'Email verified. Sign in now.';
+      m.className = 'msg ok';
+      setTimeout(() => location.href = '/auth/login', 800);
+      // optional: sessionStorage.removeItem('verify_email');
     } else {
-      m.textContent = r.ok ? 'Email verified successfully!' : 'Invalid or expired code.';
-      m.className = 'msg ' + (r.ok ? 'ok' : 'err');
-      if (r.ok) setTimeout(() => window.location.href = '/auth/login', 1000);
+      const j = await r.json().catch(() => ({detail: 'Invalid or expired code.'}));
+      m.textContent = j.detail || 'Invalid or expired code.';
+      m.className = 'msg err';
     }
   });
   </script>
