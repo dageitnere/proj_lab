@@ -84,6 +84,7 @@
     const j = await r.json().catch(() => ({ detail: 'Error' }));
 
     if (r.ok) {
+      sessionStorage.setItem('verify_email', email);
       location.href = '/auth/verify?email=' + encodeURIComponent(email);
     } else {
       let msg = 'Registration failed';
