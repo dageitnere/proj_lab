@@ -7,6 +7,8 @@ from app.services.profileService import needs_completion
 from app.services.userService import decode_access_token
 from app.database import SessionLocal
 from app.models.users import User
+from fastapi.middleware.cors import CORSMiddleware
+
 
 # Lifespn
 @asynccontextmanager
@@ -34,6 +36,19 @@ app = FastAPI(
     description="Backend service",
     lifespan=lifespan
 )
+
+# Enable CORS for React frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Authentication & public path config
 PUBLIC_PREFIXES = (
