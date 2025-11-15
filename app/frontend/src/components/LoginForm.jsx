@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginForm({ onSuccess }) {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,6 +28,7 @@ export default function LoginForm({ onSuccess }) {
 
       const data = await res.json();
       console.log("Logged in as:", data.username);
+      navigate("/new-page");
 
       if (onSuccess) onSuccess();
     } catch (err) {

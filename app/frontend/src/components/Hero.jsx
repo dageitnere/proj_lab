@@ -1,4 +1,3 @@
-// src/components/Hero.jsx
 export default function Hero() {
   return (
     <section className="pt-40 sm:pt-32 lg:pt-48">
@@ -24,7 +23,7 @@ export default function Hero() {
           <div className="mt-6">
             <button
               className="inline-flex items-center justify-center rounded-full px-6 py-3
-                         bg-white text-[#2F6235] font-semibold shadow
+                         bg-white text-brandGreen font-semibold shadow
                          hover:bg-white/90 focus:outline-none focus-visible:ring
                          focus-visible:ring-white/60 transition"
             >
