@@ -9,12 +9,12 @@ Diētas optimizācijas problēma ir viena no klasiskākajiem lineārās programm
 
 Ikdienā cilvēkam nepieciešams uzturs, kas nodrošina visas organismam nepieciešamās uzturvielas, taču bieži šāda uztura nodrošināšanu ierobežo gan pārtikas pieejamība, gan pārtikas cenas, gan uztura ieradumi. Bez sistemātiskas pieejas ir sarežģīti sasniegt tādu produktu komibnāciju ēdienreizei, kas vienlaikus atbilstu visiem kritērijiem. Tādēļ nepieciešams matemātisks modelis, kas spēj efektīvi optimizēt ēdienreizes sastāvu, ievērojot gan uzturvielu ierobežojumus, gan naudas patēriņu.
 
-## Darbs un novērtēšanas mērķis
+## Darba un novērtēšanas mērķis
 
 
-Darba mērķis ir izveidot tādu lineārās programmēšanas modeli tīmekļa vietnes veidā, kas atrisinātu iepriekš minēto diētas problēmu, lai spētu noskaidrot tā praktisko pielietojumu uztura plānošanā. Modeļa izstrāde un tā rezultāti ļaus analizēt, kā dažādi modeļa ierobežojumi, piemēram, izmaksas vai uzturvielu daudzumi, ietekmēs gala risinājumu.
+Darba mērķis ir izveidot tādu lineārās programmēšanas modeli tīmekļa vietnes veidā, kas atrisinātu iepriekš minēto diētas problēmu. Modeļa izstrāde un tā rezultāti ļaus analizēt, kā dažādi lietotāju ierobežojumi, piemēram, uzturvielu daudzumi, ietekmēs gala risinājumu.
 
-Novērtēšanas mērķis ir... ( pagaidu versija: salīdzināt iegūtos rezultātus ar teorētiskajiem un izvērtēt, cik efektīvi optimizācijas pieeja spēj nodrošināt sabalansētu, izmaksu ziņā izdevīgu un praktiski pielietojamu uztura risinājumu).
+Novērtēšanas mērķis ir novērtēt aplikācijas spēju ģenerēt atbilstošās ēdienkartes dažādiem cilvēku aktivitātes līmeņiem un mērķiem.
 
 ## Līdzīgo risinājumu pārskats
 
@@ -58,7 +58,67 @@ Lai salīdzinātu līdzīgos risinājumus sabalansētu ēdienkaršu plānošanā
       5. Lietotājs vēlas ģenerēt nedēļas vai mēneša pārskatus par lietotāja uztura paradumiem, jo tas palīdz lietotājam sekot līdzi savam progresam un veselības mērķiem.  
 
 ## Algoritms
+Aplikācija izmanto lineārās programmēšanas (LP) pieeju un SIMPLEX algoritmu, lai izveidotu lietotājam optimizētu, uzturvielām sabalansētu ēdienkarti, kas atbilst gan uztura mērķiem, gan produktu ierobežojumiem. Algoritms tiek realizēts ar PuLP bibliotēku
 
+### Algoritmam ir sekojošas iezīmes:
+* Atbilst lietotāja kaloriju un uzturvielu mērķiem.
+* Ievēro diētas tipu (vegāns, veģetārietis, bez piena).
+* Ievēro lietotāja produktu ierobežojumus (min/max svars, izslēgšana).
+* Nodrošina dažādību (≥ 15 produkti ar ≥ 50g katrs).
+* Saglabā olbaltumvielu avotu proporcijas (dzīvnieku / piena / augu).
+
+### Algoritms saņem:
+* Lietotāja uztura mērķus (kcal, proteīni, tauki, ogļhidrāti, utt.),
+* Diētas tipu (vegāns, veģetārietis, bez piena),
+* Produktu ierobežojumus,
+* Produktus no datubāzes (globālie + lietotāja).
+
+### LP problēma:
+
+Mērķa funkcija - minimizēt kopējās izmaksas:
+
+*Minimize ∑(xi⋅pricei)*,
+
+kur:
+* xi - produkta i svars,
+* pricei - produkta i cena uz 100 gramiem.
+
+### Lēmumu maiņigie:
+* x_i - produkta daudzums gramos.
+* y_i - binārais mainīgais, kas norāda, vai produkts i tiek iekļauts ēdienkartē (1) vai nē (0).
+
+### Iekšējie ierobežojumi:
+* xi ≤ M⋅yi.
+* xi ≥ m⋅yi.
+
+kur:
+* M - maksimālais produkta daudzums gramos (400).
+* m - minimālais produkta daudzums gramos (50).
+
+### Uzturvielu ierobežojumi:
+Katram uzturvielu veidam definēti min/max robežu intervāli, lai izvairītos no pārpielagošanas problēmas, piemēram:
+* Kalorijas: 0.9⋅kcal(target) ≤ ∑(xi⋅kcali) ≤ 1.3⋅kcal(target)
+
+### Proteīnu avotu ierobežojumi:
+Ēdienkartei tiek kontrolēta olbaltumvielu avotu proporcija (tiek ņemti vērā lietotāja diētas ierobežojumi):
+* Dzīvnieku olbaltumvielas (~40% no mērķa).
+* Piena olbaltumvielas (~30% no mērķa).
+* Augu olbaltumvielas (~30% no mērķa).
+
+### Daudzveidības ierobežojums:
+Lai nodrošinātu ēdienkartes dažādību, tiek ieviests ierobežojums, kas prasa iekļaut vismaz 15 dažādus produktus:
+* ∑yi ≥ 15
+
+### Lietotāja produktu ierobežojumi:
+Piemēri:
+* max_weight xi: produkta xi svars nevar pārsniegt noteikto maksimālo vērtību.
+* min_weight xi: produkta xi svars nevar būt mazāks par noteikto minimālo vērtību.
+* exclude xi: produkts xi tiek pilnībā izslēgts.
+
+### Rezultātu iegūšana:
+* Tiek atlasīti produkti ar x_i > 0 un y_i =1.
+* Tiek aprēķinātas kopējās uzturvielas.
+* Tiek ģenerēta GenerateMenuResponse struktūra.
 ## Konceptu modelis
 
 ![UML Diagram](https://i.ibb.co/ZzR31nhp/image.png)
@@ -204,6 +264,47 @@ Veikals "*" -- "*" Produkts
 ## Novērtējums
 
 ### 1. **Novērtēšanas plāns**  
+#### Eksperimenta mērķis
+Novērtēšanas mērķis ir analizēt un pārbaudīt, kā izstrādātā diētas optimizācijas aplikācija spēj ģenerēt sabalansētas un lietotāja vajadzībām atbilstošas ēdienkartes dažādiem cilvēku aktivitātes līmeņiem un mērķiem. Tā kā optimālās ēdienkartes aprēķināšana balstās uz lineārās programmēšanas modeli, kura uzdevums ir nodrošināt precīzu uzturvielu, kaloriju un cenas līdzsvaru, ir būtiski izvērtēt aplikācijas veiktspēju praksē un tās spēju pielāgoties atšķirīgām lietotāju prasībām.
+#### Ieejas parametri
+* Lietotāja aktivitātes līmenis (mazkustīgs, mērens, ļoti aktīvs).
+* Lietotāja mērķi (svara zaudēšana, svara uzturēšana, muskuļu masas palielināšana).
+* Lietotāja ierobežojumu skaits (0, 5, 7).
+#### Novērtēšanas metrikas
+* Ēdienkartes ģenerēšanas laiks.
+* Recepšu un ēdienu bilžu ģenerēšanas laiks.
+* Barības vielu un kaloriju precizitāte.
+
+#### Eksperimentu plāns
+| Numurs | Aktivitātes līmenis | Mērķis              | Ierobežojumu skaits | Ēdienkartes ģenerēšanas laiks | Recepšu un ēdienu bilžu ģenerēšanas laiks | Barības vielu un kaloriju precizitāte |
+|--------|----------------------|----------------------|----------------------|-------------------------------|--------------------------------------------|----------------------------------------|
+| 1      | Mazkustīgs           | Svara zaudēšana      | 0                    |                               |                                            |                                        |
+| 2      | Mazkustīgs           | Svara zaudēšana      | 5                    |                               |                                            |                                        |
+| 3      | Mazkustīgs           | Svara zaudēšana      | 7                    |                               |                                            |                                        |
+| 4      | Mazkustīgs           | Svara uzturēšana     | 0                    |                               |                                            |                                        |
+| 5      | Mazkustīgs           | Svara uzturēšana     | 5                    |                               |                                            |                                        |
+| 6      | Mazkustīgs           | Svara uzturēšana     | 7                    |                               |                                            |                                        |
+| 7      | Mazkustīgs           | Muskuļu uzņemšana    | 0                    |                               |                                            |                                        |
+| 8      | Mazkustīgs           | Muskuļu uzņemšana    | 5                    |                               |                                            |                                        |
+| 9      | Mazkustīgs           | Muskuļu uzņemšana    | 7                    |                               |                                            |                                        |
+| 10     | Mērens               | Svara zaudēšana      | 0                    |                               |                                            |                                        |
+| 11     | Mērens               | Svara zaudēšana      | 5                    |                               |                                            |                                        |
+| 12     | Mērens               | Svara zaudēšana      | 7                    |                               |                                            |                                        |
+| 13     | Mērens               | Svara uzturēšana     | 0                    |                               |                                            |                                        |
+| 14     | Mērens               | Svara uzturēšana     | 5                    |                               |                                            |                                        |
+| 15     | Mērens               | Svara uzturēšana     | 7                    |                               |                                            |                                        |
+| 16     | Mērens               | Muskuļu uzņemšana    | 0                    |                               |                                            |                                        |
+| 17     | Mērens               | Muskuļu uzņemšana    | 5                    |                               |                                            |                                        |
+| 18     | Mērens               | Muskuļu uzņemšana    | 7                    |                               |                                            |                                        |
+| 19     | Ļoti aktīvs          | Svara zaudēšana      | 0                    |                               |                                            |                                        |
+| 20     | Ļoti aktīvs          | Svara zaudēšana      | 5                    |                               |                                            |                                        |
+| 21     | Ļoti aktīvs          | Svara zaudēšana      | 7                    |                               |                                            |                                        |
+| 22     | Ļoti aktīvs          | Svara uzturēšana     | 0                    |                               |                                            |                                        |
+| 23     | Ļoti aktīvs          | Svara uzturēšana     | 5                    |                               |                                            |                                        |
+| 24     | Ļoti aktīvs          | Svara uzturēšana     | 7                    |                               |                                            |                                        |
+| 25     | Ļoti aktīvs          | Muskuļu uzņemšana    | 0                    |                               |                                            |                                        |
+| 26     | Ļoti aktīvs          | Muskuļu uzņemšana    | 5                    |                               |                                            |                                        |
+| 27     | Ļoti aktīvs          | Muskuļu uzņemšana    | 7                    |                               |                                            |                                        |
 ### 2. **Novērtēšanas rezultāti**
 
 ## Secinājumi
