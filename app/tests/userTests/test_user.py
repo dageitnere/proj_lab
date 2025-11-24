@@ -34,3 +34,13 @@ def test_login_wrong_password(mock_login_user):
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid credentials"
+
+@patch("app.backend.services.userService.login_user")
+def test_login_email_not_verified(mock_login_user):
+    mock_login_user.side_effect = ValueError("Email not verified")
+
+    payload = {"login": "john", "password": "something"}
+    response = client.post("/auth/login", json=payload)
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Email not verified"
