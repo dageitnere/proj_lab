@@ -86,9 +86,9 @@
     });
 
     if (r.ok) {
-      m.textContent = 'Email verified. Sign in now.';
+      m.textContent = 'Email verified. Complete the registration.';
       m.className = 'msg ok';
-      setTimeout(() => location.href = '/auth/login', 800);
+      setTimeout(() => location.href = '/auth/complete', 1200);
       // optional: sessionStorage.removeItem('verify_email');
     } else {
       const j = await r.json().catch(() => ({detail: 'Invalid or expired code.'}));
