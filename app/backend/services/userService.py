@@ -9,6 +9,8 @@ from fastapi import HTTPException, Request
 from fastapi.responses import Response, JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
+
+from app.backend.dependencies.getUserUuidFromToken import get_uuid_from_token
 from app.backend.models.users import User
 from app.backend.schemas.requests.getLoginRequest import LoginInRequest
 from app.backend.schemas.requests.postRegisterRequest import RegisterRequest, VerifyRequest, VerifyCodeRequest, CompleteRegistrationRequest
@@ -30,24 +32,8 @@ def _create_access_token(sub: str, extra: dict | None = None, ttl: int = _TTL) -
 
     return jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALG)
 
-def decode_access_token(token: str) -> dict:
-    return jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG])
-
 def create_session_token_for_user(u: User) -> str:
     return _create_access_token(sub=str(u.uuid), extra={"username": u.username, "email": u.email},)
-
-def extract_user_uuid_from_request(request: Request) -> int:
-    tok = request.cookies.get("access_token")
-
-    if not tok:
-        raise ValueError("Missing token")
-
-    payload = decode_access_token(tok)
-
-    if payload.get("typ") != "access":
-        raise ValueError("Invalid token type")
-
-    return int(payload["sub"])
 
 _COOKIE = "access_token"
 _SECURE = True
@@ -146,7 +132,7 @@ def action_reset_confirm(db: Session, body: ForgotConfirmRequest) -> Response:
 
 def action_complete_submit(db: Session, request: Request, body: CompleteRegistrationRequest) -> Response:
     try:
-        sub = extract_user_uuid_from_request(request)
+        sub = get_uuid_from_token(request)
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
     try:

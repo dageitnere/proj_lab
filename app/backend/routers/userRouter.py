@@ -6,7 +6,9 @@ from app.backend.database import get_db
 from app.backend.schemas.requests.getLoginRequest import LoginInRequest
 from app.backend.schemas.requests.postRegisterRequest import RegisterRequest, VerifyRequest, VerifyCodeRequest, CompleteRegistrationRequest
 from app.backend.schemas.requests.postForgetRequest import ForgotRequest, ForgotConfirmRequest
-from app.backend.services.userService import action_login, action_register, action_logout, action_verification_start, action_verification_confirm, action_forgot_start, action_reset_confirm, action_complete_submit
+
+from app.backend.services.userService import action_login, action_register, action_logout, action_verification_start, \
+    action_verification_confirm, action_forgot_start, action_reset_confirm, action_complete_submit
 
 user = APIRouter(tags=["auth"])
 templates = Jinja2Templates(directory="app/frontend/templates")

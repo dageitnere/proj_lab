@@ -1,6 +1,12 @@
-from app.backend.services.userService import decode_access_token
 from fastapi import Request, HTTPException, status
+import jwt
+import os
 
+_JWT_SECRET = os.getenv("JWT_SECRET")
+_JWT_ALG = "HS256"
+
+def decode_access_token(token: str) -> dict:
+    return jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG])
 
 def get_uuid_from_token(request: Request) -> int:
     """
@@ -27,6 +33,9 @@ def get_uuid_from_token(request: Request) -> int:
 
     # Decode the token to extract its payload (e.g., {"sub": "<user_id>", ...})
     payload = decode_access_token(token)
+
+    if payload.get("typ") != "access":
+        raise ValueError("Invalid token type")
 
     # Return the user ID ("sub" field) as an integer
     return int(payload["sub"])
