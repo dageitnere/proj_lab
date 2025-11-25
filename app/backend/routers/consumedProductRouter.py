@@ -25,7 +25,6 @@ def addConsumedProduct(request: PostUserConsumedProductRequest, userUuid: int = 
 def getAllConsumedProducts(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
     return get_all_consumed_products(db, userUuid)
 
-
 @consumedProduct.get("/today", response_model=UserConsumedProductListResponse)
 def getConsumedToday(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
     return get_consumed_today(db, userUuid)

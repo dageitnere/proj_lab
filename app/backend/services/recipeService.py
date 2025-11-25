@@ -289,7 +289,7 @@ def get_recipes_by_menu(db: Session, userUuid: int, menuId: int) -> GenerateReci
 
 
 # ---------------- Regenerate Recipes ----------------
-def regenerate_recipes_for_menu(db: Session, userUuid: int, menuId: int) -> GenerateRecipesResponse:
+def regenerate_menu_recipes(db: Session, userUuid: int, menuId: int) -> GenerateRecipesResponse:
     """
                 Generate new recipes for the menu.
     """

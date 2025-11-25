@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from fastapi import HTTPException
 from app.backend.main import app
-from app.backend.services.userService import login_user, _COOKIE
+from app.backend.services.userService import _login_user, _COOKIE
 from unittest.mock import patch
 
 client = TestClient(app)

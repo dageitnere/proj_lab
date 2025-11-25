@@ -85,10 +85,15 @@
       body: JSON.stringify({ email, code: f.code.value.trim() })
     });
 
+    if (r.redirected) {
+        window.location.href = r.url;
+        return;
+    }
+
     if (r.ok) {
       m.textContent = 'Email verified. Complete the registration.';
       m.className = 'msg ok';
-      setTimeout(() => location.href = '/auth/complete', 1200);
+      // setTimeout(() => location.href = '/auth/complete', 1200);
       // optional: sessionStorage.removeItem('verify_email');
     } else {
       const j = await r.json().catch(() => ({detail: 'Invalid or expired code.'}));

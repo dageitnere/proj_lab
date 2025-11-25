@@ -98,7 +98,7 @@
         goal: f.goal.value,
         activityFactor: f.activityFactor.value
       };
-      const r = await fetch('/auth/complete', {
+      const r = await fetch('/profile/completeInfo', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify(body)
