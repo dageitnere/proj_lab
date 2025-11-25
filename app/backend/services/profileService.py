@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, Request
+from fastapi import HTTPException
 from fastapi.responses import JSONResponse
-from app.backend.dependencies.getUserUuidFromToken import get_uuid_from_token
 from app.backend.models.users import User
+from app.backend.schemas.requests.postChangeDailyNutritionRequest import PostChangeDailyNutritionRequest
+from app.backend.schemas.requests.postChangeProfileInfoRequest import PostChangeProfileInfoRequest
 from app.backend.schemas.responses.ProfileResponse import ProfileResponse
 from app.backend.schemas.requests.postRegisterRequest import CompleteRegistrationRequest
+from app.backend.schemas.responses.calculatedNutritionInfoResponse import CalculatedNutritionInfoResponse
 
 # Activity multiplier map for calculating Total Daily Energy Expenditure (TDEE)
 _ACTIVITY_MULT = {
@@ -144,26 +146,6 @@ def _macro_grams(total_kcal: int, activity: str, goal: str) -> dict:
         "salt_g": salt_g,
     }
 
-def _format_activity_factor(activity_factor: str) -> str:
-    """Convert activity factor code to readable text."""
-    activity_map = {
-        "SEDENTARY": "Sedentary",
-        "LIGHT": "Lightly Active",
-        "MODERATE": "Moderately Active",
-        "ACTIVE": "Very Active",
-        "VERY_ACTIVE": "Extra Active",
-    }
-    return activity_map.get(activity_factor, activity_factor)
-
-def _format_goal(goal: str) -> str:
-    """Convert goal code to readable text."""
-    goal_map = {
-        "LOSE": "Lose Weight",
-        "MAINTAIN": "Maintain Weight",
-        "GAIN": "Gain Weight"
-    }
-    return goal_map.get(goal, goal)
-
 def _get_dietary_preferences(user: User) -> list[str]:
     """Get list of active dietary preferences."""
     preferences = []
@@ -264,9 +246,149 @@ def get_user_profile_data(db: Session, userUuid) -> tuple[User, ProfileResponse]
         calculatedSatFat=user.calculatedSatFat,
         calculatedSugar=user.calculatedSugar,
         calculatedSalt=user.calculatedSalt,
-        activityFactorDisplay=_format_activity_factor(user.activityFactor),
-        goalDisplay=_format_goal(user.goal),
+        activityFactorDisplay=user.activityFactor,
+        goalDisplay=user.goal,
         isVegan=user.isVegan,
         isVegetarian=user.isVegetarian,
         dairyIntolerance=user.isDairyInt
+    )
+
+def change_profile_info(db: Session, request: PostChangeProfileInfoRequest, userUuid: int):
+    """
+    Update selected user profile attributes.
+    Only provided fields are updated.
+    BMI, BMR, and macros are recalculated when necessary.
+    """
+    user = db.query(User).filter(User.uuid == userUuid).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Track if recalculation is needed
+    recalc_needed = False
+
+    # ---- UPDATE BASIC ATTRIBUTES ----
+    if request.age is not None:
+        user.age = request.age
+        recalc_needed = True
+
+    if request.weight is not None:
+        user.weight = request.weight
+        recalc_needed = True
+
+    if request.height is not None:
+        user.height = request.height
+        recalc_needed = True
+
+    if request.activityLevel is not None:
+        user.activityFactor = request.activityLevel
+        recalc_needed = True
+
+    if request.goal is not None:
+        user.goal = request.goal
+        recalc_needed = True
+
+    # ---- UPDATE DIETARY PREFERENCES ----
+    if request.isVegan is not None:
+        user.isVegan = request.isVegan
+        if request.isVegan:
+            user.isVegetarian = True
+            user.isDairyInt = True
+
+    if request.isVegetarian is not None:
+        user.isVegetarian = request.isVegetarian
+
+    if request.isDairyInt is not None:
+        user.isDairyInt = request.isDairyInt
+
+    # ---- RECALCULATE BMI / BMR / MACROS ----
+    if recalc_needed and request.resetDailyNutrition:
+        calculate_daily_nutrition(db, userUuid)
+
+    db.commit()
+
+    return {"message": "Profile updated successfully"}
+
+def change_daily_nutrition(db: Session, request: PostChangeDailyNutritionRequest, userUuid: int,):
+    """
+    Update the user's daily calculated nutrition values (manual override).
+
+    Only updates the fields that are provided in the request.
+    """
+
+    # Fetch the user
+    user: User | None = db.query(User).filter(User.uuid == userUuid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update fields only if they are not None
+    if request.calculatedKcal is not None:
+        user.calculatedKcal = request.calculatedKcal
+    if request.calculatedCarbs is not None:
+        user.calculatedCarbs = request.calculatedCarbs
+    if request.calculatedProtein is not None:
+        user.calculatedProtein = request.calculatedProtein
+    if request.calculatedFat is not None:
+        user.calculatedFat = request.calculatedFat
+    if request.calculatedSatFat is not None:
+        user.calculatedSatFat = request.calculatedSatFat
+    if request.calculatedSugar is not None:
+        user.calculatedSugar = request.calculatedSugar
+    if request.calculatedSalt is not None:
+        user.calculatedSalt = request.calculatedSalt
+
+    db.commit()
+
+    return {"message": "Daily nutrition values updated successfully"}
+
+def calculate_daily_nutrition(db: Session, userUuid: int):
+    """
+    Recalculate all calculated nutrition values (kcal, macros, satFat, sugar, salt)
+    based on current profile info: weight, height, age, gender, activityFactor, goal.
+    """
+
+    user: User | None = db.query(User).filter(User.uuid == userUuid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # BMI and BMR
+    user.bmi = _bmi(user.weight, user.height)
+    user.bmr = _bmr(user.gender, user.weight, user.height, user.age)
+
+    # Kcal target
+    calculated_kcal = _kcal_target(user.bmr, user.activityFactor, user.goal)
+    macros = _macro_grams(calculated_kcal, user.activityFactor, user.goal)
+
+    # Update all nutrition fields
+    user.calculatedKcal = calculated_kcal
+    user.calculatedProtein = macros["protein_g"]
+    user.calculatedCarbs = macros["carbs_g"]
+    user.calculatedFat = macros["fat_g"]
+    user.calculatedSatFat = macros["sat_fat_g"]
+    user.calculatedSugar = macros["sugar_g"]
+    user.calculatedSalt = macros["salt_g"]
+
+    db.commit()
+
+    return {"message": "Daily nutrition recalculated successfully"}
+
+def calculated_nutrition_info(db: Session, userUuid: int):
+    """
+        Return all calculated nutrition info and diet restrictions for the user.
+    """
+    user: User | None = db.query(User).filter(User.uuid == userUuid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return CalculatedNutritionInfoResponse(
+        calculatedKcal=user.calculatedKcal,
+        calculatedCarbs=user.calculatedCarbs,
+        calculatedProtein=user.calculatedProtein,
+        calculatedFat=user.calculatedFat,
+        calculatedSatFat=user.calculatedSatFat,
+        calculatedSugar=user.calculatedSugar,
+        calculatedSalt=user.calculatedSalt,
+        isVegetarian=user.isVegetarian,
+        isVegan=user.isVegan,
+        isDairyInt=user.isDairyInt
     )
