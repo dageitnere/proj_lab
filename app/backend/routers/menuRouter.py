@@ -18,18 +18,18 @@ templates = Jinja2Templates(directory="app/frontend/templates")
 
 menu = APIRouter()
 
-@menu.post("/generateMenu", response_model=GenerateMenuResponse, response_class=JSONResponse)
-def generate_Menu(request: DietRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
-    # just pass the whole request to service
-    return generate_diet_menu(db, request, userUuid)
-
 @menu.get("/form", response_class=HTMLResponse)
 def showMenuForm(request: Request):
     return templates.TemplateResponse("menuForm.html", {"request": request})
 
 @menu.get("/userMenuForm", response_class=HTMLResponse)
-def showUserMenuForm(request: Request):
+def showUserMenuPage(request: Request):
     return templates.TemplateResponse("userMenuForm.html", {"request": request})
+
+@menu.post("/generateMenu", response_model=GenerateMenuResponse, response_class=JSONResponse)
+def generateDietMenu(request: DietRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
+    # just pass the whole request to service
+    return generate_diet_menu(db, request, userUuid)
 
 @menu.post("/saveMenu")
 def saveDietMenu(request: PostDietPlanRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):

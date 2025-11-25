@@ -374,7 +374,7 @@ def save_diet_menu(db: Session, request: PostDietPlanRequest, userUuid: int):
     # Save menu to database
     db.add(new_plan)
     db.commit()
-    db.refresh(new_plan) # Refresh to get the auto-generated ID
+    # db.refresh(new_plan) # Refresh to get the auto-generated ID
     # Note: Recipes are NOT automatically generated here to avoid timeout issues.
     # Users can generate recipes manually using the "Regenerate Recipes" button
     # in the menu detail view, which calls the /recipes/regenerate endpoint.

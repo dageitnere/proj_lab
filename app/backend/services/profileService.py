@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, Request
+from fastapi.responses import JSONResponse
+from app.backend.dependencies.getUserUuidFromToken import get_uuid_from_token
 from app.backend.models.users import User
 from app.backend.schemas.responses.ProfileResponse import ProfileResponse
 from app.backend.schemas.requests.postRegisterRequest import CompleteRegistrationRequest
@@ -13,7 +15,6 @@ _ACTIVITY_MULT = {
     "VERY_ACTIVE": 1.75,
 }
 
-
 def _bmi(weight_kg: float, height_cm: float) -> float:
     """
     Calculate BMI (Body Mass Index).
@@ -23,7 +24,6 @@ def _bmi(weight_kg: float, height_cm: float) -> float:
     """
     m = height_cm / 100.0
     return round(weight_kg / (m * m), 1)
-
 
 def _bmr(gender: str, weight_kg: float, height_cm: float, age: int) -> float:
     """
@@ -40,7 +40,6 @@ def _bmr(gender: str, weight_kg: float, height_cm: float, age: int) -> float:
     else:
         val = 10 * weight_kg + 6.25 * height_cm - 5 * age - 161
     return round(val)
-
 
 def _kcal_target(bmr: float, activity: str, goal: str) -> int:
     """
@@ -145,7 +144,6 @@ def _macro_grams(total_kcal: int, activity: str, goal: str) -> dict:
         "salt_g": salt_g,
     }
 
-
 def _format_activity_factor(activity_factor: str) -> str:
     """Convert activity factor code to readable text."""
     activity_map = {
@@ -157,7 +155,6 @@ def _format_activity_factor(activity_factor: str) -> str:
     }
     return activity_map.get(activity_factor, activity_factor)
 
-
 def _format_goal(goal: str) -> str:
     """Convert goal code to readable text."""
     goal_map = {
@@ -166,7 +163,6 @@ def _format_goal(goal: str) -> str:
         "GAIN": "Gain Weight"
     }
     return goal_map.get(goal, goal)
-
 
 def _get_dietary_preferences(user: User) -> list[str]:
     """Get list of active dietary preferences."""
@@ -186,7 +182,7 @@ def _get_dietary_preferences(user: User) -> list[str]:
 
     return preferences
 
-def complete_registration(db: Session, user_uuid: int, body: CompleteRegistrationRequest) -> None:
+def _complete_registration(db: Session, user_uuid: int, request: CompleteRegistrationRequest) -> None:
     """
     Complete the second stage of registration (profile setup).
 
@@ -199,23 +195,23 @@ def complete_registration(db: Session, user_uuid: int, body: CompleteRegistratio
         raise ValueError("User not found")
 
     # Perform calculations
-    bmi = _bmi(body.weight, body.height)
-    bmr = _bmr(body.gender, body.weight, body.height, body.age)
-    kcal = _kcal_target(bmr, body.activityFactor, body.goal)
-    macros = _macro_grams(kcal, body.activityFactor, body.goal)
+    bmi = _bmi(request.weight, request.height)
+    bmr = _bmr(request.gender, request.weight, request.height, request.age)
+    kcal = _kcal_target(bmr, request.activityFactor, request.goal)
+    macros = _macro_grams(kcal, request.activityFactor, request.goal)
 
     # Update user record
-    u.age = body.age
-    u.gender = body.gender
-    u.weight = body.weight
-    u.height = body.height
+    u.age = request.age
+    u.gender = request.gender
+    u.weight = request.weight
+    u.height = request.height
     u.bmi = bmi
     u.bmr = bmr
-    u.activityFactor = body.activityFactor
-    u.goal = body.goal
-    u.isVegan = body.isVegan
-    u.isDairyInt = body.isDairyInt
-    u.isVegetarian = body.isVegetarian
+    u.activityFactor = request.activityFactor
+    u.goal = request.goal
+    u.isVegan = request.isVegan
+    u.isDairyInt = request.isDairyInt
+    u.isVegetarian = request.isVegetarian
     u.calculatedKcal = kcal
     u.calculatedProtein = macros["protein_g"]
     u.calculatedCarbs = macros["carbs_g"]
@@ -225,24 +221,12 @@ def complete_registration(db: Session, user_uuid: int, body: CompleteRegistratio
     u.calculatedSalt = macros["salt_g"]
     db.commit()
 
-
-def needs_completion(u: User) -> bool:
-    """
-    Determine if user still needs to complete their registration.
-
-    Returns True if any required fields are missing or unset.
-    """
-    return (
-        not u.emailVerified
-        or not u.weight
-        or not u.height
-        or u.activityFactor in (None, "UNSET")
-        or u.goal is None
-        or (u.bmr is None)
-        or (u.bmi is None)
-        or (u.calculatedKcal is None)
-    )
-
+def complete_info_submit(db: Session, request: CompleteRegistrationRequest, userUuid: int):
+    try:
+        _complete_registration(db, userUuid, request)
+        return JSONResponse({"ok": True})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 def get_user_profile_data(db: Session, userUuid) -> tuple[User, ProfileResponse]:
     """
