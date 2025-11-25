@@ -59,6 +59,7 @@
                 <option value="">-- Select Menu --</option>
             </select>
             <button type="button" id="loadMenuBtn">Load Info</button>
+            <button type="button" id="loadDefaultTargetsBtn">Load Default Targets</button>
             <form id="dietForm">
                 <label>Kcal Target: <input type="number" name="kcal" step="1" required></label>
                 <label>Protein (g): <input type="number" name="protein" step="0.1" required></label>
@@ -265,6 +266,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const veganCheckbox = document.querySelector('input[name="vegan"]');
             const dairyFreeCheckbox = document.querySelector('input[name="dairyFree"]');
+            const vegetarianCheckbox = document.querySelector('input[name="vegetarian"]');
             if (veganCheckbox && dairyFreeCheckbox) {
                 function syncDairyFreeWithVegan() {
                     if (veganCheckbox.checked) {
@@ -272,11 +274,17 @@
                         dairyFreeCheckbox.checked = true;
                         dairyFreeCheckbox.disabled = true;
                         dairyFreeCheckbox.parentElement.classList.add('vegan-auto');
+                        vegetarianCheckbox.checked = true; // also set vegetarian
+                        vegetarianCheckbox.disabled = true;
+                        vegetarianCheckbox.parentElement.classList.add('vegan-auto');
                     } else {
                         // Vegan OFF → uncheck AND enable dairy-free
                         dairyFreeCheckbox.checked = false;
                         dairyFreeCheckbox.disabled = false;
                         dairyFreeCheckbox.parentElement.classList.remove('vegan-auto');
+                        vegetarianCheckbox.checked = false;
+                        vegetarianCheckbox.disabled = false;
+                        vegetarianCheckbox.parentElement.classList.remove('vegan-auto');
                     }
                 }
                 // When vegan changes → sync dairy-free
@@ -291,6 +299,35 @@
                 });
                 // Initial state sync
                 syncDairyFreeWithVegan();
+            }
+        });
+
+        document.getElementById("loadDefaultTargetsBtn").addEventListener("click", async () => {
+            try {
+                const res = await fetch("/profile/getCalculatedNutritionInfo");
+                if (!res.ok) throw new Error("Failed to fetch default nutrition info");
+                const data = await res.json();
+
+                // Fill numeric inputs
+                document.querySelector('input[name="kcal"]').value = data.calculatedKcal;
+                document.querySelector('input[name="carbs"]').value = data.calculatedCarbs;
+                document.querySelector('input[name="protein"]').value = data.calculatedProtein;
+                document.querySelector('input[name="fat"]').value = data.calculatedFat;
+                document.querySelector('input[name="satFat"]').value = data.calculatedSatFat;
+                document.querySelector('input[name="sugars"]').value = data.calculatedSugar;
+                document.querySelector('input[name="salt"]').value = data.calculatedSalt;
+
+                // Set checkboxes
+                document.querySelector('input[name="vegetarian"]').checked = data.isVegetarian;
+                const veganCheckbox = document.querySelector('input[name="vegan"]');
+                veganCheckbox.checked = data.isVegan;
+                document.querySelector('input[name="dairyFree"]').checked = data.isDairyInt;
+
+                // Trigger vegan sync (if you keep your vegan-dairy sync logic)
+                veganCheckbox.dispatchEvent(new Event('change'));
+            } catch (err) {
+                console.error(err);
+                alert("Error loading default nutrition info.");
             }
         });
 

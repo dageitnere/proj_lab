@@ -629,7 +629,7 @@
                     errorDetail = `Could not read response body. ${response.statusText}`;
                 }
             }
-            throw new Error(`Failed to process request (Status: ${response.status}). Detail: ${errorDetail}`);
+            throw new Error(`Failed to process request. Detail: ${errorDetail}`);
         }
 
         function showAlert(message, type = 'success') {
@@ -718,7 +718,6 @@
                         <p>${error.message}</p>
                     </div>
                 `;
-                showAlert('Could not load menus: ' + error.message, 'error');
             }
         }
 
