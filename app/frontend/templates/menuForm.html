@@ -270,31 +270,33 @@
             if (veganCheckbox && dairyFreeCheckbox) {
                 function syncDairyFreeWithVegan() {
                     if (veganCheckbox.checked) {
-                        // Vegan ON → force dairy-free ON and disable
+                        // Vegan ON → force dairy-free and vegetarian ON (but keep them enabled so they submit)
                         dairyFreeCheckbox.checked = true;
-                        dairyFreeCheckbox.disabled = true;
-                        dairyFreeCheckbox.parentElement.classList.add('vegan-auto');
-                        vegetarianCheckbox.checked = true; // also set vegetarian
-                        vegetarianCheckbox.disabled = true;
-                        vegetarianCheckbox.parentElement.classList.add('vegan-auto');
+                        vegetarianCheckbox.checked = true;
+                        // Add visual indicator but don't disable
+                        dairyFreeCheckbox.parentElement.style.opacity = '0.6';
+                        vegetarianCheckbox.parentElement.style.opacity = '0.6';
                     } else {
-                        // Vegan OFF → uncheck AND enable dairy-free
+                        // Vegan OFF → uncheck and restore opacity
                         dairyFreeCheckbox.checked = false;
-                        dairyFreeCheckbox.disabled = false;
-                        dairyFreeCheckbox.parentElement.classList.remove('vegan-auto');
                         vegetarianCheckbox.checked = false;
-                        vegetarianCheckbox.disabled = false;
-                        vegetarianCheckbox.parentElement.classList.remove('vegan-auto');
+                        dairyFreeCheckbox.parentElement.style.opacity = '1';
+                        vegetarianCheckbox.parentElement.style.opacity = '1';
                     }
                 }
-                // When vegan changes → sync dairy-free
+                // When vegan changes → sync dairy-free and vegetarian
                 veganCheckbox.addEventListener('change', syncDairyFreeWithVegan);
-                // Prevent manual unchecking of dairy-free when vegan is ON
-                dairyFreeCheckbox.addEventListener('change', function() {
+                // Prevent manual unchecking when vegan is ON
+                dairyFreeCheckbox.addEventListener('change', function(e) {
                     if (veganCheckbox.checked && !this.checked) {
-                        // Force back to checked if user tries to uncheck while vegan is ON
+                        e.preventDefault();
                         this.checked = true;
-                        return false;
+                    }
+                });
+                vegetarianCheckbox.addEventListener('change', function(e) {
+                    if (veganCheckbox.checked && !this.checked) {
+                        e.preventDefault();
+                        this.checked = true;
                     }
                 });
                 // Initial state sync
