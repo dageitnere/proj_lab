@@ -23,15 +23,13 @@ export default function SidebarMenu() {
 
       <div className="flex-1 h-full">
         {opened && (
-          <div className="p-6 text-slate-900">
+          <div className="h-full flex flex-col pt-28 px-6 text-slate-900">
 
           </div>
         )}
       </div>
 
-
       <div className="w-24 h-full flex flex-col items-center pt-28 pr-16">
-        {/* бургер */}
         <button
           type="button"
           onClick={() => setOpened((prev) => !prev)}
@@ -45,19 +43,19 @@ export default function SidebarMenu() {
           </div>
         </button>
 
-
-        {!opened && (
-          <div className="mt-8 space-y-5 w-full">
-            {menuItems.map((item) => (
-              <p
-                key={item.id}
-                className="text-lg text-slate-900 text-center"
-              >
-                {item.label}
-              </p>
-            ))}
-          </div>
-        )}
+ <div className="mt-8 space-y-5 w-full">
+          {menuItems.map((item) => (
+            <p
+              key={item.id}
+              className={`
+                ${opened ? "text-sm" : "text-lg"} 
+                text-slate-900 text-center whitespace-nowrap
+              `}
+            >
+              {item.label}
+            </p>
+          ))}
+        </div>
       </div>
     </div>
   );
