@@ -11,33 +11,29 @@ from app.backend.schemas.requests.updateUserProductRequest import UpdateUserProd
 from app.backend.schemas.responses.userProductBaseResponse import UserProductsListResponse
 from app.backend.schemas.responses.productsNamesResponse import ProductsNamesResponse
 from app.backend.schemas.requests.deleteUserProductRequest import DeleteUserProductRequest
-from app.backend.services.userProductService import add_user_product_by_rimi_url, add_user_product_by_nutrition_value_url, update_user_product
-from app.backend.services import userProductService
+from app.backend.services.userProductService import add_user_product_by_rimi_url, add_user_product_by_nutrition_value_url, update_user_product, \
+    get_user_products, get_user_products_names, add_user_product, delete_user_product
 
 userProduct = APIRouter()
 
 templates = Jinja2Templates(directory="app/frontend/templates")
 
+@userProduct.get("/showUserProducts", response_model=UserProductsListResponse, response_class=HTMLResponse)
+def showUserProductsPage(request: Request, userUuid: int = Depends(get_uuid_from_token), db=Depends(get_db)):
+    products = get_user_products(db, userUuid)
+    return templates.TemplateResponse("userProducts.html", {"request": request, "products": products})
+
 @userProduct.get("/getUserProducts", response_model=UserProductsListResponse, response_class=JSONResponse)
 def getUserProducts(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
-    return userProductService.get_user_products(db, userUuid)
-
-@userProduct.get("/showUserProducts", response_model=UserProductsListResponse, response_class=HTMLResponse)
-def showUserProducts(request: Request, userUuid: int = Depends(get_uuid_from_token), db=Depends(get_db)):
-    products = userProductService.get_user_products(db, userUuid)
-    return templates.TemplateResponse("userProducts.html", {"request": request, "products": products})
+    return get_user_products(db, userUuid)
 
 @userProduct.get("/userProductsNames", response_model=ProductsNamesResponse, response_class=JSONResponse)
 def getUserProductsNames(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
-    return userProductService.get_user_products_names(db, userUuid)
+    return get_user_products_names(db, userUuid)
 
 @userProduct.post("/addUserProduct")
 def addUserProduct(request: PostUserProductRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
-    new_product = userProductService.add_user_product(db, request, userUuid)
-    return {
-        "status": "success",
-        "message": f"Product '{new_product.productName}' added successfully."
-    }
+    return add_user_product(db, request, userUuid)
 
 @userProduct.post("/addUserProductUrlRimi")
 def addUserProductByRimiUrl(request: PostUserProductByRimiUrlRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
@@ -49,7 +45,7 @@ def addUserProductByNutritionValueUrl(request: PostUserProductByNutritionValueUr
 
 @userProduct.delete("/deleteUserProduct")
 def deleteUserProduct(request: DeleteUserProductRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
-    return userProductService.delete_user_product(db, request, userUuid)
+    return delete_user_product(db, request, userUuid)
 
 
 @userProduct.put("/updateUserProduct")

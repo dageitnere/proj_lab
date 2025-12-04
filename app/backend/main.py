@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
-from app.backend.routers import consumedProductRouter, userRouter, mainPageRouter, statisticsRouter, productRouter, userProductRouter, menuRouter, recipeRouter
+
+from app.backend.dependencies.getUserUuidFromToken import decode_access_token
+from app.backend.routers import consumedProductRouter, userRouter, mainPageRouter, statisticsRouter, productRouter, \
+    userProductRouter, menuRouter, recipeRouter, profileRouter
 from app.backend.dependencies.firefoxDriver import init_firefox_pool, get_firefox_pool
-from app.backend.services.userService import decode_access_token
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -110,6 +112,7 @@ app.include_router(consumedProductRouter.consumedProduct, prefix="/consumedProdu
 app.include_router(statisticsRouter.statistics, prefix="/statistics", tags=["statistics"])
 app.include_router(userRouter.user, prefix="/auth", tags=["auth"])
 app.include_router(recipeRouter.recipes, prefix="/recipes", tags=["recipes"])
+app.include_router(profileRouter.profile, prefix="/profile", tags=["profile"])
 
 # Catch-all routes
 @app.get("/{full_path:path}")

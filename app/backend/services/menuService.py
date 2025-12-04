@@ -124,7 +124,7 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
     restrictions = request.restrictions
 
     # Validate that vegan diets are also marked as dairy-free
-    if vegan and not dairyFree:
+    if vegan and not (dairyFree or vegetarian):
         return {"error": "Vegan diets are always dairy-free — please set dairyFree=True."}
 
     # Get combined list of all available products
@@ -184,9 +184,23 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
 
     # Define protein source distribution targets
     # For balanced nutrition, aim for 40% animal, 30% dairy, 30% plant protein
-    animal_target = 0.4 * proteinTarget
-    dairy_target = 0.3 * proteinTarget
-    plant_target = 0.3 * proteinTarget
+    if vegan:
+        animal_target = 0
+        dairy_target = 0
+        plant_target = proteinTarget
+    elif vegetarian:
+        animal_target = 0
+        dairy_target = 0.6 * proteinTarget
+        plant_target = 0.4 * proteinTarget
+    elif dairyFree:
+        dairy_target = 0
+        animal_target = 0.6 * proteinTarget
+        plant_target = 0.4 * proteinTarget
+    else:
+        # Omnivore default split
+        animal_target = 0.4 * proteinTarget
+        dairy_target = 0.3 * proteinTarget
+        plant_target = 0.3 * proteinTarget
 
     # === NUTRITIONAL CONSTRAINTS ===
     # Each constraint has min/max bounds with tolerance ranges
@@ -200,12 +214,12 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
     problem += lpSum([x[p.id] * p.protein / 100 for p in products]) <= proteinTarget * 1.6
 
     # Protein source distribution constraints (conditional based on diet type)
-    if not vegan and not vegetarian:
+    if animal_target > 0:
         # Omnivore: enforce animal protein requirements (70-110% of target)
         problem += lpSum([x[p.id] * (p.animalProt or 0) / 100 for p in products]) >= animal_target * 0.7
         problem += lpSum([x[p.id] * (p.animalProt or 0) / 100 for p in products]) <= animal_target * 1.1
 
-    if not vegan and not dairyFree:
+    if dairy_target > 0:
         # Dairy allowed: enforce dairy protein requirements (70-110% of target)
         problem += lpSum([x[p.id] * (p.dairyProt or 0) / 100 for p in products]) >= dairy_target * 0.7
         problem += lpSum([x[p.id] * (p.dairyProt or 0) / 100 for p in products]) <= dairy_target * 1.1
@@ -249,7 +263,7 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
         problem += x[p.id] >= m * y[p.id], f"MinLink_{p.id}"
 
     # Require at least 15 different products for diet variety
-    problem += lpSum([y[p.id] for p in products]) >= 15, "Min_15_Products"
+    problem += lpSum([y[p.id] for p in products]) >= 10, "Min_15_Products"
 
     # Apply user-defined custom restrictions (already validated above)
     if restrictions:
@@ -374,7 +388,7 @@ def save_diet_menu(db: Session, request: PostDietPlanRequest, userUuid: int):
     # Save menu to database
     db.add(new_plan)
     db.commit()
-    db.refresh(new_plan) # Refresh to get the auto-generated ID
+    # db.refresh(new_plan) # Refresh to get the auto-generated ID
     # Note: Recipes are NOT automatically generated here to avoid timeout issues.
     # Users can generate recipes manually using the "Regenerate Recipes" button
     # in the menu detail view, which calls the /recipes/regenerate endpoint.

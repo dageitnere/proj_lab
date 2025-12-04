@@ -40,13 +40,15 @@ def call_ai_generate_recipes(products: list[RecipeProductItem]):
 {product_lines}
 
 Requirements:
-1. Generate exactly 3 main meals (breakfast, lunch, dinner) and optionally 1 snack
-2. Use ONLY the ingredients listed above, use them fully - do not add any unlisted ingredients, you may add water.
-3. Distribute calories appropriately: breakfast (25-30%), lunch (35-40%), dinner (30-35%), snack (5-10%)
-4. Each meal must include specific gram amounts from the ingredient list.
-5. Show calories for each recipe. Sum all kcal from used products. If you use only a part of the product then calculate accordingly.
-6. Provide detailed step-by-step cooking instructions with exact times and temperatures
-7. Make recipes practical and easy to follow
+1. Generate exactly 3 main meals (breakfast, lunch, dinner) and optionally 1 snack.
+2. Use ONLY the ingredients listed above, you MUST use each of the ingredients.
+3. Each ingredient amount MUST be used fully - you cannot leave something out the recipes.
+4. Do not add any unlisted ingredients, you may add water.
+5. Distribute (optionally) calories appropriately: breakfast (25-30%), lunch (35-40%), dinner (30-35%), snack (5-10%).
+6. Each meal must include specific gram amounts from the ingredient list.
+7. Show calories for each recipe. Sum all kcal from used products. If you use only a part of the product then calculate accordingly.
+8. Provide detailed step-by-step cooking instructions with exact times and temperatures.
+9. Make recipes practical and easy to follow.
 
 Output ONLY valid JSON (no markdown, no code blocks) in this exact format:
 [
@@ -289,7 +291,7 @@ def get_recipes_by_menu(db: Session, userUuid: int, menuId: int) -> GenerateReci
 
 
 # ---------------- Regenerate Recipes ----------------
-def regenerate_recipes_for_menu(db: Session, userUuid: int, menuId: int) -> GenerateRecipesResponse:
+def regenerate_menu_recipes(db: Session, userUuid: int, menuId: int) -> GenerateRecipesResponse:
     """
                 Generate new recipes for the menu.
     """

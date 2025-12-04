@@ -37,7 +37,7 @@ def get_user_products_names(db: Session, userUuid: int):
     names = sorted([p[0] for p in products if p[0]])  # flatten tuples and remove None
     return {"products": names}
 
-def add_user_product(db: Session, request: PostUserProductRequest, userUuid: int) -> UserProduct:
+def add_user_product(db: Session, request: PostUserProductRequest, userUuid: int):
     """
         Add a new product to a user's personal list.
         Checks for duplicates in both the user's list and the global product database.
@@ -90,7 +90,7 @@ def add_user_product(db: Session, request: PostUserProductRequest, userUuid: int
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
-    return new_product
+    return {"message": f"Product '{new_product.productName}' added successfully."}
 
 def delete_user_product(db: Session, request: DeleteUserProductRequest, userUuid: int):
     """

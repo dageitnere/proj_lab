@@ -106,8 +106,8 @@ Katram uzturvielu veidam definēti min/max robežu intervāli, lai izvairītos n
 * Augu olbaltumvielas (~30% no mērķa).
 
 ### Daudzveidības ierobežojums:
-Lai nodrošinātu ēdienkartes dažādību, tiek ieviests ierobežojums, kas prasa iekļaut vismaz 15 dažādus produktus:
-* ∑yi ≥ 15
+Lai nodrošinātu ēdienkartes dažādību, tiek ieviests ierobežojums, kas prasa iekļaut vismaz 10 dažādus produktus:
+* ∑yi ≥ 10
 
 ### Lietotāja produktu ierobežojumi:
 Piemēri:

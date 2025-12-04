@@ -1,7 +1,7 @@
 import os, smtplib, ssl
 from email.message import EmailMessage
+import secrets
 
-# Gmail credentials must be stored as environment variables
 GMAIL_USER = os.getenv("GMAIL_USER")
 GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
 
@@ -32,3 +32,9 @@ def send_email(to: str, subject: str, body: str):
         smtp.starttls(context=context)
         smtp.login(GMAIL_USER, GMAIL_APP_PASSWORD)
         smtp.send_message(msg)
+
+def gen_code(n=6) -> int:
+    """Generate an integer verification code with n digits, not starting with 0."""
+    first = secrets.randbelow(9) + 1  # ensures 1–9
+    rest = "".join(str(secrets.randbelow(10)) for _ in range(n - 1))
+    return int(str(first) + rest)

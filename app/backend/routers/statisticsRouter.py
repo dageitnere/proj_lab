@@ -20,11 +20,9 @@ def showStatisticsPage(request: Request):
 def getDailyStatistics(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
     return get_daily_statistics(db, userUuid)
 
-
 @statistics.get("/average/7days", response_model=UserStatisticsResponse)
 def getAverageLast7Days(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
     return get_average_last_7_days(db, userUuid)
-
 
 @statistics.get("/average/30days", response_model=UserStatisticsResponse)
 def getAverageLast30Days(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):

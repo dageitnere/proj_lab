@@ -1,25 +1,26 @@
-from __future__ import annotations
-from typing import Literal
-
-import os
 import time
 import jwt
-
-from fastapi import HTTPException, Request
+import os
+import datetime as dt
+from typing import Literal
+from fastapi import HTTPException
 from fastapi.responses import Response, JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
+from app.backend.dependencies.sendEmail import send_email, gen_code
 from app.backend.models.users import User
 from app.backend.schemas.requests.getLoginRequest import LoginInRequest
-from app.backend.schemas.requests.postRegisterRequest import RegisterRequest, VerifyRequest, VerifyCodeRequest, CompleteRegistrationRequest
+from app.backend.schemas.requests.postRegisterRequest import RegisterRequest, VerifyRequest, VerifyCodeRequest
 from app.backend.schemas.requests.postForgetRequest import ForgotRequest, ForgotConfirmRequest
 from app.backend.services.passwordService import verify_password, hash_password, require_strong_password, start_reset, confirm_reset
-from app.backend.services.profileService import complete_registration
-from app.backend.services.verificationService import start_verification, confirm_verification
 
 _JWT_SECRET = os.getenv("JWT_SECRET")
 _JWT_ALG = "HS256"
 _TTL = 60 * 60 * 24
+_COOKIE = "access_token"
+_SECURE = True
+_SAMESITE: Literal["lax", "strict", "none"] = "lax"
+_COOKIE_MAX_AGE = 60 * 60 * 24
 
 def _create_access_token(sub: str, extra: dict | None = None, ttl: int = _TTL) -> str:
     now = int(time.time())
@@ -30,50 +31,33 @@ def _create_access_token(sub: str, extra: dict | None = None, ttl: int = _TTL) -
 
     return jwt.encode(payload, _JWT_SECRET, algorithm=_JWT_ALG)
 
-def decode_access_token(token: str) -> dict:
-    return jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG])
+def _now_utc():
+    """Return current UTC datetime."""
+    return dt.datetime.now(dt.timezone.utc)
 
-def create_session_token_for_user(u: User) -> str:
+def _create_session_token_for_user(u: User) -> str:
     return _create_access_token(sub=str(u.uuid), extra={"username": u.username, "email": u.email},)
 
-def extract_user_uuid_from_request(request: Request) -> int:
-    tok = request.cookies.get("access_token")
-
-    if not tok:
-        raise ValueError("Missing token")
-
-    payload = decode_access_token(tok)
-
-    if payload.get("typ") != "access":
-        raise ValueError("Invalid token type")
-
-    return int(payload["sub"])
-
-_COOKIE = "access_token"
-_SECURE = True
-_SAMESITE: Literal["lax", "strict", "none"] = "lax"
-_COOKIE_MAX_AGE = 60 * 60 * 24
-
-def build_auth_response(username: str, token: str) -> JSONResponse:
+def _build_auth_response(username: str, token: str) -> JSONResponse:
     resp = JSONResponse({"ok": True, "username": username})
     resp.set_cookie(key=_COOKIE, value=token, httponly=True, secure=_SECURE, samesite=_SAMESITE, max_age=_COOKIE_MAX_AGE, path="/",)
     return resp
 
-def build_auth_redirect(location: str, token: str, status_code: int = 303) -> RedirectResponse:
+def _build_auth_redirect(location: str, token: str, status_code: int = 303) -> RedirectResponse:
     resp = RedirectResponse(location, status_code=status_code)
     resp.set_cookie(key=_COOKIE, value=token, httponly=True, secure=_SECURE, samesite=_SAMESITE, max_age=_COOKIE_MAX_AGE, path="/",)
     return resp
 
-def build_logout_response() -> JSONResponse:
+def _build_logout_response() -> JSONResponse:
     resp = JSONResponse({"ok": True, "message": "logged out"})
     resp.delete_cookie(_COOKIE, path="/")
 
     return resp
 
-def ok() -> JSONResponse:
+def _ok() -> JSONResponse:
     return JSONResponse({"ok": True})
 
-def login_user(db: Session, request: LoginInRequest) -> tuple[str, str]:
+def _login_user(db: Session, request: LoginInRequest) -> tuple[str, str]:
     key = request.login.strip()
     email_key = key.lower()
     u: User | None = (db.query(User).filter(or_(User.username == key, func.lower(User.email) == email_key)).first() )
@@ -83,10 +67,10 @@ def login_user(db: Session, request: LoginInRequest) -> tuple[str, str]:
     if not u.emailVerified:
         raise ValueError("Email not verified")
 
-    token = create_session_token_for_user(u)
+    token = _create_session_token_for_user(u)
     return token, u.username
 
-def register_user(db: Session, request: RegisterRequest) -> tuple[int, str]:
+def _register_user(db: Session, request: RegisterRequest) -> None:
     exists = (db.query(User).filter(or_(User.username == request.username, User.email == request.email)).first())
 
     if exists:
@@ -98,59 +82,86 @@ def register_user(db: Session, request: RegisterRequest) -> tuple[int, str]:
     db.add(u)
     db.commit()
     db.refresh(u)
-    start_verification(db, u.email)
+    _start_verification(db, u.email)
 
-    return u.uuid, u.username
+def _start_verification(db: Session, email: str) -> None:
+    """
+        Generate and send a verification code to the user's email.
+        Code expires in 30 minutes.
+    """
+    u = db.query(User).filter(User.email == email.lower().strip()).first()
 
+    if not u:
+        return
+
+    code = gen_code()
+    u.verificationCode = code
+    u.verificationExpiresAt = _now_utc() + dt.timedelta(minutes=30)
+    db.commit()
+    send_email(
+        to=str(u.email),
+        subject="Your Diet App verification code",
+        body=f"Your verification code is: {code}\nIt expires in 30 minutes."
+    )
+
+def _confirm_verification(db: Session, email: str, code: int) -> User:
+    """
+        Confirm a user's email by validating the provided verification code.
+        Raises ValueError for invalid, expired, or missing codes.
+        Marks user as emailVerified on success.
+    """
+    u = db.query(User).filter(User.email == email.lower().strip()).first()
+
+    if not u:
+        raise ValueError("Invalid code")
+    if not u.verificationCode or not u.verificationExpiresAt:
+        raise ValueError("No active verification")
+    if u.verificationExpiresAt < _now_utc() or u.verificationCode != code:
+        raise ValueError("Invalid or expired code")
+
+    u.emailVerified = True
+    u.verificationCode = None
+    u.verificationExpiresAt = None
+    db.commit()
+    return u
 
 # -------- Action wrappers (handle errors + build responses) --------
-def action_login(db: Session, body: LoginInRequest) -> Response:
+def login_user(db: Session, request: LoginInRequest) -> Response:
     try:
-        token, username = login_user(db, body)
-        return build_auth_response(username, token)
+        token, username = _login_user(db, request)
+        return _build_auth_response(username, token)
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
 
-def action_register(db: Session, body: RegisterRequest) -> Response:
+def register_user(db: Session, request: RegisterRequest) -> Response:
     try:
-        register_user(db, body)
-        return ok()
+        _register_user(db, request)
+        return _ok()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-def action_logout() -> Response:
-    return build_logout_response()
+def logout_user() -> Response:
+    return _build_logout_response()
 
-def action_verification_start(db: Session, body: VerifyRequest) -> Response:
-    start_verification(db, str(body.email))  # silent for privacy
-    return ok()
+def verification_start(db: Session, request: VerifyRequest) -> Response:
+    _start_verification(db, str(request.email))  # silent for privacy
+    return _ok()
 
-def action_verification_confirm(db: Session, body: VerifyCodeRequest) -> Response:
+def verification_confirm(db: Session, request: VerifyCodeRequest) -> Response:
     try:
-        u = confirm_verification(db, str(body.email), body.code)
-        tok = create_session_token_for_user(u)
-        return build_auth_redirect("/auth/complete", tok, status_code=303)
+        u = _confirm_verification(db, str(request.email), request.code)
+        tok = _create_session_token_for_user(u)
+        return _build_auth_redirect("/profile/complete", tok, status_code=303)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-def action_forgot_start(db: Session, body: ForgotRequest) -> Response:
-    start_reset(db, str(body.email))  # silent semantics
-    return ok()
+def forgot_start(db: Session, request: ForgotRequest) -> Response:
+    start_reset(db, str(request.email))  # silent semantics
+    return _ok()
 
-def action_reset_confirm(db: Session, body: ForgotConfirmRequest) -> Response:
+def reset_confirm(db: Session, request: ForgotConfirmRequest) -> Response:
     try:
-        confirm_reset(db, body.token, body.new_password)
-        return ok()
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-def action_complete_submit(db: Session, request: Request, body: CompleteRegistrationRequest) -> Response:
-    try:
-        sub = extract_user_uuid_from_request(request)
-    except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
-    try:
-        complete_registration(db, sub, body)
-        return ok()
+        confirm_reset(db, request.token, request.new_password)
+        return _ok()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
