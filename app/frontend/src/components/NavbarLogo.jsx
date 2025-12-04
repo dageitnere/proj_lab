@@ -6,7 +6,7 @@ export default function NavbarLogo({ children }) {
       className="fixed top-0 left-0 w-full px-40 py-10 flex items-center justify-between bg-noise-light"
     >
       <Link to="/">
-        <h1 className="black-white text-3xl font-bold">NutriMax</h1>
+        <h1 className="text-black text-3xl font-bold">NutriMax</h1>
       </Link>
       <div className="flex gap-4">
         {children}

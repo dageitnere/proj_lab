@@ -5,10 +5,11 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import VerificationPage from "./pages/VerificationPage.jsx";
 import NewPage from "./pages/NewPage.jsx";
 
+
 export default function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-[#2F6235] text-white">
+      <div className="min-h-screen bg-noise-light text-white">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/new-page" element={<NewPage />} />

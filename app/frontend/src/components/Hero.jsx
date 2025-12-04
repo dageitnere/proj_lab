@@ -4,7 +4,7 @@ export default function Hero() {
       <div className="mx-auto max-w-7xl px-6 grid gap-6 lg:grid-cols-12">
 
         <div className="lg:col-span-6">
-          <h1 className="text-white font-medium tracking-tight leading-[0.95]
+          <h1 className="text-black font-medium tracking-tight leading-[0.95]
                          text-5xl sm:text-7xl lg:text-8xl">
             <span className="block">Plan. Cook</span>
             <span className="block">Eat. Repeat.</span>
@@ -13,7 +13,7 @@ export default function Hero() {
         </div>
 
 
-        <div className="lg:col-span-6 lg:col-start-10 text-white/90 lg:mt-6">
+        <div className="lg:col-span-6 lg:col-start-10 text-black/90 lg:mt-6">
           <p className="text-base sm:text-lg leading-relaxed max-w-sm">
             NutriMax lets you plan dishes for the whole week, organize ingredients,
             and automatically generate shopping lists. No more stress about what to cook
