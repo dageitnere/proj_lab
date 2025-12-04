@@ -1,10 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Modal from "./Modal";
 import LoginForm from "./LoginForm";
 import NavbarLogo from "./NavbarLogo";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("login") === "open") {
+      setIsOpen(true);
+    }
+  }, [location]);
 
   return (
     <NavbarLogo>
