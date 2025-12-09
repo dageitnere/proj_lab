@@ -19,7 +19,7 @@ export default function Navbar() {
     <NavbarLogo>
       <button
         className="inline-flex items-center justify-center rounded-full px-8 py-3
-                  bg-white text-brandGreen font-semibold shadow
+                  bg-white text-black font-semibold shadow
                   hover:bg-white/90 focus:outline-none focus-visible:ring
                   focus-visible:ring-white/60 transition"
         onClick={() => setIsOpen(true)}
@@ -29,7 +29,7 @@ export default function Navbar() {
       <a
         href="/register"
         className="inline-flex items-center justify-center rounded-full px-8 py-3
-                  bg-white text-brandGreen font-semibold shadow
+                  bg-white text-black font-semibold shadow
                   hover:bg-white/90 focus:outline-none focus-visible:ring
                   focus-visible:ring-white/60 transition"
       >
