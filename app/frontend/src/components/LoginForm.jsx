@@ -1,3 +1,4 @@
+// src/components/LoginForm.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +13,7 @@ export default function LoginForm({ onSuccess }) {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:8000/auth/login", {
+      const res = await fetch("/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -21,13 +22,18 @@ export default function LoginForm({ onSuccess }) {
         body: JSON.stringify({ login, password }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.detail || "Error");
       }
 
-      const data = await res.json();
       console.log("Logged in as:", data.username);
+
+      if (data.username) {
+        localStorage.setItem("username", data.username);
+      }
+
       navigate("/new-page");
 
       if (onSuccess) onSuccess();
