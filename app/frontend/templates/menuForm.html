@@ -618,7 +618,7 @@
                 });
                 const data = await res.json();
                 if (!res.ok) {
-                    saveWarning.textContent = `⚠ ${data.detail || "Error saving menu"}`;
+                    saveWarning.textContent = `⚠ ${data.detail | "Error saving menu"}`;
                     return;
                 }
                 saveWarning.style.color = "green";

@@ -7,7 +7,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        brandGreen: "#2F6235",
+      },
+      fontFamily: {
+        libre: ['"Libre Baskerville"', "serif"],
       },
     },
   },
