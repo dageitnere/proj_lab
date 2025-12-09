@@ -4,7 +4,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import VerificationPage from "./pages/VerificationPage.jsx";
 import NewPage from "./pages/NewPage.jsx";
-
+import GenerateMenuPage from "./pages/GenerateMenuPage.jsx";
 
 export default function App() {
   return (
@@ -16,9 +16,10 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/verification" element={<VerificationPage />} />
+          <Route path="/generatemenu" element={<GenerateMenuPage />} />
         </Routes>
-
       </div>
     </Router>
   );
 }
+
