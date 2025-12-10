@@ -27,7 +27,7 @@ export default function SidebarMenu() {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:8000/auth/logout", {
+      await fetch("/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -43,38 +43,32 @@ export default function SidebarMenu() {
     navigate(path);
   };
 
+  const handleGoToMyMenus = () => {
+  navigate("/mymenus");
+    };
+
   return (
     <div
       className={`
-        fixed inset-y-0 right-0 z-40
-        flex
-        overflow-hidden
-        bg-white
-        border-l-2 border-gray-300
-        transition-[width] duration-300
+        fixed inset-y-0 left-0 z-40
+        bg-white 
+        border-r-2 border-gray-300
         ${opened ? "w-72" : "w-40"}
       `}
     >
-      <div className="flex-1 h-full">
-        {opened && (
-          <div className="h-full flex flex-col pt-28 px-6 text-slate-900"></div>
-        )}
-      </div>
 
       <div
         className={`
-          h-full flex flex-col pt-28 items-start
-          ${opened ? "w-40 pr-6" : "w-24 pr-2"}
+          h-full flex flex-col pt-28
+          ${opened ? "items-start pl-10 pr-6" : "items-center pr-2"}
         `}
       >
         <button
           type="button"
           onClick={() => setOpened((prev) => !prev)}
           className={`
-            self-center
-            ${opened ? "" : "-ml-12"}
             tham tham-e-squeeze tham-w-7
-            ${opened ? "tham-active" : ""}
+            ${opened ? "self-start ml-4" : "self-center"}
           `}
         >
           <div className="tham-box">
@@ -83,7 +77,7 @@ export default function SidebarMenu() {
         </button>
 
         {opened && username && (
-          <div className="mt-6 flex items-center gap-2 pl-2">
+          <div className="mt-6 flex items-center gap-2 pl-4">
             <div
               className="
                 w-8 h-8 rounded-full
@@ -100,26 +94,55 @@ export default function SidebarMenu() {
           </div>
         )}
 
-        <div className={`mt-10 w-full ${opened ? "space-y-3" : "space-y-12"}`}>
-
+        <div
+          className={`
+            mt-6 w-full
+            ${opened ? "space-y-3" : " mt-24 space-y-16"}
+          `}
+        >
           {menuItems.map((item) => {
             if (!opened && !visibleWhenClosed.includes(item.id)) {
               return null;
             }
 
             const baseClasses = `
-              ${opened ? "text-base" : "text-xl -ml-10"}
-              text-center text-slate-900 whitespace-nowrap
-              cursor-pointer hover:text-green-700
-              transition-colors
+              w-full
+              ${
+                opened
+                  ? "text-lg text-left pl-4"
+                  : "text-xl text-center"
+              }
+              text-slate-900 whitespace-nowrap
             `;
 
+            if (item.id === "generate-menu") {
+              return (
+                <p
+                  key={item.id}
+                  onClick={handleGoToGenerateMenu}
+                  className={
+                    baseClasses + " cursor-pointer hover:text-green-700"
+                  }
+                >
+                  {item.label}
+                </p>
+              );
+            }
+
+            if (item.id === "my-menus") {
             return (
               <p
                 key={item.id}
-                onClick={() => handleNavigate(item.path)}
-                className={baseClasses}
+                onClick={handleGoToMyMenus}
+                className={baseClasses + " cursor-pointer hover:text-green-700"}
               >
+                {item.label}
+              </p>
+            );
+          }
+
+            return (
+              <p key={item.id} className={baseClasses}>
                 {item.label}
               </p>
             );
@@ -130,11 +153,13 @@ export default function SidebarMenu() {
               type="button"
               onClick={handleLogout}
               className="
-                pt-2
+                pt-4
+                w-full
                 text-base
-                text-black-600
+                text-left
+                pl-4
+                text-black
                 hover:text-green-700 hover:underline
-                block mx-auto
               "
             >
               Log out

@@ -5,14 +5,14 @@ import SidebarMenu from "../components/SidebarMenu.jsx";
 //           <StartScreenNewPage />
 //             </section>
 
-import PlannerHeader from "../components/PlannerHeader.jsx";
+
 
 export default function NewPage() {
   return (
     <div className="min-h-screen bg-noise-light text-slate-900">
     <SidebarMenu />
       <main className="px-8 py-6">
-          <div className="mt-10 mb-4">  <PlannerHeader /> </div>
+          <div className="mt-10 mb-4"> </div>
         <Footer />
       </main>
     </div>

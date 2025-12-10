@@ -481,7 +481,7 @@ export default function GenerateMenuPage() {
     <div className="min-h-screen bg-noise-light text-slate-900">
       <SidebarMenu />
 
-      <main className="px-8 py-6 pr-40">
+      <main className="pl-52 px-8 py-6 pr-40">
         <div className="mt-10 mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
