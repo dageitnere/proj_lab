@@ -60,7 +60,7 @@ export default function VerificationPage() {
 
       if (res.ok) {
         setMessageConfirm("Email verified! Redirecting...");
-        setTimeout(() => navigate("/new-page"), 800);
+        setTimeout(() => navigate("/complete"), 800);
       } else {
         const data = await res.json().catch(() => ({ detail: "Invalid or expired code." }));
         setMessageConfirm(data.detail || "Invalid or expired code.");
@@ -125,9 +125,6 @@ export default function VerificationPage() {
           </div>
         </form>
 
-        <p className="text-center text-sm text-brandGreen mt-4">
-          <a href="/" className="hover:underline font-semibold">Back to Login</a>
-        </p>
       </div>
 
       <Footer />

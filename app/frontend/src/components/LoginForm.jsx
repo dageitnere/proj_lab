@@ -78,7 +78,7 @@ export default function LoginForm({ onSuccess }) {
 
       <button
         type="submit"
-        className="w-full py-2 bg-brandGreen text-black rounded hover:bg-green-700 transition"
+        className="w-full py-2 bg-brandGreen text-white rounded hover:bg-green-700 transition"
       >
         Login
       </button>
