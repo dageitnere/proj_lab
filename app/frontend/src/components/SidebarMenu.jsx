@@ -2,10 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const menuItems = [
-  { id: "planner", label: "Planner" },
-  { id: "my-menus", label: "My menus" },
-  { id: "discover", label: "Discover" },
-  { id: "generate-menu", label: "Generate menu" },
+  { id: "planner", label: "Planner", path: "/planner" },
+  { id: "my-menus", label: "My menus", path: "/mymenus" },
+  { id: "discover", label: "Discover", path: "/discover" },
+  { id: "generate-menu", label: "Generate menu", path: "/generatemenu" },
+  { id: "all-products", label: "All products", path: "/products" },
+  { id: "my-products", label: "My products", path: "/my-products" },
+  { id: "consumed-products", label: "Consumed products", path: "/consumed" },
+  { id: "statistics", label: "Statistics", path: "/statistics" },
 ];
 
 export default function SidebarMenu() {
@@ -14,11 +18,11 @@ export default function SidebarMenu() {
   const userInitial = username ? username.charAt(0).toUpperCase() : "";
   const navigate = useNavigate();
 
+  const visibleWhenClosed = ["planner", "my-menus", "discover"];
+
   useEffect(() => {
     const stored = localStorage.getItem("username");
-    if (stored) {
-      setUsername(stored);
-    }
+    if (stored) setUsername(stored);
   }, []);
 
   const handleLogout = async () => {
@@ -32,12 +36,11 @@ export default function SidebarMenu() {
     }
 
     localStorage.removeItem("username");
-    setUsername("");
     navigate("/");
   };
 
-  const handleGoToGenerateMenu = () => {
-    navigate("/generatemenu");
+  const handleNavigate = (path) => {
+    navigate(path);
   };
 
   return (
@@ -46,7 +49,7 @@ export default function SidebarMenu() {
         fixed inset-y-0 right-0 z-40
         flex
         overflow-hidden
-        bg-white 
+        bg-white
         border-l-2 border-gray-300
         transition-[width] duration-300
         ${opened ? "w-72" : "w-40"}
@@ -69,7 +72,7 @@ export default function SidebarMenu() {
           onClick={() => setOpened((prev) => !prev)}
           className={`
             self-center
-            ${opened ? "" : "-ml-12"} 
+            ${opened ? "" : "-ml-12"}
             tham tham-e-squeeze tham-w-7
             ${opened ? "tham-active" : ""}
           `}
@@ -83,10 +86,8 @@ export default function SidebarMenu() {
           <div className="mt-6 flex items-center gap-2 pl-2">
             <div
               className="
-                w-8 h-8
-                rounded-full
-                bg-brandGreen
-                text-white
+                w-8 h-8 rounded-full
+                bg-brandGreen text-white
                 flex items-center justify-center
                 text-base font-semibold
               "
@@ -99,41 +100,24 @@ export default function SidebarMenu() {
           </div>
         )}
 
-        <div
-          className={`
-            mt-10 w-full
-            ${opened ? "space-y-3" : "space-y-12"}
-          `}
-        >
+        <div className={`mt-10 w-full ${opened ? "space-y-3" : "space-y-12"}`}>
+
           {menuItems.map((item) => {
-            if (item.id === "generate-menu" && !opened) {
+            if (!opened && !visibleWhenClosed.includes(item.id)) {
               return null;
             }
 
             const baseClasses = `
-              ${
-                opened
-                  ? "text-base text-center"
-                  : "text-xl text-center -ml-10"
-              }
-              text-slate-900 whitespace-nowrap
+              ${opened ? "text-base" : "text-xl -ml-10"}
+              text-center text-slate-900 whitespace-nowrap
+              cursor-pointer hover:text-green-700
+              transition-colors
             `;
-
-            if (item.id === "generate-menu") {
-              return (
-                <p
-                  key={item.id}
-                  onClick={handleGoToGenerateMenu}
-                  className={baseClasses + " cursor-pointer hover:text-green-700"}
-                >
-                  {item.label}
-                </p>
-              );
-            }
 
             return (
               <p
                 key={item.id}
+                onClick={() => handleNavigate(item.path)}
                 className={baseClasses}
               >
                 {item.label}
