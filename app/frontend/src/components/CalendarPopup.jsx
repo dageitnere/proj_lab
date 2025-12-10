@@ -140,7 +140,7 @@ export default function CalendarPopup({ initialDate, onApply, onCancel }) {
                   flex items-center justify-center
                   ${
                     selected
-                      ? "bg-green-500 text-white"
+                      ? "bg-brandGreen text-white"
                       : "hover:bg-slate-100 text-slate-800"
                   }
                 `}
@@ -156,7 +156,7 @@ export default function CalendarPopup({ initialDate, onApply, onCancel }) {
         <button
           type="button"
           onClick={onCancel}
-          className="text-[11px] text-blue-600 hover:underline"
+          className="text-[11px] text-brandGreen hover:underline"
         >
           Cancel
         </button>
@@ -165,9 +165,9 @@ export default function CalendarPopup({ initialDate, onApply, onCancel }) {
           type="button"
           onClick={() => onApply(tempDate)}
           className="
-            px-4 py-1.5 rounded-full bg-orange-500
+            px-4 py-1.5 rounded-full bg-brandGreen
             text-white font-semibold text-xs
-            hover:bg-orange-600
+            hover:bg-green
           "
         >
           OK

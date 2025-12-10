@@ -2,10 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const menuItems = [
-  { id: "planner", label: "Planner" },
-  { id: "my-menus", label: "My menus" },
-  { id: "discover", label: "Discover" },
-  { id: "generate-menu", label: "Generate menu" },
+  { id: "planner", label: "Planner", path: "/planner" },
+  { id: "my-menus", label: "My menus", path: "/mymenus" },
+  { id: "discover", label: "Discover", path: "/discover" },
+  { id: "generate-menu", label: "Generate menu", path: "/generatemenu" },
+  { id: "all-products", label: "All products", path: "/products" },
+  { id: "my-products", label: "My products", path: "/my-products" },
+  { id: "consumed-products", label: "Consumed products", path: "/consumed" },
+  { id: "statistics", label: "Statistics", path: "/statistics" },
 ];
 
 export default function SidebarMenu() {
@@ -14,11 +18,11 @@ export default function SidebarMenu() {
   const userInitial = username ? username.charAt(0).toUpperCase() : "";
   const navigate = useNavigate();
 
+  const visibleWhenClosed = ["planner", "my-menus", "discover"];
+
   useEffect(() => {
     const stored = localStorage.getItem("username");
-    if (stored) {
-      setUsername(stored);
-    }
+    if (stored) setUsername(stored);
   }, []);
 
   const handleLogout = async () => {
@@ -32,12 +36,11 @@ export default function SidebarMenu() {
     }
 
     localStorage.removeItem("username");
-    setUsername("");
     navigate("/");
   };
 
-  const handleGoToGenerateMenu = () => {
-    navigate("/generatemenu");
+  const handleNavigate = (path) => {
+    navigate(path);
   };
 
   const handleGoToMyMenus = () => {
@@ -77,10 +80,8 @@ export default function SidebarMenu() {
           <div className="mt-6 flex items-center gap-2 pl-4">
             <div
               className="
-                w-8 h-8
-                rounded-full
-                bg-brandGreen
-                text-white
+                w-8 h-8 rounded-full
+                bg-brandGreen text-white
                 flex items-center justify-center
                 text-base font-semibold
               "
@@ -100,7 +101,7 @@ export default function SidebarMenu() {
           `}
         >
           {menuItems.map((item) => {
-            if (item.id === "generate-menu" && !opened) {
+            if (!opened && !visibleWhenClosed.includes(item.id)) {
               return null;
             }
 

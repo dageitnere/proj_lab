@@ -3,9 +3,13 @@ import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import VerificationPage from "./pages/VerificationPage.jsx";
+import CompleteProfilePage from "./pages/CompleteProfilePage.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import NewPage from "./pages/NewPage.jsx";
 import GenerateMenuPage from "./pages/GenerateMenuPage.jsx";
 import MyMenusPage from "./pages/MyMenusPage.jsx";
+import AllProductsPage from "./pages/AllProductsPage.jsx";
+import MyProductsPage from "./pages/MyProductsPage.jsx";
 
 export default function App() {
   return (
@@ -19,9 +23,13 @@ export default function App() {
           <Route path="/verification" element={<VerificationPage />} />
           <Route path="/generatemenu" element={<GenerateMenuPage />} />
          <Route path="/mymenus" element={<MyMenusPage />} />
+          <Route path="/complete" element={<CompleteProfilePage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/products" element={<AllProductsPage />} />
+          <Route path="/my-products" element={<MyProductsPage />} />
         </Routes>
+
       </div>
     </Router>
   );
 }
-
