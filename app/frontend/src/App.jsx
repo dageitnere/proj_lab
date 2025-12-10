@@ -5,6 +5,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import VerificationPage from "./pages/VerificationPage.jsx";
 import NewPage from "./pages/NewPage.jsx";
 import GenerateMenuPage from "./pages/GenerateMenuPage.jsx";
+import MyMenusPage from "./pages/MyMenusPage.jsx";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/verification" element={<VerificationPage />} />
           <Route path="/generatemenu" element={<GenerateMenuPage />} />
+         <Route path="/mymenus" element={<MyMenusPage />} />
         </Routes>
       </div>
     </Router>
