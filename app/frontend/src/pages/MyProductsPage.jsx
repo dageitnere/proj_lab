@@ -796,10 +796,10 @@ export default function MyProductsPage() {
       : "";
 
   return (
-    <div className="min-h-screen bg-noise-light text-slate-900">
+    <div className="min-h-screen text-slate-900">
       <SidebarMenu />
 
-      <main className="px-8 py-6 pr-40">
+      <main className="px-8 py-6 pl-56">
         <div className="mt-8 mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold tracking-tight">
@@ -820,7 +820,7 @@ export default function MyProductsPage() {
           </div>
         )}
 
-        <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2.4fr)_minmax(0,0.8fr)]">
+        <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-1 gap-2">
@@ -1066,7 +1066,7 @@ export default function MyProductsPage() {
               ))}
             </div>
 
-            <div className="max-h-[580px] overflow-y-auto pr-1">
+            <div className="max-h-[580px] overflow-y-auto pr-1 pl-2">
               {activeTab === "manual" && (
                 <form onSubmit={handleManualSubmit} className="space-y-3">
                   {renderMessage(manualMessage)}
