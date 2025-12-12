@@ -1,5 +1,6 @@
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, LpStatus
 from sqlalchemy.orm import Session
+import time
 from fastapi import HTTPException, status
 from typing import Optional
 from datetime import datetime
@@ -108,6 +109,7 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
         GenerateMenuResponse with optimized product list and nutritional totals,
         or error response if constraints cannot be satisfied
     """
+    start_time = time.time()
     # Extract nutritional targets from request
     kcalTarget = request.kcal
     proteinTarget = request.protein
@@ -165,8 +167,9 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
         if invalidProducts:
             return GenerateMenuResponse(
                 status="InvalidProducts",
+                executionTime=0,
                 invalidProducts=invalidProducts,
-                message=f"The following products were not found in the database: {', '.join(invalidProducts)}"
+                message=f"The following products were not found in the database or invalid restriction with dietary preferences: {', '.join(invalidProducts)}"
             )
 
     # Create linear programming problem to minimize cost
@@ -294,6 +297,7 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
     if LpStatus[problem.status] != "Optimal":
         return GenerateMenuResponse(
             status=LpStatus[problem.status],
+            executionTime=0,
             message="No optimal solution found.",
             plan=[]
         )
@@ -335,8 +339,14 @@ def generate_diet_menu(db: Session, request: DietRequest, userUuid: int):
         "totalSalt": round(sum(r.salt for r in result), 1)
     }
 
-    # Return successful response with optimized menu
-    return GenerateMenuResponse(status="Optimal", plan=result, **totals)
+    execution_time = float(f"{time.time() - start_time:.2f}")  # seconds
+
+    return GenerateMenuResponse(
+        status="Optimal",
+        executionTime=execution_time,  # ADD TO RESPONSE
+        plan=result,
+        **totals
+    )
 
 
 def save_diet_menu(db: Session, request: PostDietPlanRequest, userUuid: int):

@@ -400,6 +400,54 @@
 
         function renderResult(result) {
             const summaryDiv = document.getElementById("summary");
+            // --- Calculate precision using form targets ---
+            const targetKcal = parseFloat(document.querySelector('input[name="kcal"]').value);
+            const targetProtein = parseFloat(document.querySelector('input[name="protein"]').value);
+            const targetFat = parseFloat(document.querySelector('input[name="fat"]').value);
+            const targetCarbs = parseFloat(document.querySelector('input[name="carbs"]').value);
+            const targetSugars = parseFloat(document.querySelector('input[name="sugars"]').value);
+            const targetSatFat = parseFloat(document.querySelector('input[name="satFat"]').value);
+            const targetSalt = parseFloat(document.querySelector('input[name="salt"]').value);
+
+            // Diff = absolute difference
+            const precision = {
+                kcalDiff: Math.abs(result.totalKcal - targetKcal).toFixed(1),
+                proteinDiff: Math.abs(result.totalProtein - targetProtein).toFixed(1),
+                fatDiff: Math.abs(result.totalFat - targetFat).toFixed(1),
+                carbsDiff: Math.abs(result.totalCarbs - targetCarbs).toFixed(1),
+                sugarDiff: Math.abs(result.totalSugar - targetSugars).toFixed(1),
+                satFatDiff: Math.abs(result.totalSatFat - targetSatFat).toFixed(1),
+                saltDiff: Math.abs(result.totalSalt - targetSalt).toFixed(1)
+            };
+
+            // --- Calculate precision percentage ---
+            function pct(target, value) {
+                if (!target || target === 0) return "N/A";
+                const diff = Math.abs(value - target);
+                let accuracy = 100 - (diff / target * 100);
+                if (accuracy < 0) accuracy = 0;
+                return accuracy.toFixed(1);
+            }
+
+            const precisionPct = {
+                kcal: pct(targetKcal, result.totalKcal),
+                protein: pct(targetProtein, result.totalProtein),
+                fat: pct(targetFat, result.totalFat),
+                carbs: pct(targetCarbs, result.totalCarbs),
+                sugars: pct(targetSugars, result.totalSugar),
+                satFat: pct(targetSatFat, result.totalSatFat),
+                salt: pct(targetSalt, result.totalSalt)
+            };
+
+            // --- Convert precision percentages to numbers for averaging ---
+            const precisionNumbers = Object.values(precisionPct)
+                .filter(v => v !== "N/A")
+                .map(v => parseFloat(v));
+
+            // --- Calculate Overall Precision ---
+            const overallPrecision = precisionNumbers.length > 0
+                ? (precisionNumbers.reduce((sum, v) => sum + v, 0) / precisionNumbers.length).toFixed(1)
+                : "N/A";
             const table = document.getElementById("resultTable");
             const tbody = table.querySelector("tbody");
             if (!result || !result.plan || !result.plan.length) {
@@ -409,7 +457,21 @@
             }
             summaryDiv.innerHTML = `
                 <h4>Menu Summary</h4>
-                <p><strong>Status:</strong> ${result.status}</p>
+                <p><strong>Status:</strong> ${result.status} |
+                   <strong>Execution Time:</strong> ${result.executionTime}</p>
+
+                <p><strong>Precision Δ (Difference from target):</strong><br>
+                    Kcal: ${precision.kcalDiff} (Accuracy: ${precisionPct.kcal}%) |
+                    Protein: ${precision.proteinDiff} (Accuracy: ${precisionPct.protein}%) |
+                    Fat: ${precision.fatDiff} (Accuracy: ${precisionPct.fat}%) |
+                    Carbs: ${precision.carbsDiff} (Accuracy: ${precisionPct.carbs}%) |
+                    Sugars: ${precision.sugarDiff} (Accuracy: ${precisionPct.sugars}%) |
+                    Sat. Fat: ${precision.satFatDiff} (Accuracy: ${precisionPct.satFat}%) |
+                    Salt: ${precision.saltDiff} (Accuracy: ${precisionPct.salt}%)
+
+                    <strong>Overall Precision:</strong> ${overallPrecision}%
+                </p>
+
                 <p>
                     <strong>Total Kcal:</strong> ${result.totalKcal.toFixed(1)} |
                     <strong>Total Cost:</strong> €${result.totalCost.toFixed(2)} |

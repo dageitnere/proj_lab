@@ -14,4 +14,5 @@ class RecipeItem(BaseModel):
 class GenerateRecipesResponse(BaseModel):
     status: str
     recipes: Optional[List[RecipeItem]] = None
+    executionTime: Optional[float] = None
     message: Optional[str] = None

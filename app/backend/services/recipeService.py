@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 import os, json, requests
 from groq import Groq
+import time
 from app.backend.models.userMenus import UserMenu
 from app.backend.models.recipes import Recipe
 from app.backend.models.userMenuRecipes import UserMenuRecipes
@@ -295,6 +296,7 @@ def regenerate_menu_recipes(db: Session, userUuid: int, menuId: int) -> Generate
     """
                 Generate new recipes for the menu.
     """
+    start_time = time.time()
     menu = db.query(UserMenu).filter(UserMenu.id == menuId, UserMenu.userUuid == userUuid).first()
     if not menu:
         raise HTTPException(status_code=404, detail="Menu not found")
@@ -331,9 +333,11 @@ def regenerate_menu_recipes(db: Session, userUuid: int, menuId: int) -> Generate
 
     num_new_recipes = len(new_recipes_response.recipes or [])
 
+    execution_time = float(f"{time.time() - start_time:.2f}")
     return GenerateRecipesResponse(
         status=all_recipes_response.status,
         recipes=all_recipes_response.recipes,
+        executionTime = execution_time,
         message=f"Recipes successfully regenerated. Added {num_new_recipes} new recipes."
     )
 

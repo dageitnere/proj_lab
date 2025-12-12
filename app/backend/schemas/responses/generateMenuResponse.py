@@ -20,6 +20,7 @@ class ProductItem(BaseModel):
 
 class GenerateMenuResponse(BaseModel):
     status: str
+    executionTime: float
     totalKcal: Optional[float] = None
     totalCost: Optional[float] = None
     totalFat: Optional[float] = None

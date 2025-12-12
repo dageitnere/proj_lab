@@ -817,12 +817,11 @@
 
                     <div class="recipes-section">
                         <div class="recipes-header-container">
-                            <h3>🍽️ Recipes</h3>
+                            <div>
+                                <h3>🍽️ Recipes</h3>
+                                <p id="executionTimeText" style="font-size: 0.9em; color:#555; margin-top:4px;"></p>
+                            </div>
                             <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">🔄 Regenerate Recipes</button>
-                        </div>
-                        <div class="loading-spinner">
-                            <div class="spinner"></div>
-                            <p>Loading recipes...</p>
                         </div>
                     </div>
                 `;
@@ -861,21 +860,24 @@
                 if (data.status === 'NoRecipes' || recipes.length === 0) {
                     recipesSection.innerHTML = `
                         <div class="recipes-header-container">
-                            <h3>🍽️ Recipes</h3>
-                            <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">✨ Generate Recipes</button>
-                        </div>
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🍳</div>
-                            <p>No recipes generated yet for this menu. Click 'Generate Recipes' to create some!</p>
+                            <div>
+                                <h3>🍽️ Recipes</h3>
+                                <p id="executionTimeText" style="font-size: 0.9em; color:#555; margin-top:4px;"></p>
+                            </div>
+                            <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">🔄 Regenerate Recipes</button>
                         </div>
                     `;
                     return;
                 }
 
                 let htmlContent = `<div class="recipes-header-container">
+                                    <div>
                                         <h3>🍽️ Recipes</h3>
-                                        <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">🔄 Regenerate Recipes</button>
-                                    </div>`;
+                                        <p id="executionTimeText" style="font-size: 0.9em; color:#555; margin-top:4px;"></p>
+                                    </div>
+                                    <button class="btn btn-regenerate" id="regenerateBtn" onclick="regenerateRecipes()">🔄 Regenerate Recipes</button>
+                                </div>
+                                    `;
 
                 // Group recipes by batch
                 const recipesByBatch = {};
@@ -1032,12 +1034,16 @@
 
                 const result = await handleResponse(response);
 
-                const successMsg = isFirstTime
-                    ? 'Recipes generated successfully!'
-                    : (result.message || 'New recipe batch generated successfully!');
-                showAlert(successMsg, 'success');
+                // const successMsg = isFirstTime
+                //     ? 'Recipes generated successfully!'
+                //     : (result.message || 'New recipe batch generated successfully!');
 
                 await loadRecipes(currentMenuId, true, currentRecipeCount);
+                // Now that loadRecipes() has rebuilt the header, update execution time
+                const execPara = document.getElementById('executionTimeText');
+                if (execPara && result.executionTime) {
+                    execPara.textContent = `Execution time: ${result.executionTime}`;
+                }
 
             } catch (error) {
                 showAlert(error.message, 'error');
