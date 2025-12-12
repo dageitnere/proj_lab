@@ -267,44 +267,71 @@ Veikals "*" -- "*" Produkts
 #### Eksperimenta mērķis
 Novērtēšanas mērķis ir analizēt un pārbaudīt, kā izstrādātā diētas optimizācijas aplikācija spēj ģenerēt sabalansētas un lietotāja vajadzībām atbilstošas ēdienkartes dažādiem cilvēku aktivitātes līmeņiem un mērķiem. Tā kā optimālās ēdienkartes aprēķināšana balstās uz lineārās programmēšanas modeli, kura uzdevums ir nodrošināt precīzu uzturvielu, kaloriju un cenas līdzsvaru, ir būtiski izvērtēt aplikācijas veiktspēju praksē un tās spēju pielāgoties atšķirīgām lietotāju prasībām.
 #### Ieejas parametri
-* Lietotāja aktivitātes līmenis (mazkustīgs, mērens, ļoti aktīvs).
+* Lietotāja aktivitātes līmenis (mazkustīgs, mērens, ļoti aktīvs). Šie līmeņi tika izvēlēti, jo tie aptver cilvēku kustības spektru, sākot no mazkustīga dzīvesveida līdz ļoti aktīvam (programmas pilnais aktivitātes līmeņu saraksts - mazkustīgs, viegls, merēns, aktīvs, ļoti aktīvs).
 * Lietotāja mērķi (svara zaudēšana, svara uzturēšana, muskuļu masas palielināšana).
-* Lietotāja ierobežojumu skaits (0, 5, 7).
+* Lietotāja ierobežojumu skaits (0, 3, 6). Tika izvēlēti tieši šie skaitļi, jo programma nodrošina 3 veidu ierobežojumus, tāpēc tādā veidā var nodrošināt dažāda veida ierobežojumu skaitu līdzīgo sadalījumu.
+* Diētas preference (nav, piena nepanesība). Tika izvēlētā piena nepanesība, jo tā ir viena no izplatītākajām pārtikas nepanesībām.
 #### Novērtēšanas metrikas
 * Ēdienkartes ģenerēšanas laiks.
 * Recepšu un ēdienu bilžu ģenerēšanas laiks.
 * Barības vielu un kaloriju precizitāte.
 
-#### Eksperimentu plāns
-| Numurs | Aktivitātes līmenis | Mērķis              | Ierobežojumu skaits | Ēdienkartes ģenerēšanas laiks | Recepšu un ēdienu bilžu ģenerēšanas laiks | Barības vielu un kaloriju precizitāte |
-|--------|----------------------|----------------------|----------------------|-------------------------------|--------------------------------------------|----------------------------------------|
-| 1      | Mazkustīgs           | Svara zaudēšana      | 0                    |                               |                                            |                                        |
-| 2      | Mazkustīgs           | Svara zaudēšana      | 5                    |                               |                                            |                                        |
-| 3      | Mazkustīgs           | Svara zaudēšana      | 7                    |                               |                                            |                                        |
-| 4      | Mazkustīgs           | Svara uzturēšana     | 0                    |                               |                                            |                                        |
-| 5      | Mazkustīgs           | Svara uzturēšana     | 5                    |                               |                                            |                                        |
-| 6      | Mazkustīgs           | Svara uzturēšana     | 7                    |                               |                                            |                                        |
-| 7      | Mazkustīgs           | Muskuļu uzņemšana    | 0                    |                               |                                            |                                        |
-| 8      | Mazkustīgs           | Muskuļu uzņemšana    | 5                    |                               |                                            |                                        |
-| 9      | Mazkustīgs           | Muskuļu uzņemšana    | 7                    |                               |                                            |                                        |
-| 10     | Mērens               | Svara zaudēšana      | 0                    |                               |                                            |                                        |
-| 11     | Mērens               | Svara zaudēšana      | 5                    |                               |                                            |                                        |
-| 12     | Mērens               | Svara zaudēšana      | 7                    |                               |                                            |                                        |
-| 13     | Mērens               | Svara uzturēšana     | 0                    |                               |                                            |                                        |
-| 14     | Mērens               | Svara uzturēšana     | 5                    |                               |                                            |                                        |
-| 15     | Mērens               | Svara uzturēšana     | 7                    |                               |                                            |                                        |
-| 16     | Mērens               | Muskuļu uzņemšana    | 0                    |                               |                                            |                                        |
-| 17     | Mērens               | Muskuļu uzņemšana    | 5                    |                               |                                            |                                        |
-| 18     | Mērens               | Muskuļu uzņemšana    | 7                    |                               |                                            |                                        |
-| 19     | Ļoti aktīvs          | Svara zaudēšana      | 0                    |                               |                                            |                                        |
-| 20     | Ļoti aktīvs          | Svara zaudēšana      | 5                    |                               |                                            |                                        |
-| 21     | Ļoti aktīvs          | Svara zaudēšana      | 7                    |                               |                                            |                                        |
-| 22     | Ļoti aktīvs          | Svara uzturēšana     | 0                    |                               |                                            |                                        |
-| 23     | Ļoti aktīvs          | Svara uzturēšana     | 5                    |                               |                                            |                                        |
-| 24     | Ļoti aktīvs          | Svara uzturēšana     | 7                    |                               |                                            |                                        |
-| 25     | Ļoti aktīvs          | Muskuļu uzņemšana    | 0                    |                               |                                            |                                        |
-| 26     | Ļoti aktīvs          | Muskuļu uzņemšana    | 5                    |                               |                                            |                                        |
-| 27     | Ļoti aktīvs          | Muskuļu uzņemšana    | 7                    |                               |                                            |                                        |
+| Numurs | Aktivitātes līmenis | Mērķis           | Ierobežojumu skaits | Diētas preference | Ēdienkartes ģenerēšanas laiks | Recepšu un ēdienu bilžu ģenerēšanas laiks | Barības vielu un kaloriju precizitāte |
+|--------|----------------------|-------------------|----------------------|-------------------|-------------------------------|--------------------------------------------|----------------------------------------|
+| 1  | Mazkustīgs | Svara zaudēšana   | 0 | Nav | | | |
+| 2  | Mazkustīgs | Svara zaudēšana   | 0 | Piena nepanesība | | | |
+| 3  | Mazkustīgs | Svara zaudēšana   | 3 | Nav | | | |
+| 4  | Mazkustīgs | Svara zaudēšana   | 3 | Piena nepanesība | | | |
+| 5  | Mazkustīgs | Svara zaudēšana   | 6 | Nav | | | |
+| 6  | Mazkustīgs | Svara zaudēšana   | 6 | Piena nepanesība | | | |
+| 7  | Mazkustīgs | Svara uzturēšana  | 0 | Nav | | | |
+| 8  | Mazkustīgs | Svara uzturēšana  | 0 | Piena nepanesība | | | |
+| 9  | Mazkustīgs | Svara uzturēšana  | 3 | Nav | | | |
+| 10 | Mazkustīgs | Svara uzturēšana  | 3 | Piena nepanesība | | | |
+| 11 | Mazkustīgs | Svara uzturēšana  | 6 | Nav | | | |
+| 12 | Mazkustīgs | Svara uzturēšana  | 6 | Piena nepanesība | | | |
+| 13 | Mazkustīgs | Muskuļu uzņemšana | 0 | Nav | | | |
+| 14 | Mazkustīgs | Muskuļu uzņemšana | 0 | Piena nepanesība | | | |
+| 15 | Mazkustīgs | Muskuļu uzņemšana | 3 | Nav | | | |
+| 16 | Mazkustīgs | Muskuļu uzņemšana | 3 | Piena nepanesība | | | |
+| 17 | Mazkustīgs | Muskuļu uzņemšana | 6 | Nav | | | |
+| 18 | Mazkustīgs | Muskuļu uzņemšana | 6 | Piena nepanesība | | | |
+| 19 | Mērens | Svara zaudēšana   | 0 | Nav | | | |
+| 20 | Mērens | Svara zaudēšana   | 0 | Piena nepanesība | | | |
+| 21 | Mērens | Svara zaudēšana   | 3 | Nav | | | |
+| 22 | Mērens | Svara zaudēšana   | 3 | Piena nepanesība | | | |
+| 23 | Mērens | Svara zaudēšana   | 6 | Nav | | | |
+| 24 | Mērens | Svara zaudēšana   | 6 | Piena nepanesība | | | |
+| 25 | Mērens | Svara uzturēšana  | 0 | Nav | | | |
+| 26 | Mērens | Svara uzturēšana  | 0 | Piena nepanesība | | | |
+| 27 | Mērens | Svara uzturēšana  | 3 | Nav | | | |
+| 28 | Mērens | Svara uzturēšana  | 3 | Piena nepanesība | | | |
+| 29 | Mērens | Svara uzturēšana  | 6 | Nav | | | |
+| 30 | Mērens | Svara uzturēšana  | 6 | Piena nepanesība | | | |
+| 31 | Mērens | Muskuļu uzņemšana | 0 | Nav | | | |
+| 32 | Mērens | Muskuļu uzņemšana | 0 | Piena nepanesība | | | |
+| 33 | Mērens | Muskuļu uzņemšana | 3 | Nav | | | |
+| 34 | Mērens | Muskuļu uzņemšana | 3 | Piena nepanesība | | | |
+| 35 | Mērens | Muskuļu uzņemšana | 6 | Nav | | | |
+| 36 | Mērens | Muskuļu uzņemšana | 6 | Piena nepanesība | | | |
+| 37 | Ļoti aktīvs | Svara zaudēšana   | 0 | Nav | | | |
+| 38 | Ļoti aktīvs | Svara zaudēšana   | 0 | Piena nepanesība | | | |
+| 39 | Ļoti aktīvs | Svara zaudēšana   | 3 | Nav | | | |
+| 40 | Ļoti aktīvs | Svara zaudēšana   | 3 | Piena nepanesība | | | |
+| 41 | Ļoti aktīvs | Svara zaudēšana   | 6 | Nav | | | |
+| 42 | Ļoti aktīvs | Svara zaudēšana   | 6 | Piena nepanesība | | | |
+| 43 | Ļoti aktīvs | Svara uzturēšana  | 0 | Nav | | | |
+| 44 | Ļoti aktīvs | Svara uzturēšana  | 0 | Piena nepanesība | | | |
+| 45 | Ļoti aktīvs | Svara uzturēšana  | 3 | Nav | | | |
+| 46 | Ļoti aktīvs | Svara uzturēšana  | 3 | Piena nepanesība | | | |
+| 47 | Ļoti aktīvs | Svara uzturēšana  | 6 | Nav | | | |
+| 48 | Ļoti aktīvs | Svara uzturēšana  | 6 | Piena nepanesība | | | |
+| 49 | Ļoti aktīvs | Muskuļu uzņemšana | 0 | Nav | | | |
+| 50 | Ļoti aktīvs | Muskuļu uzņemšana | 0 | Piena nepanesība | | | |
+| 51 | Ļoti aktīvs | Muskuļu uzņemšana | 3 | Nav | | | |
+| 52 | Ļoti aktīvs | Muskuļu uzņemšana | 3 | Piena nepanesība | | | |
+| 53 | Ļoti aktīvs | Muskuļu uzņemšana | 6 | Nav | | | |
+| 54 | Ļoti aktīvs | Muskuļu uzņemšana | 6 | Piena nepanesība | | | |
 ### 2. **Novērtēšanas rezultāti**
 
 ## Secinājumi
