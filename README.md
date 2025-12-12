@@ -43,7 +43,7 @@ Lai salīdzinātu līdzīgos risinājumus sabalansētu ēdienkaršu plānošanā
       2. Lietotājs vēlas apskatīt, rediģēt vai dzēst savas iepriekšējās ēdienkartes prognozes, jo tas ļauj kontrolēt un uzlabot savus uztura paradumus;  
       3. Lietotājs vēlas automātiski aprēķināt nepieciešamās kalorijas un uzturvielas jaunajai ēdienkartei pēc lietotāja fiziskiem datiem, jo tas ļauj nodrošināt precīzu un sabalansētu uzturu katram lietotājam;  
       4. Lietotājs vēlas ģenerēt jaunu sabalansētas ēdienkartes prognozi, jo sistēma viņam palīdzēs iegūt uzturvielām līdzsvarotu un daudzveidīgu ēdienkarti bez manuālas aprēķināšanas;  
-      5. Lietotājs vēlas redzēt ēdienkartes datus grafiski (diagrammas, grafikus), jo tas ļauj viegli saprast uzturvielu sadalījumu un kaloriju patēriņu.  
+      5. Lietotājs vēlas redzēt ēdienkartes datus apkopotā veidā, jo tas ļauj viegli saprast uzturvielu sadalījumu un kaloriju patēriņu.  
    2. Should haves:  
       1. Lietotājs vēlas filtrēt ēdienkartes pēc produktiem, jo tas ļauj viegli izveidot ēdienkarti atbilstoši savām vēlmēm vai diētām;  
       2. Lietotājs vēlas redzēt ēdienu recepšu idejas, jo tas atvieglo ēšanas plānošanu;  
