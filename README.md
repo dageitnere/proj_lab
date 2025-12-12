@@ -204,15 +204,12 @@ Veikals "*" -- "*" Produkts
 
 *   **React + Tailwind CSS** – nodrošina modernu, reaģējošu un interaktīvu lietotāja saskarni (piemērots sarežģītākām un dinamiskām funkcijām).
 
-    **VAI**
-*   **Jinja2 + Tailwind CSS** – vienkāršāks, statisks risinājums, ko var paplašināt ar **HTMX**, lai pievienotu daļēju dinamiku bez pilnas JavaScript infrastruktūras.
-        
 
 ### Backend
 
 *   **FastAPI** – ātrs Python tīmekļa ietvars, kas nodrošina REST API izveidi ar automātisku dokumentāciju.
     
-*   **PuLP** vai **OR-Tools (Google)** – izmanto optimizācijas algoritmu realizācijai.
+*   **PuLP** – izmanto optimizācijas algoritmu realizācijai.
     
 
 ### Datu bāze
@@ -228,10 +225,6 @@ Veikals "*" -- "*" Produkts
 
 ### Datu apstrāde
 
-
-*   **Pandas** – datu matriču manipulācijai un analīzei.
-    
-*   **NumPy** – skaitliskai analīzei un matemātiskām operācijām.
     
 *   **API integrācija** – datu saņemšana un apstrāde caur FastAPI backend.
     
@@ -240,10 +233,7 @@ Veikals "*" -- "*" Produkts
 
 
 *   **React komponentes** – datu attēlošanai frontend vidē.
-    
-    **VAI**
-*   **Plotly** – interaktīvu grafiku ģenerēšanai, īpaši, ja tiek izmantota Jinja2 frontenda struktūra.
-    
+
 
 ### Operētājsistēma
 
@@ -255,9 +245,6 @@ Veikals "*" -- "*" Produkts
 
 
 *   **Microsoft Azure** – galvenā hostinga platforma (nodrošināta ar RTU finansējumu).
-    
-    **VAI**
-*   **Virtuālā mašīna (VM)** – alternatīva izvietošanas vide ar Ubuntu serveri.
 
 ## Programmatūras apraksts
 
