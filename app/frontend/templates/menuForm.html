@@ -456,28 +456,45 @@
                 return;
             }
             summaryDiv.innerHTML = `
-                <h4>Menu Summary</h4>
-                <p><strong>Status:</strong> ${result.status} |
-                   <strong>Execution Time:</strong> ${result.executionTime}</p>
+                <h4>Ēdienkartes kopsavilkums</h4>
+                <p><strong>Statuss:</strong> ${result.status} |
+                   <strong>Izpildes laiks:</strong> ${result.executionTime}</p>
 
-                <p><strong>Precision Δ (Difference from target):</strong><br>
-                    Kcal: ${precision.kcalDiff} (Accuracy: ${precisionPct.kcal}%) |
-                    Protein: ${precision.proteinDiff} (Accuracy: ${precisionPct.protein}%) |
-                    Fat: ${precision.fatDiff} (Accuracy: ${precisionPct.fat}%) |
-                    Carbs: ${precision.carbsDiff} (Accuracy: ${precisionPct.carbs}%) |
-                    Sugars: ${precision.sugarDiff} (Accuracy: ${precisionPct.sugars}%) |
-                    Sat. Fat: ${precision.satFatDiff} (Accuracy: ${precisionPct.satFat}%) |
-                    Salt: ${precision.saltDiff} (Accuracy: ${precisionPct.salt}%)
-
-                    <strong>Overall Precision:</strong> ${overallPrecision}%
+                <h4>Precizitāte</h4>
+                <p>
+                    Kalorijas: ${precisionPct.kcal}%<br>
+                    Olbaltumvielas: ${precisionPct.protein}%<br>
+                    Tauki: ${precisionPct.fat}%<br>
+                    Ogļhidrāti: ${precisionPct.carbs}%<br>
+                    Cukuri: ${precisionPct.sugars}%<br>
+                    Piesātinātie tauki: ${precisionPct.satFat}%<br>
+                    Sāls: ${precisionPct.salt}%<br>
+                    Kopējā precizitāte: ${overallPrecision}%
                 </p>
 
+                <h4>Excel formāts (kopēšanai vienā Excel šūnā):</h4>
+                <table border="1" style="border-collapse: collapse; width: auto; font-family: Arial, sans-serif;">
+                  <tr>
+                    <td>${precisionPct.kcal}%</td>
+                    <td>${precisionPct.protein}%</td>
+                    <td>${precisionPct.fat}%</td>
+                    <td>${precisionPct.carbs}%</td>
+                    <td>${precisionPct.sugars}%</td>
+                    <td>${precisionPct.satFat}%</td>
+                    <td>${precisionPct.salt}%</td>
+                    <td>${overallPrecision}%</td>
+                  </tr>
+                </table>
+                <h4>Kopējās vērtības</h4>
                 <p>
-                    <strong>Total Kcal:</strong> ${result.totalKcal.toFixed(1)} |
-                    <strong>Total Cost:</strong> €${result.totalCost.toFixed(2)} |
-                    <strong>Total Protein:</strong> ${result.totalProtein.toFixed(1)}g |
-                    <strong>Total Fat:</strong> ${result.totalFat.toFixed(1)}g |
-                    <strong>Total Carbs:</strong> ${result.totalCarbs.toFixed(1)}g
+                    <strong>Kopējās kalorijas:</strong> ${result.totalKcal.toFixed(1)} kcal<br>
+                    <strong>Kopējās izmaksas:</strong> €${result.totalCost.toFixed(2)}<br>
+                    <strong>Olbaltumvielas:</strong> ${result.totalProtein.toFixed(1)} g<br>
+                    <strong>Tauki:</strong> ${result.totalFat.toFixed(1)} g<br>
+                    <strong>Ogļhidrāti:</strong> ${result.totalCarbs.toFixed(1)} g<br>
+                    <strong>Cukuri:</strong> ${result.totalSugar.toFixed(1)} g<br>
+                    <strong>Piesāt. Tauki:</strong> ${result.totalSatFat.toFixed(1)} g<br>
+                    <strong>Sāls:</strong> ${result.totalSalt.toFixed(1)} mg
                 </p>
             `;
             tbody.innerHTML = "";
