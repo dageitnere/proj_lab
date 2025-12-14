@@ -121,78 +121,113 @@ Piemēri:
 * Tiek ģenerēta GenerateMenuResponse struktūra.
 ## Konceptu modelis
 
-![UML Diagram](https://i.ibb.co/ZzR31nhp/image.png)
+![UML Diagram](https://i.ibb.co/8nB8ZC47/image.png)
 
 ```plantuml
+@startuml
+hide circle
 skinparam linetype ortho
-
-class Lietotajs {
-  +id : String
-  +epasts : String
-  +parolesHash : String
-  +augums : Float
-  +svars : Float
-  +vecums : Int
-  +dzivesVietasValsts : String
-  +edienkartesMerkis : String
-  +produktiKoNegirbEst: List
+skinparam entity {
+  BackgroundColor White
+  BorderColor Black
 }
 
-class Edienkarte {
-  +id : String
-  +datums : Date
+entity "lietotāji" as users {
+  + uuid : bigint
+  --
+  username : text
+  email : text
+  age : bigint
+  gender : text
+  weight : bigint
+  height : bigint
+  bmi : double
+  bmr : double
+  goal : text
+  activityFactor : text
 }
 
-class Edienreize {
-  +id : String
-  +nosaukums : String
-  +kalorijuSkaits : Int
+entity "lietotāju pievienotie produkti" as userProducts {
+  + id : bigint
+  --
+  productName : text
+  kcal : bigint
+  fat : double
+  carbs : double
+  protein : double
+  price1kg : double
+  vegan : boolean
 }
 
-class Recepte {
-  +id : String
-  +nosaukums : String
-  +recepte : String
-  +bildesUrl : String
+entity "lietotāju ēdienkartes" as userMenu {
+  + id : bigint
+  --
+  date : timestamp
+  name : text
+  totalKcal : double
+  totalCost : double
+  vegan : boolean
+  vegetarian : boolean
+  dairyFree : boolean
 }
 
-class Produkts {
-  +id : String
-  +nosaukums : String
-  +svarsGrami: Float
-  +kalorijasGrama : Float
-  +cena :  Float
+entity "ēdienreize" as meal {
+  mealType : breakfast / lunch / dinner / snack
 }
 
-class Uzturvertiba {
-  +kalorijas : Int
-  +proteins : Float
-  +tauki : Float
-  +oglhidrati : Float
-  +skiedrvielas : Float
-  +cukurs : Float
+entity "lietotāju apēstie produkti" as userConsumedProducts {
+  + id : bigint
+  --
+  productName : text
+  amount : double
+  kcal : double
+  protein : double
+  cost : double
+  date : timestamp
 }
 
-class Veikals {
- +id : String
- +nosaukums : String
+entity "receptes" as recipes {
+  + id : bigint
+  --
+  name : text
+  calories : double
 }
 
+entity "produkti" as products {
+  + id : bigint
+  --
+  productName : text
+  protein : double
+  dairyProt : double
+  animalProt : double
+  plantProt : double
+}
+
+entity "uzturvērtība" as nutrition{
+  kcal : number
+  protein : number
+  fat : number
+  carbs : number
+  sugar : number
+  salt : number
+}
+
+' =====================
 ' Relācijas
-Lietotajs "1" -- "*" Edienkarte
-' Vienam lietotājam var būt vairākas ēdienkartes, bet katra ēdienkarte pieder tieši vienam lietotājam
-Edienkarte "1" -- "*" Edienreize
-' Vienā ēdienkartē var būt vairākas ēdienreizes, bet katra ēdienreize pieder konkrētajai ēdienkartei
-Edienreize "*" -- "*" Recepte
-' Vienā ēdienreizē var izmantot vairākas receptes un viena recepte var parādīties vairākās ēdienreizēs
-Recepte "*" -- "*" Produkts
-' Vienā receptē var izmantot vairākus produktus un viens produkts var parādīties vairākās receptēs
-Edienkarte "1" -- "1" Uzturvertiba
-' Katrai ēdienkartei ir sava uzturvērtība
-Produkts "1" -- "1" Uzturvertiba
-' Katrai receptei ir sava uzturvērtība
-Veikals "*" -- "*" Produkts
-' Viens produkts var būt pieejams vairākos veikalos un vienā veikalā ir vairāki produkti
+' =====================
+
+users ||--o{ userProducts : pieder
+users ||--o{ userMenu : ģenerē
+users ||--o{ userConsumedProducts : reģistrē
+
+userMenu ||--o{ meal : sastāv no
+meal ||--o{ recipes : ietver ģenerētās
+
+userMenu ||--|| nutrition : aprēķinātā
+products ||--|| nutrition : satur
+recipes ||--|| nutrition : izmanto
+userConsumedProducts ||--|| nutrition : satur
+
 @enduml
 ```
 
