@@ -121,7 +121,7 @@ Piemēri:
 * Tiek ģenerēta GenerateMenuResponse struktūra.
 ## Konceptu modelis
 
-![UML Diagram](https://i.ibb.co/8nB8ZC47/image.png)
+![UML Diagram](https://i.ibb.co/xq10VNw9/image.png)
 
 ```plantuml
 @startuml
@@ -139,12 +139,22 @@ entity "lietotāji" as users {
   email : text
   age : bigint
   gender : text
-  weight : bigint
-  height : bigint
+  weight : double
+  height : double
   bmi : double
   bmr : double
   goal : text
   activityFactor : text
+}
+
+entity "produkti" as products {
+  + id : bigint
+  --
+  productName : text
+  protein : double
+  dairyProt : double
+  animalProt : double
+  plantProt : double
 }
 
 entity "lietotāju pievienotie produkti" as userProducts {
@@ -157,6 +167,17 @@ entity "lietotāju pievienotie produkti" as userProducts {
   protein : double
   price1kg : double
   vegan : boolean
+}
+
+entity "lietotāju apēstie produkti" as userConsumedProducts {
+  + id : bigint
+  --
+  productName : text
+  amount : double
+  kcal : double
+  protein : double
+  cost : double
+  date : timestamp
 }
 
 entity "lietotāju ēdienkartes" as userMenu {
@@ -175,17 +196,6 @@ entity "ēdienreize" as meal {
   mealType : breakfast / lunch / dinner / snack
 }
 
-entity "lietotāju apēstie produkti" as userConsumedProducts {
-  + id : bigint
-  --
-  productName : text
-  amount : double
-  kcal : double
-  protein : double
-  cost : double
-  date : timestamp
-}
-
 entity "receptes" as recipes {
   + id : bigint
   --
@@ -193,17 +203,7 @@ entity "receptes" as recipes {
   calories : double
 }
 
-entity "produkti" as products {
-  + id : bigint
-  --
-  productName : text
-  protein : double
-  dairyProt : double
-  animalProt : double
-  plantProt : double
-}
-
-entity "uzturvērtība" as nutrition{
+entity "uzturvērtība" as nutrition {
   kcal : number
   protein : number
   fat : number
@@ -216,17 +216,20 @@ entity "uzturvērtība" as nutrition{
 ' Relācijas
 ' =====================
 
-users ||--o{ userProducts : pieder
 users ||--o{ userMenu : ģenerē
+users ||--o{ userProducts : pievieno
 users ||--o{ userConsumedProducts : reģistrē
 
 userMenu ||--o{ meal : sastāv no
+userMenu ||--o{ products : sastāv no
 meal ||--o{ recipes : ietver ģenerētās
 
-userMenu ||--|| nutrition : aprēķinātā
+' Produktu saiknes
+products ||--o{ userProducts : ietver
+products ||--o{ userConsumedProducts : ietver
+
 products ||--|| nutrition : satur
-recipes ||--|| nutrition : izmanto
-userConsumedProducts ||--|| nutrition : satur
+
 
 @enduml
 ```
