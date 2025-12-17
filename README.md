@@ -301,62 +301,89 @@ Novērtēšanas mērķis ir analizēt un pārbaudīt, kā izstrādātā diētas 
 * Recepšu un ēdienu bilžu ģenerēšanas laiks.
 * Barības vielu un kaloriju precizitāte.
 
-| Numurs | Aktivitātes līmenis | Mērķis           | Ierobežojumu skaits | Diētas preference | Ēdienkartes ģenerēšanas laiks | Recepšu un ēdienu bilžu ģenerēšanas laiks | Barības vielu un kaloriju precizitāte |
-|--------|----------------------|-------------------|----------------------|-------------------|-------------------------------|--------------------------------------------|----------------------------------------|
-| 1  | Mazkustīgs | Svara zaudēšana   | 0 | Nav | | | |
-| 2  | Mazkustīgs | Svara zaudēšana   | 0 | Piena nepanesība | | | |
-| 3  | Mazkustīgs | Svara zaudēšana   | 3 | Nav | | | |
-| 4  | Mazkustīgs | Svara zaudēšana   | 3 | Piena nepanesība | | | |
-| 5  | Mazkustīgs | Svara zaudēšana   | 6 | Nav | | | |
-| 6  | Mazkustīgs | Svara zaudēšana   | 6 | Piena nepanesība | | | |
-| 7  | Mazkustīgs | Svara uzturēšana  | 0 | Nav | | | |
-| 8  | Mazkustīgs | Svara uzturēšana  | 0 | Piena nepanesība | | | |
-| 9  | Mazkustīgs | Svara uzturēšana  | 3 | Nav | | | |
-| 10 | Mazkustīgs | Svara uzturēšana  | 3 | Piena nepanesība | | | |
-| 11 | Mazkustīgs | Svara uzturēšana  | 6 | Nav | | | |
-| 12 | Mazkustīgs | Svara uzturēšana  | 6 | Piena nepanesība | | | |
-| 13 | Mazkustīgs | Muskuļu uzņemšana | 0 | Nav | | | |
-| 14 | Mazkustīgs | Muskuļu uzņemšana | 0 | Piena nepanesība | | | |
-| 15 | Mazkustīgs | Muskuļu uzņemšana | 3 | Nav | | | |
-| 16 | Mazkustīgs | Muskuļu uzņemšana | 3 | Piena nepanesība | | | |
-| 17 | Mazkustīgs | Muskuļu uzņemšana | 6 | Nav | | | |
-| 18 | Mazkustīgs | Muskuļu uzņemšana | 6 | Piena nepanesība | | | |
-| 19 | Mērens | Svara zaudēšana   | 0 | Nav | | | |
-| 20 | Mērens | Svara zaudēšana   | 0 | Piena nepanesība | | | |
-| 21 | Mērens | Svara zaudēšana   | 3 | Nav | | | |
-| 22 | Mērens | Svara zaudēšana   | 3 | Piena nepanesība | | | |
-| 23 | Mērens | Svara zaudēšana   | 6 | Nav | | | |
-| 24 | Mērens | Svara zaudēšana   | 6 | Piena nepanesība | | | |
-| 25 | Mērens | Svara uzturēšana  | 0 | Nav | | | |
-| 26 | Mērens | Svara uzturēšana  | 0 | Piena nepanesība | | | |
-| 27 | Mērens | Svara uzturēšana  | 3 | Nav | | | |
-| 28 | Mērens | Svara uzturēšana  | 3 | Piena nepanesība | | | |
-| 29 | Mērens | Svara uzturēšana  | 6 | Nav | | | |
-| 30 | Mērens | Svara uzturēšana  | 6 | Piena nepanesība | | | |
-| 31 | Mērens | Muskuļu uzņemšana | 0 | Nav | | | |
-| 32 | Mērens | Muskuļu uzņemšana | 0 | Piena nepanesība | | | |
-| 33 | Mērens | Muskuļu uzņemšana | 3 | Nav | | | |
-| 34 | Mērens | Muskuļu uzņemšana | 3 | Piena nepanesība | | | |
-| 35 | Mērens | Muskuļu uzņemšana | 6 | Nav | | | |
-| 36 | Mērens | Muskuļu uzņemšana | 6 | Piena nepanesība | | | |
-| 37 | Ļoti aktīvs | Svara zaudēšana   | 0 | Nav | | | |
-| 38 | Ļoti aktīvs | Svara zaudēšana   | 0 | Piena nepanesība | | | |
-| 39 | Ļoti aktīvs | Svara zaudēšana   | 3 | Nav | | | |
-| 40 | Ļoti aktīvs | Svara zaudēšana   | 3 | Piena nepanesība | | | |
-| 41 | Ļoti aktīvs | Svara zaudēšana   | 6 | Nav | | | |
-| 42 | Ļoti aktīvs | Svara zaudēšana   | 6 | Piena nepanesība | | | |
-| 43 | Ļoti aktīvs | Svara uzturēšana  | 0 | Nav | | | |
-| 44 | Ļoti aktīvs | Svara uzturēšana  | 0 | Piena nepanesība | | | |
-| 45 | Ļoti aktīvs | Svara uzturēšana  | 3 | Nav | | | |
-| 46 | Ļoti aktīvs | Svara uzturēšana  | 3 | Piena nepanesība | | | |
-| 47 | Ļoti aktīvs | Svara uzturēšana  | 6 | Nav | | | |
-| 48 | Ļoti aktīvs | Svara uzturēšana  | 6 | Piena nepanesība | | | |
-| 49 | Ļoti aktīvs | Muskuļu uzņemšana | 0 | Nav | | | |
-| 50 | Ļoti aktīvs | Muskuļu uzņemšana | 0 | Piena nepanesība | | | |
-| 51 | Ļoti aktīvs | Muskuļu uzņemšana | 3 | Nav | | | |
-| 52 | Ļoti aktīvs | Muskuļu uzņemšana | 3 | Piena nepanesība | | | |
-| 53 | Ļoti aktīvs | Muskuļu uzņemšana | 6 | Nav | | | |
-| 54 | Ļoti aktīvs | Muskuļu uzņemšana | 6 | Piena nepanesība | | | |
+| Numurs | Aktivitātes līmenis | Mērķis | Ierobežojumu skaits | Diētas preference | Ēdienkartes ģenerēšanas laiks | Recepšu un ēdienu bilžu ģenerēšanas laiks | Barības vielu un kaloriju precizitāte                                                                                                                       |
+|--------|----------------------|-------------------|----------------------|-------------------|-------------------------------|--------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | Mazkustīgs | Svara zaudēšana | 0 | Nav | 0.22 | 19.21 | Kalorijas: 91.6%, Olbaltumvielas: 90.0%, Tauki: 84.6%, Ogļhidrāti: 99.2%, Cukuri: 93.3%, Piesātinātie tauki: 59.6%, Sāls: 80.6%, Kopējā precizitāte: 85.6%|
+| 2 | Mazkustīgs | Svara zaudēšana | 0 | Piena nepanesība | 0.34 | 17.18 | Kalorijas: 97.0%, Olbaltumvielas: 90.1%, Tauki: 97.4%, Ogļhidrāti: 89.9%, Cukuri: 84.7%, Piesātinātie tauki: 59.6%, Sāls: 81.1%, Kopējā precizitāte: 85.7%  |
+| 3 | Mazkustīgs | Svara zaudēšana | 3 | Nav | 0.35 | 15.91 | Kalorijas: 98.8%, Olbaltumvielas: 90.0%, Tauki: 92.2%, Ogļhidrāti: 90.0%, Cukuri: 95.3%, Piesātinātie tauki: 60.0%, Sāls: 88.9%, Kopējā precizitāte: 87.9%  |
+| 4 | Mazkustīgs | Svara zaudēšana | 3 | Piena nepanesība | 0.33 | 17.53 | Kalorijas: 98.6%, Olbaltumvielas: 89.9%, Tauki: 91.3%, Ogļhidrāti: 89.9%, Cukuri: 85.0%, Piesātinātie tauki: 60.0%, Sāls: 90.0%, Kopējā precizitāte: 86.4%  |
+| 5 | Mazkustīgs | Svara zaudēšana | 6 | Nav | 0.3 | 16.93 | Kalorijas: 98.6%, Olbaltumvielas: 90.0%, Tauki: 92.8%, Ogļhidrāti: 90.0%, Cukuri: 96.0%, Piesātinātie tauki: 75.0%, Sāls: 94.5%, Kopējā precizitāte: 91.0%  |
+| 6 | Mazkustīgs | Svara zaudēšana | 6 | Piena nepanesība | 0.32 | 19.03 | Kalorijas: 97.3%, Olbaltumvielas: 89.9%, Tauki: 90.6%, Ogļhidrāti: 90.0%, Cukuri: 94.1%, Piesātinātie tauki: 60.4%, Sāls: 80.3%, Kopējā precizitāte: 86.1%  |
+| 7 | Mazkustīgs | Svara uzturēšana | 0 | Nav | 0.23 | 14.53 | Kalorijas: 92.3%, Olbaltumvielas: 90.0%, Tauki: 83.9%, Ogļhidrāti: 97.0%, Cukuri: 90.0%, Piesātinātie tauki: 59.6%, Sāls: 80.1%, Kopējā precizitāte: 84.7%  |
+| 8 | Mazkustīgs | Svara uzturēšana | 0 | Piena nepanesība | 0.28 | 18.78 | Kalorijas: 95.4%, Olbaltumvielas: 90.0%, Tauki: 91.2%, Ogļhidrāti: 92.7%, Cukuri: 87.6%, Piesātinātie tauki: 60.0%, Sāls: 82.3%, Kopējā precizitāte: 85.6%  |
+| 9 | Mazkustīgs | Svara uzturēšana | 3 | Nav | 0.27 | 17.29 | Kalorijas: 93.5%, Olbaltumvielas: 90.0%, Tauki: 99.0%, Ogļhidrāti: 95.9%, Cukuri: 97.6%, Piesātinātie tauki: 60.4%, Sāls: 88.5%, Kopējā precizitāte: 89.3%  |
+| 10 | Mazkustīgs | Svara uzturēšana | 3 | Piena nepanesība | 0.35 | 17.25 | Kalorijas: 97.5%, Olbaltumvielas: 89.9%, Tauki: 90.2%, Ogļhidrāti: 90.0%, Cukuri: 60.0%, Piesātinātie tauki: 60.4%, Sāls: 97.0%, Kopējā precizitāte: 83.6%  |
+| 11 | Mazkustīgs | Svara uzturēšana | 6 | Nav | 0.33 | 17.62 | Kalorijas: 91.3%, Olbaltumvielas: 89.9%, Tauki: 93.5%, Ogļhidrāti: 94.4%, Cukuri: 80.5%, Piesātinātie tauki: 63.2%, Sāls: 91.8%, Kopējā precizitāte: 86.4%  |
+| 12 | Mazkustīgs | Svara uzturēšana | 6 | Piena nepanesība | 0.3 | 17.44 | Kalorijas: 97.6%, Olbaltumvielas: 90.0%, Tauki: 90.5%, Ogļhidrāti: 90.0%, Cukuri: 66.1%, Piesātinātie tauki: 60.4%, Sāls: 97.0%, Kopējā precizitāte: 84.5%  |
+| 13 | Mazkustīgs | Muskuļu uzņemšana | 0 | Nav | 0.18 | 16.91 | Kalorijas: 90.0%, Olbaltumvielas: 90.1%, Tauki: 80.2%, Ogļhidrāti: 96.7%, Cukuri: 94.0%, Piesātinātie tauki: 59.7%, Sāls: 82.2%, Kopējā precizitāte: 84.7%  |
+| 14 | Mazkustīgs | Muskuļu uzņemšana | 0 | Piena nepanesība | 0.29 | 17.24 | Kalorijas: 97.0%, Olbaltumvielas: 90.1%, Tauki: 95.0%, Ogļhidrāti: 94.5%, Cukuri: 67.9%, Piesātinātie tauki: 60.0%, Sāls: 90.6%, Kopējā precizitāte: 85.0%  |
+| 15 | Mazkustīgs | Muskuļu uzņemšana | 3 | Nav | 0.18 | 17.42 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 90.8%, Ogļhidrāti: 93.6%, Cukuri: 99.8%, Piesātinātie tauki: 60.0%, Sāls: 92.4%, Kopējā precizitāte: 88.1%  |
+| 16 | Mazkustīgs | Muskuļu uzņemšana | 3 | Piena nepanesība | 0.34 | 17.02 | Kalorijas: 97.7%, Olbaltumvielas: 89.9%, Tauki: 90.2%, Ogļhidrāti: 90.0%, Cukuri: 60.0%, Piesātinātie tauki: 60.3%, Sāls: 98.5%, Kopējā precizitāte: 83.8%  |
+| 17 | Mazkustīgs | Muskuļu uzņemšana | 6 | Nav | 0.19 | 17.93 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 91.9%, Ogļhidrāti: 92.2%, Cukuri: 68.7%, Piesātinātie tauki: 61.7%, Sāls: 93.8%, Kopējā precizitāte: 84.0%  |
+| 18 | Mazkustīgs | Muskuļu uzņemšana | 6 | Piena nepanesība | 0.35 | 16.72 | Kalorijas: 97.9%, Olbaltumvielas: 89.9%, Tauki: 90.6%, Ogļhidrāti: 90.0%, Cukuri: 61.1%, Piesātinātie tauki: 60.0%, Sāls: 99.1%, Kopējā precizitāte: 84.1%  |
+| 19 | Mērens | Svara zaudēšana | 0 | Nav | 0.33 | 26.67 | Kalorijas: 93.9%, Olbaltumvielas: 90.0%, Tauki: 78.6%, Ogļhidrāti: 90.0%, Cukuri: 90.0%, Piesātinātie tauki: 59.7%, Sāls: 60.5%, Kopējā precizitāte: 80.4%  |
+| 20 | Mērens | Svara zaudēšana | 0 | Piena nepanesība | 0.39 | 22.27 | Kalorijas: 96.1%, Olbaltumvielas: 90.1%, Tauki: 91.8%, Ogļhidrāti: 93.3%, Cukuri: 80.7%, Piesātinātie tauki: 61.6%, Sāls: 83.3%, Kopējā precizitāte: 85.3%  |
+| 21 | Mērens | Svara zaudēšana | 3 | Nav | 0.37 | 21.22 | Kalorijas: 94.5%, Olbaltumvielas: 90.0%, Tauki: 90.0%, Ogļhidrāti: 95.4%, Cukuri: 87.8%, Piesātinātie tauki: 60.3%, Sāls: 67.7%, Kopējā precizitāte: 83.7%  |
+| 22 | Mērens | Svara zaudēšana | 3 | Piena nepanesība | 0.44 | 23.45 | Kalorijas: 99.5%, Olbaltumvielas: 90.0%, Tauki: 98.3%, Ogļhidrāti: 90.5%, Cukuri: 60.0%, Piesātinātie tauki: 61.3%, Sāls: 91.3%, Kopējā precizitāte: 84.4%  |
+| 23 | Mērens | Svara zaudēšana | 6 | Nav | 0.47 | 20.81 | Kalorijas: 93.1%, Olbaltumvielas: 90.1%, Tauki: 87.5%, Ogļhidrāti: 98.1%, Cukuri: 94.9%, Piesātinātie tauki: 60.0%, Sāls: 69.4%, Kopējā precizitāte: 84.7%  |
+| 24 | Mērens | Svara zaudēšana | 6 | Piena nepanesība | 0.34 | 20.59 | Kalorijas: 99.6%, Olbaltumvielas: 90.1%, Tauki: 98.6%, Ogļhidrāti: 89.9%, Cukuri: 60.0%, Piesātinātie tauki: 60.0%, Sāls: 90.9%, Kopējā precizitāte: 84.2%  |
+| 25 | Mērens | Svara uzturēšana | 0 | Nav | 0.48 | 19.66 | Kalorijas: 90.0%, Olbaltumvielas: 90.1%, Tauki: 79.0%, Ogļhidrāti: 98.7%, Cukuri: 99.4%, Piesātinātie tauki: 59.7%, Sāls: 60.0%, Kopējā precizitāte: 82.4%  |
+| 26 | Mērens | Svara uzturēšana | 0 | Piena nepanesība | 0.31 | 23.3 | Kalorijas: 90.0%, Olbaltumvielas: 90.1%, Tauki: 87.5%, Ogļhidrāti: 94.0%, Cukuri: 64.5%, Piesātinātie tauki: 59.7%, Sāls: 86.6%, Kopējā precizitāte: 81.8%  |
+| 27 | Mērens | Svara uzturēšana | 3 | Nav | 0.34 | 28.62 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 85.1%, Ogļhidrāti: 94.4%, Cukuri: 78.8%, Piesātinātie tauki: 60.0%, Sāls: 66.9%, Kopējā precizitāte: 80.7%  |
+| 28 | Mērens | Svara uzturēšana | 3 | Piena nepanesība | 0.36 | 23.05 | Kalorijas: 93.4%, Olbaltumvielas: 89.9%, Tauki: 100.0%, Ogļhidrāti: 94.1%, Cukuri: 59.8%, Piesātinātie tauki: 60.0%, Sāls: 92.0%, Kopējā precizitāte: 84.2% |
+| 29 | Mērens | Svara uzturēšana | 6 | Nav | 0.48 | 27.55 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 96.8%, Ogļhidrāti: 84.1%, Cukuri: 68.0%, Piesātinātie tauki: 60.3%, Sāls: 61.7%, Kopējā precizitāte: 78.7%  |
+| 30 | Mērens | Svara uzturēšana | 6 | Piena nepanesība | 0.45 | 23.04 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 98.3%, Ogļhidrāti: 83.5%, Cukuri: 59.6%, Piesātinātie tauki: 60.3%, Sāls: 97.6%, Kopējā precizitāte: 82.8%  |
+| 31 | Mērens | Muskuļu uzņemšana | 0 | Nav | 0.34 | 28.75 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 73.5%, Ogļhidrāti: 99.8%, Cukuri: 89.0%, Piesātinātie tauki: 59.7%, Sāls: 61.1%, Kopējā precizitāte: 80.4%  |
+| 32 | Mērens | Muskuļu uzņemšana | 0 | Piena nepanesība | 0.42 | 22.3 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 87.9%, Ogļhidrāti: 94.2%, Cukuri: 59.8%, Piesātinātie tauki: 60.0%, Sāls: 86.0%, Kopējā precizitāte: 81.1%  |
+| 33 | Mērens | Muskuļu uzņemšana | 3 | Nav | 0.33 | 25.32 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 85.8%, Ogļhidrāti: 93.8%, Cukuri: 67.1%, Piesātinātie tauki: 60.3%, Sāls: 68.2%, Kopējā precizitāte: 79.3%  |
+| 34 | Mērens | Muskuļu uzņemšana | 3 | Piena nepanesība | 0.45 | 22.34 | Kalorijas: 93.0%, Olbaltumvielas: 90.0%, Tauki: 91.3%, Ogļhidrāti: 92.1%, Cukuri: 74.3%, Piesātinātie tauki: 60.3%, Sāls: 82.7%, Kopējā precizitāte: 83.4%  |
+| 35 | Mērens | Muskuļu uzņemšana | 6 | Nav | 0.47 | 26.98 | Kalorijas: 90.0%, Olbaltumvielas: 90.9%, Tauki: 98.0%, Ogļhidrāti: 86.7%, Cukuri: 60.0%, Piesātinātie tauki: 60.0%, Sāls: 69.0%, Kopējā precizitāte: 79.2%  |
+| 36 | Mērens | Muskuļu uzņemšana | 6 | Piena nepanesība | 0.43 | 23.03 | Kalorijas: 97.3%, Olbaltumvielas: 90.1%, Tauki: 97.5%, Ogļhidrāti: 90.0%, Cukuri: 98.1%, Piesātinātie tauki: 60.3%, Sāls: 91.5%, Kopējā precizitāte: 89.3%  |
+| 37 | Ļoti aktīvs | Svara zaudēšana | 0 | Nav | 0.45 | 29.44 | Kalorijas: 90.0%, Olbaltumvielas: 89.9%, Tauki: 77.7%, Ogļhidrāti: 98.8%, Cukuri: 79.4%, Piesātinātie tauki: 60.0%, Sāls: 60.0%, Kopējā precizitāte: 79.4%  |
+| 38 | Ļoti aktīvs | Svara zaudēšana | 0 | Piena nepanesība | 0.48 | 25.72 | Kalorijas: 91.1%, Olbaltumvielas: 90.0%, Tauki: 82.9%, Ogļhidrāti: 99.5%, Cukuri: 63.3%, Piesātinātie tauki: 60.0%, Sāls: 66.3%, Kopējā precizitāte: 79.0%  |
+| 39 | Ļoti aktīvs | Svara zaudēšana | 3 | Nav | 0.44 | 30.02 | Kalorijas: 96.4%, Olbaltumvielas: 90.0%, Tauki: 81.2%, Ogļhidrāti: 90.2%, Cukuri: 60.2%, Piesātinātie tauki: 63.9%, Sāls: 60.0%, Kopējā precizitāte: 77.4%  |
+| 40 | Ļoti aktīvs | Svara zaudēšana | 3 | Piena nepanesība | 0.45 | 29.21 | Kalorijas: 96.6%, Olbaltumvielas: 90.1%, Tauki: 90.2%, Ogļhidrāti: 90.0%, Cukuri: 60.2%, Piesātinātie tauki: 59.7%, Sāls: 64.1%, Kopējā precizitāte: 78.7%  |
+| 41 | Ļoti aktīvs | Svara zaudēšana | 6 | Nav | 0.47 | 25.88 | Kalorijas: 95.7%, Olbaltumvielas: 90.1%, Tauki: 80.4%, Ogļhidrāti: 92.4%, Cukuri: 60.0%, Piesātinātie tauki: 62.4%, Sāls: 60.0%, Kopējā precizitāte: 77.3%  |
+| 42 | Ļoti aktīvs | Svara zaudēšana | 6 | Piena nepanesība | 0.42 | 27.48 | Kalorijas: 97.5%, Olbaltumvielas: 90.1%, Tauki: 94.5%, Ogļhidrāti: 90.0%, Cukuri: 60.0%, Piesātinātie tauki: 60.0%, Sāls: 66.4%, Kopējā precizitāte: 79.8%  |
+| 43 | Ļoti aktīvs | Svara uzturēšana | 0 | Nav | 0.54 | 24.12 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 77.5%, Ogļhidrāti: 98.6%, Cukuri: 79.2%, Piesātinātie tauki: 59.5%, Sāls: 60.0%, Kopējā precizitāte: 79.3%  |
+| 44 | Ļoti aktīvs | Svara uzturēšana | 0 | Piena nepanesība | 0.46 | 29.78 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 86.0%, Ogļhidrāti: 94.5%, Cukuri: 59.8%, Piesātinātie tauki: 59.5%, Sāls: 69.0%, Kopējā precizitāte: 78.4%  |
+| 45 | Ļoti aktīvs | Svara uzturēšana | 3 | Nav | 0.57 | 35.74 | Kalorijas: 92.7%, Olbaltumvielas: 90.0%, Tauki: 72.6%, Ogļhidrāti: 94.5%, Cukuri: 64.5%, Piesātinātie tauki: 59.8%, Sāls: 60.0%, Kopējā precizitāte: 76.3%  |
+| 46 | Ļoti aktīvs | Svara uzturēšana | 3 | Piena nepanesība | 0.49 | 28.92 | Kalorijas: 94.1%, Olbaltumvielas: 90.5%, Tauki: 81.0%, Ogļhidrāti: 90.3%, Cukuri: 90.6%, Piesātinātie tauki: 60.0%, Sāls: 62.7%, Kopējā precizitāte: 79.7%  |
+| 47 | Ļoti aktīvs | Svara uzturēšana | 6 | Nav | 0.61 | 32.35 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 80.4%, Ogļhidrāti: 95.4%, Cukuri: 62.6%, Piesātinātie tauki: 63.8%, Sāls: 60.0%, Kopējā precizitāte: 77.5%  |
+| 48 | Ļoti aktīvs | Svara uzturēšana | 6 | Piena nepanesība | 0.47 | 29.31 | Kalorijas: 90.0%, Olbaltumvielas: 90.1%, Tauki: 82.4%, Ogļhidrāti: 91.2%, Cukuri: 82.5%, Piesātinātie tauki: 60.5%, Sāls: 60.0%, Kopējā precizitāte: 79.5%  |
+| 49 | Ļoti aktīvs | Muskuļu uzņemšana | 0 | Nav | 0.53 | 33.51 | Kalorijas: 92.2%, Olbaltumvielas: 90.0%, Tauki: 75.6%, Ogļhidrāti: 98.9%, Cukuri: 66.7%, Piesātinātie tauki: 59.8%, Sāls: 60.0%, Kopējā precizitāte: 77.6%  |
+| 50 | Ļoti aktīvs | Muskuļu uzņemšana | 0 | Piena nepanesība | 0.45 | 28.57 | Kalorijas: 92.3%, Olbaltumvielas: 90.1%, Tauki: 80.6%, Ogļhidrāti: 92.4%, Cukuri: 81.1%, Piesātinātie tauki: 60.0%, Sāls: 68.3%, Kopējā precizitāte: 80.7%  |
+| 51 | Ļoti aktīvs | Muskuļu uzņemšana | 3 | Nav | 0.58 | 34.22 | Kalorijas: 90.0%, Olbaltumvielas: 90.0%, Tauki: 75.2%, Ogļhidrāti: 97.7%, Cukuri: 89.9%, Piesātinātie tauki: 60.0%, Sāls: 60.0%, Kopējā precizitāte: 80.4%  |
+| 52 | Ļoti aktīvs | Muskuļu uzņemšana | 3 | Piena nepanesība | 0.48 | 28.93 | Kalorijas: 93.1%, Olbaltumvielas: 90.1%, Tauki: 82.4%, Ogļhidrāti: 90.0%, Cukuri: 79.1%, Piesātinātie tauki: 60.2%, Sāls: 61.0%, Kopējā precizitāte: 79.4%  |
+| 53 | Ļoti aktīvs | Muskuļu uzņemšana | 6 | Nav | 0.6 | 31.69 | Kalorijas: 90.0%, Olbaltumvielas: 90.1%, Tauki: 76.2%, Ogļhidrāti: 96.1%, Cukuri: 90.0%, Piesātinātie tauki: 60.2%, Sāls: 60.0%, Kopējā precizitāte: 80.4%  |
+| 54 | Ļoti aktīvs | Muskuļu uzņemšana | 6 | Piena nepanesība | 0.46 | 28.54 | Kalorijas: 91.5%, Olbaltumvielas: 90.1%, Tauki: 81.4%, Ogļhidrāti: 90.0%, Cukuri: 85.2%, Piesātinātie tauki: 60.5%, Sāls: 62.1%, Kopējā precizitāte: 80.1%  |
 ### 2. **Novērtēšanas rezultāti**
-
+#### Veicot novērtējumu, tika iegūti šādi rezultāti atbilstoši ieejas parametriem un novērtēšanas metrikām:
+*   Tika novērots, ka ēdienkartes ģenerēšanas laiks svārstījās no 0.18 līdz 0.61 sekundēm, kā arī ir novērojama tendence, ka, palielinoties lietotāja aktivitātes līmenim un ierobežojumu skaitam, pieaug arī ēdienkartes ģenerēšanas laiks (sk. 1. att.).
+![EdienkLaiksNoAktLim.png](pictures/EdienkLaiksNoAktLim.png) <p align="center"><b>1. att. Ēdienkartes ģenerēšanas laiks atkarībā no lietotāja aktivitātes līmeņa</b></p>
+*   Recepšu un ēdienu bilžu ģenerēšanas laiks svārstījās no 14.53 līdz 35.74 sekundēm, un arī šeit ir novērojama tendence, ka, palielinoties lietotāja aktivitātes līmenim un ierobežojumu skaitam, pieaug arī recepšu un ēdienu bilžu ģenerēšanas laiks (sk. 2. att.).
+![RecBilLaiksNoAktLim.png](pictures/RecBilLaiksNoAktLim.png) <p align="center"><b>2. att. Recepšu un ēdienu bilžu ģenerēšanas laiks atkarībā no lietotāja aktivitātes līmeņa</b></p>
+*   Barības vielu un kaloriju kopējā precizitāte svārstījās no 76.3% līdz 91.0%, un tika novērots, ka precizitāte samazinās ar lietotāja aktivitātes līmeņa pieaugumu(sk. 3. att.).
+![PrecNoAktLim.png](pictures/PrecNoAktLim.png) <p align="center"><b>3. att. Barības vielu un kaloriju kopējā precizitāte atkarībā no lietotāja aktivitātes līmeņa</b></p>
+*   Tika novērots, ka diētas preference ietekmē ēdienkartes ģenerēšanas laiku, recepšu un ēdienu bilžu ģenerēšanas laiku, kā arī barības vielu un kaloriju kopējo precizitāti. Tika novērots, ka izvēloties diētas preferenci "piena nepanesība" rezultāti kļūst 'saspiestāki' jeb to amplitūda samazinās (sk. 4., 5. un 6. att.). 
+* Piemēram, ēdienkartes ģenerēšanas laiks ar diētas preferenci "nav" svārstījās no 0.18 līdz 0.61 sekundēm (amplitūda ir 0.43 sek.), bet ar diētas preferenci "piena nepanesība" tas svārstījās no 0.28 līdz 0.48 sekundēm (amplitūda ir 0.2 sek.) (sk. 4. att.).
+![EdienkLaiksNoDietPref.png](pictures/EdienkLaiksNoDietPref.png) <p align="center"><b>4. att. Ēdienkartes ģenerēšanas laiks atkarībā no diētas preferences</b></p>
+* Recepšu un bilžu ģenerēšanas laiks ar dietas preferenci "nav" svārstījās no 14.53 līdz 35.74 sekundēm (amplitūda ir 21.21 sek.), bet ar diētas preferenci "piena nepanesība" tas svārstījās no 16.72 līdz 29.78 sekundēm (amplitūda ir 13.06 sek.) (sk. 5. att.).
+![RecBilLaiksNoDietPref.png](pictures/RecBilLaiksNoDietPref.png) <p align="center"><b>5. att. Recepšu un ēdienu bilžu ģenerēšanas laiks atkarībā no diētas preferences</b></p>
+* Barības vielu un kaloriju kopējā precizitāte ar diētas preferenci "nav" svārstījās no 76.3% līdz 91.0% (amplitūda ir 14.7%), bet ar diētas preferenci "piena nepanesība" tas svārstījās no 78.4% līdz 86.4% (amplitūda ir 8.0%) (sk. 6. att.).
+![PrecNoDietPref.png](pictures/PrecNoDietPref.png) <p align="center"><b>6. att. Barības vielu un kaloriju kopējā precizitāte atkarībā no diētas preferences</b></p>
+* Pēc citu kombināciju izpētes, darba autori secina, ka nevar novērot nekādu sakarību starp ierobežojumu skaitu vai lietotāja mērķi un ēdienkartes ģenerēšanas laiku, recepšu un ēdienu bilžu ģenerēšanas laiku, kā arī barības vielu un kaloriju kopējo precizitāti.
 ## Secinājumi
+* Izstrādātā diētas optimizācijas aplikācija veiksmīgi izmanto lineārās programmēšanas pieeju un SIMPLEX algoritmu, lai ģenerētu sabalansētas ēdienkartes, kas atbilst lietotāju individuālajām vajadzībām;
+* Aplikācija atbilst visām "Must have" un "Should have", kā arī daļai no "Could have" prasībām;
+* Ēdienkartes ģenerēšanas laiks ir pietiekami īss (0.18-0.61 sekundes), lai nodrošinātu labu lietotāja pieredzi;
+* Eksperimenti parādīja skaidru tendenci, ka, palielinoties lietotāja aktivitātes līmenim, palielinās gan ēdienkartes ģenerēšanas laiks, gan recepšu un bilžu ģenerēšanas laiks. Tas ir saistīts ar nepieciešamību augstākām kaloriju vajadzībām;
+* Kopējā barības vielu un kaloriju precizitāte svārstās no 76.3% līdz 91.0%, kas ir pieņemams rezultāts praktiskai lietošanai;
+* Barības vielu un kaloriju precizitāte samazinās ar aktivitātes līmeņa pieaugumu (no 91.0% mazkustīgiem lietotājiem līdz 76.3% ļoti aktīviem), kas liecina par optimizācijas algoritma grūtībām atrast precīzus risinājumus lielākām uzturvielu vērtībām;
+* Diētas preference "piena nepanesība" būtiski ietekmē rezultātus, samazinot visu metriku amplitūdu (rezultāti kļūst "saspiestāki"). To var izskaidrot ar iespējamo produktu saraksta samazināšanos, kas padara optimizācijas problēmu vienkāršāku un rezultātus stabilākus;
+* Atsevišķu uzturvielu precizitāte atšķiras - kalorijas, olbaltumvielas un ogļhidrāti tiek nodrošināti ar 85%+ precizitāti, bet piesātinātie tauki un sāls bieži paliek zem 65% precizitātes;
+* Netika konstatēta nekāda sakarība starp ierobežojumu skaitu vai lietotāja mērķi un novērtēšanas metrikām;
+* Turpmākie uzlabojumi:
+  * Nepieciešams uzlabot algoritmu, lai palielinātu precizitāti ļoti aktīviem lietotājiem un uzlabotu piesātināto tauku un sāls kontroli;
+  * Recepšu un bilžu ģenerēšanas laiks (14.53-35.74 sekundes) ir relatīvi ilgs, tāpēc ir jāapsver kešošana, vienādu bilžu izmantošana vai vairāku AI rīku paralēla izmantošana;
+  * Produktu datubāzes paplašināšana, lai nodrošinātu plašāku iespējāmo algoritma risinājumu klāstu.
