@@ -12,6 +12,7 @@ export default defineConfig({
       "/products": "http://localhost:8000",
       "/userProducts": "http://localhost:8000",
       "/profile": "http://localhost:8000",
+        "/recipes": "http://localhost:8000",
     },
   },
 });
