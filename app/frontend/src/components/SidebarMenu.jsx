@@ -43,10 +43,6 @@ export default function SidebarMenu() {
     navigate(path);
   };
 
-  const handleGoToMyMenus = () => {
-  navigate("/mymenus");
-    };
-
   return (
     <div
       className={`
@@ -56,7 +52,6 @@ export default function SidebarMenu() {
         ${opened ? "w-72" : "w-40"}
       `}
     >
-
       <div
         className={`
           h-full flex flex-col pt-28
@@ -107,42 +102,16 @@ export default function SidebarMenu() {
 
             const baseClasses = `
               w-full
-              ${
-                opened
-                  ? "text-lg text-left pl-4"
-                  : "text-xl text-center"
-              }
+              ${opened ? "text-lg text-left pl-4" : "text-xl text-center"}
               text-slate-900 whitespace-nowrap
             `;
 
-            if (item.id === "generate-menu") {
-              return (
-                <p
-                  key={item.id}
-                  onClick={handleGoToGenerateMenu}
-                  className={
-                    baseClasses + " cursor-pointer hover:text-green-700"
-                  }
-                >
-                  {item.label}
-                </p>
-              );
-            }
-
-            if (item.id === "my-menus") {
             return (
               <p
                 key={item.id}
-                onClick={handleGoToMyMenus}
+                onClick={() => handleNavigate(item.path)}
                 className={baseClasses + " cursor-pointer hover:text-green-700"}
               >
-                {item.label}
-              </p>
-            );
-          }
-
-            return (
-              <p key={item.id} className={baseClasses}>
                 {item.label}
               </p>
             );

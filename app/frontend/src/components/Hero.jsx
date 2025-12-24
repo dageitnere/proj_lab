@@ -2,8 +2,8 @@ import tako from "../assets/tako.png";
 
 export default function Hero() {
   return (
-    <section className="pt-40">
-      <div className="mx-auto max-w-7xl px-6 grid grid-cols-12 gap-6">
+    <section className="pt-40 ">
+      <div className="mx-auto max-w-7xl px-6 grid grid-cols-12 gap-6 ">
         <div className="col-span-6 mt-32">
           <h1
             className="
