@@ -18,6 +18,11 @@ def profilePage(request: Request, userUuid: int = Depends(get_uuid_from_token), 
     accountInfo = get_user_profile_data(db, userUuid)
     return templates.TemplateResponse("profile.html", {"request": request, "accountInfo": accountInfo})
 
+# Returns user profile data as JSON for the React frontend
+@profile.get("/getProfileInfo")
+def getProfileInfo(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
+    return get_user_profile_data(db, userUuid)
+
 @profile.get("/complete", response_class=HTMLResponse)
 def completeForm(request: Request):
     return templates.TemplateResponse("finishRegistration.html", {"request": request})
