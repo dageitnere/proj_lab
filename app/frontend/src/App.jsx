@@ -10,6 +10,7 @@ import GenerateMenuPage from "./pages/GenerateMenuPage.jsx";
 import AllProductsPage from "./pages/AllProductsPage.jsx";
 import MyProductsPage from "./pages/MyProductsPage.jsx";
 import MyMenusPage from "./pages/MyMenusPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 export default function App() {
   return (
@@ -26,7 +27,8 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/products" element={<AllProductsPage />} />
           <Route path="/my-products" element={<MyProductsPage />} />
-            <Route path="/mymenus" element={<MyMenusPage />} />
+          <Route path="/mymenus" element={<MyMenusPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
 
       </div>
