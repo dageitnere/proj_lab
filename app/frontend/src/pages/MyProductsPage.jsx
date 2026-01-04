@@ -19,64 +19,53 @@ function EditModal({ product, onClose, onSubmit }) {
   });
 
   useEffect(() => {
-    if (product) {
-      setFields({
-        productName: "",
-        kcal: "",
-        fat: "",
-        satFat: "",
-        carbs: "",
-        sugars: "",
-        protein: "",
-        salt: "",
-        price1kg: "",
-        proteinType: "",
+    if (!product) return;
+
+    setFields({
+      productName: product.productName ?? "",
+      kcal: product.kcal ?? "",
+      fat: product.fat ?? "",
+      satFat: product.satFat ?? "",
+      carbs: product.carbs ?? "",
+      sugars: product.sugars ?? "",
+      protein: product.protein ?? "",
+      salt: product.salt ?? "",
+      price1kg: product.price1kg ?? "",
+      proteinType: product.dairyProt
+        ? "dairy" : product.animalProt
+        ? "animal" : product.plantProt
+        ? "plant" : "",
       });
-    }
-  }, [product]);
+    }, [product]);
+
 
   const handleChange = (key, value) => {
     setFields((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = () => {
-    const payload = {
-      oldProductName: product.productName,
-      productName: fields.productName.trim() || null,
-      kcal: fields.kcal !== "" ? Number(fields.kcal) : null,
-      fat: fields.fat !== "" ? Number(fields.fat) : null,
-      satFat: fields.satFat !== "" ? Number(fields.satFat) : null,
-      carbs: fields.carbs !== "" ? Number(fields.carbs) : null,
-      sugars: fields.sugars !== "" ? Number(fields.sugars) : null,
-      protein: fields.protein !== "" ? Number(fields.protein) : null,
-      dairyProtein: fields.proteinType
-        ? fields.proteinType === "dairy"
-        : null,
-      animalProtein: fields.proteinType
-        ? fields.proteinType === "animal"
-        : null,
-      plantProtein: fields.proteinType
-        ? fields.proteinType === "plant"
-        : null,
-      salt: fields.salt !== "" ? Number(fields.salt) : null,
-      price1kg: fields.price1kg !== "" ? Number(fields.price1kg) : null,
+    const handleSubmit = () => {
+      const payload = {
+        oldProductName: product.productName,
+        productName: fields.productName.trim() || null,
+        kcal: fields.kcal !== "" ? Number(fields.kcal) : null,
+        fat: fields.fat !== "" ? Number(fields.fat) : null,
+        satFat: fields.satFat !== "" ? Number(fields.satFat) : null,
+        carbs: fields.carbs !== "" ? Number(fields.carbs) : null,
+        sugars: fields.sugars !== "" ? Number(fields.sugars) : null,
+        protein: fields.protein !== "" ? Number(fields.protein) : null,
+        salt: fields.salt !== "" ? Number(fields.salt) : null,
+        price1kg: fields.price1kg !== "" ? Number(fields.price1kg) : null,
+      };
+
+      if (fields.proteinType) {
+        payload.dairyProtein = fields.proteinType === "dairy" ? true : null;
+        payload.animalProtein = fields.proteinType === "animal" ? true : null;
+        payload.plantProtein = fields.proteinType === "plant" ? true : null;
+      }
+
+
+      onSubmit(payload);
     };
-
-    const hasUpdates = Object.entries(payload).some(
-      ([key, value]) =>
-        key !== "oldProductName" &&
-        value !== null &&
-        value !== undefined &&
-        value !== ""
-    );
-
-    if (!hasUpdates) {
-      onClose();
-      return;
-    }
-
-    onSubmit(payload);
-  };
 
   if (!product) return null;
 
@@ -321,13 +310,12 @@ function EditModal({ product, onClose, onSubmit }) {
 }
 
 export default function MyProductsPage() {
+  const [sidebarOpened, setSidebarOpened] = useState(false);
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [globalError, setGlobalError] = useState("");
-
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("manual");
-
   const [selectedIds, setSelectedIds] = useState([]);
   const [sortConfig, setSortConfig] = useState({
     key: "productName",
@@ -570,13 +558,22 @@ export default function MyProductsPage() {
     const payload = {
       url: rimi.url.trim(),
       productName: rimi.productName.trim() || "",
-      dairyProtein: rimi.proteinType === "dairy",
-      animalProtein: rimi.proteinType === "animal",
-      plantProtein: rimi.proteinType === "plant",
       vegan: !!rimi.vegan,
       vegetarian: !!rimi.vegetarian,
       dairyFree: !!rimi.dairyFree,
     };
+
+    if (rimi.proteinType === "dairy") {
+      payload.dairyProtein = true;
+    }
+
+    if (rimi.proteinType === "animal") {
+      payload.animalProtein = true;
+    }
+
+    if (rimi.proteinType === "plant") {
+      payload.plantProtein = true;
+    }
 
     if (rimi.mass_g !== "") {
       payload.mass_g = Number(rimi.mass_g);
@@ -645,6 +642,7 @@ export default function MyProductsPage() {
       vegetarian: !!nv.vegetarian,
       dairyFree: !!nv.dairyFree,
     };
+
 
     if (nv.price1kg !== "") {
       payload.price1kg = Number(nv.price1kg);
@@ -742,6 +740,33 @@ export default function MyProductsPage() {
     }
   };
 
+  const handleEditSubmit = async (payload) => {
+    resetMessages();
+    setLoadingEdit(true);
+
+    try {
+      const res = await withAuth("/userProducts/updateUserProduct", {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to update product");
+      }
+
+      setEditProduct(null);
+      setSelectedIds([]);
+      await loadProducts();
+    } catch (err) {
+      console.error(err);
+      setGlobalError(err.message || "Failed to update product");
+    } finally {
+      setLoadingEdit(false);
+    }
+  };
+
   const handleDeleteSelected = async () => {
     resetMessages();
     if (selectedIds.length === 0) return;
@@ -787,24 +812,23 @@ export default function MyProductsPage() {
   const canEdit = selectedIds.length === 1 && !loadingEdit;
   const canDelete = selectedIds.length > 0;
 
-  const selectedLabel =
-    selectedIds.length === 1
-      ? products.find((p) => p.id === selectedIds[0])?.productName ||
-        ""
-      : selectedIds.length > 1
-      ? `${selectedIds.length} products`
-      : "";
-
   return (
     <div className="min-h-screen text-slate-900">
-      <SidebarMenu />
+      <SidebarMenu opened={sidebarOpened} setOpened={setSidebarOpened} />
 
-      <main className="px-8 py-6 pl-56">
+      <main
+        className={`px-8 py-6 transition-all duration-300 ${
+          sidebarOpened ? "ml-72" : "ml-40"
+        }`}
+      >
         <div className="mt-8 mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-1">
             <h1 className="text-3xl font-bold tracking-tight">
               My products
             </h1>
+            <p className="mt-1 text-base text-slate-600">
+              Products you’ve added to your personal list.
+            </p>
           </div>
 
           {loadingProducts && (
@@ -847,16 +871,16 @@ export default function MyProductsPage() {
                   disabled={!canDelete}
                   className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Delete selected
+                  Delete selected ({selectedIds.length})
                 </button>
               </div>
             </div>
 
-            <div className="max-h-[650px] overflow-auto rounded-xl border border-slate-200">
-              <table className="min-w-full text-sm">
-                <thead className="sticky top-0 bg-slate-50">
+            <div className="relative max-h-[65vh] overflow-y-auto rounded-xl border border-slate-200">
+              <table className="min-w-full border-collapse text-base">
+                <thead className="sticky top-0 z-10 bg-slate-100">
                   <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-600">
+                    <th className="px-3 py-2 border text-left text-sm">
                       <button
                         type="button"
                         onClick={() => handleSort("productName")}
@@ -872,7 +896,7 @@ export default function MyProductsPage() {
                         )}
                       </button>
                     </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-600">
+                    <th className="px-3 py-2 border text-left text-sm">
                       <button
                         type="button"
                         onClick={() => handleSort("kcal")}
@@ -888,7 +912,7 @@ export default function MyProductsPage() {
                         )}
                       </button>
                     </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-600">
+                    <th className="px-3 py-2 border text-left text-sm">
                       <button
                         type="button"
                         onClick={() => handleSort("fat")}
@@ -904,7 +928,7 @@ export default function MyProductsPage() {
                         )}
                       </button>
                     </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-600">
+                    <th className="px-3 py-2 border text-left text-sm">
                       <button
                         type="button"
                         onClick={() => handleSort("carbs")}
@@ -920,7 +944,7 @@ export default function MyProductsPage() {
                         )}
                       </button>
                     </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-600">
+                    <th className="px-3 py-2 border text-left text-sm">
                       <button
                         type="button"
                         onClick={() => handleSort("protein")}
@@ -936,7 +960,7 @@ export default function MyProductsPage() {
                         )}
                       </button>
                     </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-600">
+                    <th className="px-3 py-2 border text-left text-sm">
                       <button
                         type="button"
                         onClick={() => handleSort("price1kg")}
@@ -952,7 +976,7 @@ export default function MyProductsPage() {
                         )}
                       </button>
                     </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-600">
+                    <th className="px-3 py-2 border text-left text-sm">
                       URL
                     </th>
                   </tr>
@@ -960,15 +984,12 @@ export default function MyProductsPage() {
                 <tbody>
                   {displayedProducts.map((p) => {
                     const isSelected = selectedIds.includes(p.id);
-                    const rowClass = [
-                      "cursor-pointer",
-                      "border-t border-slate-100",
-                      "odd:bg-white",
-                      "even:bg-slate-50",
-                      isSelected
-                        ? "bg-green-50 hover:bg-green-50"
-                        : "hover:bg-slate-50",
-                    ].join(" ");
+                    const rowClass = `
+                      cursor-pointer transition-colors
+                      ${isSelected
+                        ? "bg-green-100 hover:bg-green-100"
+                        : "odd:bg-white even:bg-slate-50 hover:bg-slate-100"}
+                    `;
                     return (
                       <tr
                         key={p.id}
@@ -976,29 +997,29 @@ export default function MyProductsPage() {
                         onClick={() => handleRowClick(p)}
                       >
                         <td className="px-3 py-2">
-                          <span className="text-sm font-medium text-slate-900">
+                          <span className="text-sm font-medium">
                             {p.productName}
                           </span>
                         </td>
-                        <td className="px-3 py-2 text-slate-800">
+                        <td className="px-3 py-2">
                           {p.kcal ?? "-"}
                         </td>
-                        <td className="px-3 py-2 text-slate-800">
+                        <td className="px-3 py-2">
                           {p.fat ?? "-"}
                         </td>
-                        <td className="px-3 py-2 text-slate-800">
+                        <td className="px-3 py-2">
                           {p.carbs ?? "-"}
                         </td>
-                        <td className="px-3 py-2 text-slate-800">
+                        <td className="px-3 py-2">
                           {p.protein ?? "-"}
                         </td>
-                        <td className="px-3 py-2 text-slate-800">
+                        <td className="px-3 py-2">
                           {p.price1kg !== null &&
                           p.price1kg !== undefined
                             ? `€${Number(p.price1kg).toFixed(2)}`
                             : "-"}
                         </td>
-                        <td className="px-3 py-2 text-slate-800">
+                        <td className="px-3 py-2">
                           {p.URL ? (
                             <a
                               href={p.URL}
@@ -1032,15 +1053,6 @@ export default function MyProductsPage() {
                 </tbody>
               </table>
             </div>
-
-            {selectedLabel && (
-              <p className="mt-3 text-xs text-slate-500">
-                Selected:{" "}
-                <span className="font-medium text-slate-900">
-                  {selectedLabel}
-                </span>
-              </p>
-            )}
           </section>
 
           <section className="self-start rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
@@ -1392,7 +1404,7 @@ export default function MyProductsPage() {
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-slate-700">
-                        Product name (optional)
+                        Product name
                       </label>
                       <input
                         className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -1557,7 +1569,7 @@ export default function MyProductsPage() {
 
                   <div className="space-y-1">
                     <label className="text-xs font-medium text-slate-700">
-                      Product name (optional)
+                      Product name
                     </label>
                     <input
                       className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500"
