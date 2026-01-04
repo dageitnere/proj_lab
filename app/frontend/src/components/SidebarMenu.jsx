@@ -20,8 +20,7 @@ const menuItems = [
   { id: "statistics", label: "Statistics", path: "/statistics", icon: FiBarChart2 },
 ];
 
-export default function SidebarMenu() {
-  const [opened, setOpened] = useState(false);
+export default function SidebarMenu({ opened, setOpened }) {
   const [username, setUsername] = useState("");
   const userInitial = username ? username.charAt(0).toUpperCase() : "";
   const navigate = useNavigate();
@@ -57,6 +56,7 @@ export default function SidebarMenu() {
         fixed inset-y-0 left-0 z-40
         bg-white
         border-r-2 border-gray-300
+        transition-all duration-300
         ${opened ? "w-72" : "w-40"}
       `}
     >

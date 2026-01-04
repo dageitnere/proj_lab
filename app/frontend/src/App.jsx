@@ -10,6 +10,8 @@ import GenerateMenuPage from "./pages/GenerateMenuPage.jsx";
 import AllProductsPage from "./pages/AllProductsPage.jsx";
 import MyProductsPage from "./pages/MyProductsPage.jsx";
 import MyMenusPage from "./pages/MyMenusPage.jsx";
+import ConsumedProductsPage from "./pages/ConsumedProductsPage.jsx";
+import StatisticsPage from "./pages/StatisticsPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 
 export default function App() {
@@ -28,6 +30,8 @@ export default function App() {
           <Route path="/products" element={<AllProductsPage />} />
           <Route path="/my-products" element={<MyProductsPage />} />
           <Route path="/mymenus" element={<MyMenusPage />} />
+          <Route path="/consumed" element={<ConsumedProductsPage />} />
+          <Route path="/statistics" element={<StatisticsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
 

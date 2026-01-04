@@ -17,6 +17,12 @@ consumedProduct = APIRouter()
 def showConsumedProductPage(request: Request):
     return templates.TemplateResponse("consumedProducts.html", {"request": request})
 
+# Returns product data as JSON for the React frontend
+@consumedProduct.get("/list")
+def showConsumedProductPageJson(userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
+    products = get_all_consumed_products(db, userUuid)
+    return {"products": products}
+
 @consumedProduct.post("/saveConsumedProduct")
 def addConsumedProduct(request: PostUserConsumedProductRequest, userUuid: int = Depends(get_uuid_from_token), db: Session = Depends(get_db)):
     return add_consumed_product(db, request, userUuid)

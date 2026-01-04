@@ -1,4 +1,3 @@
-// src/pages/MyMenusPage.jsx
 import { useEffect, useMemo, useState } from "react";
 import SidebarMenu from "../components/SidebarMenu.jsx";
 import Footer from "../components/Footer.jsx";
@@ -128,6 +127,7 @@ function DietTag({ children }) {
 
 /* ---------------- page ---------------- */
 export default function MyMenusPage() {
+  const [sidebarOpened, setSidebarOpened] = useState(false);
   const [menus, setMenus] = useState([]);
   const [search, setSearch] = useState("");
 
@@ -372,9 +372,12 @@ export default function MyMenusPage() {
 
   return (
     <div className="min-h-screen bg-noise-light text-slate-900">
-      <SidebarMenu />
+      <SidebarMenu
+        opened={sidebarOpened}
+        setOpened={setSidebarOpened}
+      />
 
-      <main className="pl-52 px-8 py-6 pr-10">
+      <div className={`transition-all duration-300 px-8 py-6 ${sidebarOpened ? "ml-72" : "ml-40"}`}>
         <div className="mt-10 mb-6 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">My menus</h1>
@@ -488,9 +491,9 @@ export default function MyMenusPage() {
         </section>
 
         <div className="mt-6">
-          <Footer />
+
         </div>
-      </main>
+      </div>
 
       <Modal open={open} title={details?.name || "Menu"} onClose={closeModal}>
         {!details ? (

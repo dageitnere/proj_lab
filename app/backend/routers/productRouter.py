@@ -16,6 +16,12 @@ def getAllProducts(request: Request, db=Depends(get_db)):
     products = get_all_products(db)
     return templates.TemplateResponse("products.html", {"request": request, "products": products})
 
+# Returns product data as JSON for the React frontend
+@product.get("/getAllProducts")
+def getAllProductsJson(db: Session = Depends(get_db)):
+    products = get_all_products(db)
+    return {"products": products}
+
 @product.get("/productsNames", response_model=ProductsNamesResponse, response_class=JSONResponse)
 def getProductsNames(db: Session = Depends(get_db)):
     return get_products_names(db)

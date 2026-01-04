@@ -4,6 +4,8 @@ import SidebarMenu from "../components/SidebarMenu.jsx";
 import Footer from "../components/Footer.jsx";
 
 export default function GenerateMenuPage() {
+  const [sidebarOpened, setSidebarOpened] = useState(false);
+
   // ---------- nutrition targets ----------
   const [kcal, setKcal] = useState("");
   const [protein, setProtein] = useState("");
@@ -479,9 +481,12 @@ export default function GenerateMenuPage() {
   // ---------- JSX ----------
   return (
     <div className="min-h-screen bg-noise-light text-slate-900">
-      <SidebarMenu />
+      <SidebarMenu
+        opened={sidebarOpened}
+        setOpened={setSidebarOpened}
+      />
 
-      <main className="pl-52 px-8 py-6 pr-40">
+      <main className={`transition-all duration-300 px-8 pr-8 py-6 ${sidebarOpened ? "ml-72" : "ml-40"}`}>
         <div className="mt-10 mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
