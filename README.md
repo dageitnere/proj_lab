@@ -446,7 +446,7 @@ products ||--|| nutrition : satur
 ### Frontend
 
 
-*   **React + Tailwind CSS** – nodrošina modernu un interaktīvu lietotāja saskarni.
+*   **React (NodeJS) + Tailwind CSS** – nodrošina modernu un interaktīvu lietotāja saskarni.
 
 
 ### Backend
