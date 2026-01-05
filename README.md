@@ -446,7 +446,7 @@ products ||--|| nutrition : satur
 ### Frontend
 
 
-*   **React + Tailwind CSS** – nodrošina modernu, reaģējošu un interaktīvu lietotāja saskarni (piemērots sarežģītākām un dinamiskām funkcijām).
+*   **React + Tailwind CSS** – nodrošina modernu un interaktīvu lietotāja saskarni.
 
 
 ### Backend
@@ -476,7 +476,7 @@ products ||--|| nutrition : satur
 ### Datu vizualizācija
 
 
-*   **React komponentes** – datu attēlošanai frontend vidē.
+*   **React un Tailwind CSS komponentes** – datu attēlošanai frontend vidē.
 
 
 ### Operētājsistēma
