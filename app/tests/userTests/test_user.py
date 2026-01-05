@@ -1,13 +1,11 @@
-import pytest
 from fastapi.testclient import TestClient
-from fastapi import HTTPException
 from app.backend.main import app
-from app.backend.services.userService import _login_user, _COOKIE
+from app.backend.services.userService import _COOKIE
 from unittest.mock import patch
 
 client = TestClient(app)
 
-@patch("app.backend.services.userService.login_user")
+@patch("app.backend.services.userService._login_user")
 def test_login_success(mock_login_user):
     mock_login_user.return_value = ("fake-token-123", "john")
 
@@ -25,7 +23,7 @@ def test_login_success(mock_login_user):
     assert _COOKIE in cookies
     assert cookies[_COOKIE] == "fake-token-123"
 
-@patch("app.backend.services.userService.login_user")
+@patch("app.backend.services.userService._login_user")
 def test_login_wrong_password(mock_login_user):
     mock_login_user.side_effect = ValueError("Invalid credentials")
 
@@ -35,7 +33,7 @@ def test_login_wrong_password(mock_login_user):
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid credentials"
 
-@patch("app.backend.services.userService.login_user")
+@patch("app.backend.services.userService._login_user")
 def test_login_email_not_verified(mock_login_user):
     mock_login_user.side_effect = ValueError("Email not verified")
 
