@@ -60,6 +60,212 @@ Lai salīdzinātu līdzīgos risinājumus sabalansētu ēdienkaršu plānošanā
 ## Algoritms
 Aplikācija izmanto lineārās programmēšanas (LP) pieeju un SIMPLEX algoritmu, lai izveidotu lietotājam optimizētu, uzturvielām sabalansētu ēdienkarti, kas atbilst gan uztura mērķiem, gan produktu ierobežojumiem. Algoritms tiek realizēts ar PuLP bibliotēku
 
+### Algoritma pseidokods:
+```
+BEGIN MAINPROGRAM generate_diet_menu(db, request, userUuid)
+   
+   INITIALISATION
+      extract nutritional targets from request
+      extract dietary preferences from request
+   END INITIALISATION
+   
+   validate dietary preferences
+   
+   get available products from database for the user
+   
+   IF no products available THEN
+      return error message
+   ENDIF
+   
+   filter products by dietary preferences
+   
+   IF restrictions exist THEN
+      validate restricted products
+      IF invalid products found THEN
+         return error with invalid product list
+      ENDIF
+   ENDIF
+   
+   create linear programming problem
+   
+   create decision variables for each product
+   
+   set objective function to minimize total cost
+   
+   calculate protein source distribution targets
+   
+   add nutritional constraints
+   
+   add product usage constraints
+   
+   apply custom restrictions
+   
+   solve optimization problem
+   
+   IF solution is not optimal THEN
+      return error message
+   ELSE
+      build result list from solution
+      calculate nutritional totals
+      return successful response
+   ENDIF
+   
+END MAINPROGRAM generate_diet_menu
+
+
+BEGIN SUBPROGRAM validate dietary preferences
+   IF vegan AND NOT (dairyFree OR vegetarian) THEN
+      return error message
+   ENDIF
+END SUBPROGRAM validate dietary preferences
+
+
+BEGIN SUBPROGRAM filter products by dietary preferences
+   IF vegan THEN
+      keep only vegan products
+   ELSE
+      IF vegetarian THEN
+         keep vegetarian or vegan products
+      ENDIF
+   ENDIF
+   
+   IF dairyFree THEN
+      remove products containing dairy
+   ENDIF
+   
+   IF no products remain THEN
+      return error message
+   ENDIF
+END SUBPROGRAM filter products by dietary preferences
+
+
+BEGIN SUBPROGRAM validate restricted products
+   create set of valid product names
+   set invalidProducts to empty list
+   
+   FOR each restriction in restrictions
+      normalize product name
+      IF product name not in valid products THEN
+         add to invalidProducts list
+      ENDIF
+   ENDFOR
+   
+   IF invalidProducts is not empty THEN
+      return error with invalid products
+   ENDIF
+END SUBPROGRAM validate restricted products
+
+
+BEGIN SUBPROGRAM calculate protein source distribution targets
+   IF vegan THEN
+      set animal_target to 0
+      set dairy_target to 0
+      set plant_target to proteinTarget
+   ELSE
+      IF vegetarian THEN
+         set animal_target to 0
+         set dairy_target to 0.6 times proteinTarget
+         set plant_target to 0.4 times proteinTarget
+      ELSE
+         IF dairyFree THEN
+            set dairy_target to 0
+            set animal_target to 0.6 times proteinTarget
+            set plant_target to 0.4 times proteinTarget
+         ELSE
+            set animal_target to 0.4 times proteinTarget
+            set dairy_target to 0.3 times proteinTarget
+            set plant_target to 0.3 times proteinTarget
+         ENDIF
+      ENDIF
+   ENDIF
+END SUBPROGRAM calculate protein source distribution targets
+
+
+BEGIN SUBPROGRAM add nutritional constraints
+   add calorie constraints (90% to 130% of target)
+   add total protein constraints (90% to 160% of target)
+   
+   IF animal_target greater than 0 THEN
+      add animal protein constraints (70% to 110% of target)
+   ENDIF
+   
+   IF dairy_target greater than 0 THEN
+      add dairy protein constraints (70% to 110% of target)
+   ENDIF
+   
+   add plant protein constraints (70% to 110% of target)
+   add fat constraints (60% to 110% of target)
+   add carbohydrate constraints (60% to 110% of target)
+   add sugar constraints (60% to 110% of target)
+   add saturated fat constraints (60% to 110% of target)
+   add salt constraints (60% to 110% of target)
+END SUBPROGRAM add nutritional constraints
+
+
+BEGIN SUBPROGRAM add product usage constraints
+   set M to 400
+   set m to 50
+   
+   FOR each product in products
+      add constraint: grams (x variable) less than or equal to M times binary indicator y
+      add constraint: grams (x variable) greater than or equal to m times binary indicator y
+   ENDFOR
+   
+   add constraint: sum of binary indicators y greater than or equal to 10
+END SUBPROGRAM add product usage constraints
+
+
+BEGIN SUBPROGRAM apply custom restrictions
+   IF restrictions exist THEN
+      FOR each restriction in restrictions
+         normalize product name
+         FOR each product in products
+            IF product name matches restriction THEN
+               CASEWHERE restriction type is
+                  max_weight : add maximum weight constraint
+                  min_weight : add minimum weight constraint
+                  exclude : add exclusion constraints
+               ENDCASE
+            ENDIF
+         ENDFOR
+      ENDFOR
+   ENDIF
+END SUBPROGRAM apply custom restrictions
+
+
+BEGIN SUBPROGRAM build result list from solution
+   set result to empty list
+   
+   FOR each product in products
+      get grams from solution
+      IF grams greater than 0 THEN
+         calculate nutritional values
+         calculate cost
+         add product item to result
+      ENDIF
+   ENDFOR
+   
+   return result
+END SUBPROGRAM build result list from solution
+
+
+BEGIN SUBPROGRAM calculate nutritional totals
+   calculate total kcal from all products
+   calculate total cost from all products
+   calculate total fat from all products
+   calculate total saturated fat from all products
+   calculate total carbs from all products
+   calculate total protein from all products
+   calculate total dairy protein from all products
+   calculate total animal protein from all products
+   calculate total plant protein from all products
+   calculate total sugar from all products
+   calculate total salt from all products
+   
+   return totals
+END SUBPROGRAM calculate nutritional totals
+
+```
 ### Algoritmam ir sekojošas iezīmes:
 * Atbilst lietotāja kaloriju un uzturvielu mērķiem.
 * Ievēro diētas tipu (vegāns, veģetārietis, bez piena).
@@ -96,7 +302,7 @@ kur:
 * m - minimālais produkta daudzums gramos (50).
 
 ### Uzturvielu ierobežojumi:
-Katram uzturvielu veidam definēti min/max robežu intervāli, lai izvairītos no pārpielagošanas problēmas, piemēram:
+Katram uzturvielu veidam definēti min/max robežu intervāli, lai izvairītos no pārpielāgošanas problēmas, piemēram:
 * Kalorijas: 0.9⋅kcal(target) ≤ ∑(xi⋅kcali) ≤ 1.3⋅kcal(target)
 
 ### Proteīnu avotu ierobežojumi:
