@@ -2,9 +2,11 @@
 import { useEffect, useState } from "react";
 import SidebarMenu from "../components/SidebarMenu.jsx";
 import Footer from "../components/Footer.jsx";
+import { useNavigate } from "react-router-dom";
 
 export default function GenerateMenuPage() {
-  const [sidebarOpened, setSidebarOpened] = useState(false);
+    const navigate = useNavigate();
+    const [sidebarOpened, setSidebarOpened] = useState(false);
 
   // ---------- nutrition targets ----------
   const [kcal, setKcal] = useState("");
@@ -151,6 +153,10 @@ export default function GenerateMenuPage() {
       setVegetarian(true);
       setDairyFree(true);
     }
+    else {
+    setVegetarian(false);
+    setDairyFree(false);
+  }
   };
 
   const handleVegetarianChange = (checked) => {
@@ -487,6 +493,26 @@ export default function GenerateMenuPage() {
       />
 
       <main className={`transition-all duration-300 px-8 pr-8 py-6 ${sidebarOpened ? "ml-72" : "ml-40"}`}>
+       <div className="relative max-w-6xl mx-auto pt-6">
+           <button
+              type="button"
+              onClick={() => navigate("/new-page")}
+              className="
+                absolute right-12 top-16
+                inline-flex items-center gap-2
+                rounded-2xl
+                bg-white/85 backdrop-blur
+                border border-black/10
+                px-5 py-3
+                text-sm font-bold
+                text-black/80
+                shadow-sm
+                hover:bg-white
+                transition
+              "
+            >
+              <span aria-hidden>←</span> Back
+            </button>
         <div className="mt-10 mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
@@ -893,6 +919,7 @@ export default function GenerateMenuPage() {
 
         <div className="mt-6">
           <Footer />
+        </div>
         </div>
       </main>
     </div>

@@ -190,11 +190,11 @@ export default function ProfilePage() {
       if (key === "isVegan") {
         const nextVegan = !p.isVegan;
         return {
-          ...p,
-          isVegan: nextVegan,
-          isVegetarian: nextVegan ? true : p.isVegetarian,
-          isDairyInt: nextVegan ? true : p.isDairyInt,
-        };
+            ...p,
+            isVegan: nextVegan,
+            isVegetarian: nextVegan ? true : false,
+            isDairyInt: nextVegan ? true : false,
+          };
       }
       if (key === "isVegetarian") {
         if (p.isVegan) return p;
