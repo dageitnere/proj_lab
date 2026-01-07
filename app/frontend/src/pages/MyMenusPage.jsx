@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SidebarMenu from "../components/SidebarMenu.jsx";
 import Footer from "../components/Footer.jsx";
 
@@ -127,6 +128,7 @@ function DietTag({ children }) {
 
 /* ---------------- page ---------------- */
 export default function MyMenusPage() {
+  const navigate = useNavigate();
   const [sidebarOpened, setSidebarOpened] = useState(false);
   const [menus, setMenus] = useState([]);
   const [search, setSearch] = useState("");
@@ -385,7 +387,7 @@ export default function MyMenusPage() {
               Manage your personalized diet plans.
             </p>
           </div>
-
+          <div className="flex items-center gap-3">
           <button
             type="button"
             className="rounded-xl bg-green-500 text-black font-semibold px-4 py-2 text-sm hover:bg-green-400 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -394,6 +396,27 @@ export default function MyMenusPage() {
           >
             {loadingList ? "Refreshing..." : "Refresh"}
           </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/new-page")}
+            className="
+              inline-flex items-center gap-2
+              rounded-2xl
+              bg-white/85 backdrop-blur
+              border border-black/10
+              px-5 py-3
+              text-sm font-bold
+              text-black/80
+              shadow-sm
+              hover:bg-white
+              transition
+            "
+          >
+            <span aria-hidden>←</span> Back
+          </button>
+        </div>
+
         </div>
 
         {globalError && (
