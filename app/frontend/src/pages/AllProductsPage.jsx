@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SidebarMenu from "../components/SidebarMenu.jsx";
 import Footer from "../components/Footer.jsx";
 
@@ -10,6 +11,8 @@ export default function AllProductsPage() {
   const [search, setSearch] = useState("");
 
   const [selectedIds, setSelectedIds] = useState([]);
+
+  const navigate = useNavigate();
 
   const [sortConfig, setSortConfig] = useState({
     key: "productName",
@@ -140,7 +143,26 @@ export default function AllProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-noise-light text-slate-900">
+    <div className="relative min-h-screen bg-noise-light text-slate-900">
+          <button
+          type="button"
+          onClick={() => navigate("/new-page")}
+          className="
+            absolute right-8 top-8
+            inline-flex items-center gap-2
+            rounded-2xl
+            bg-white/85 backdrop-blur
+            border border-black/10
+            px-5 py-3
+            text-sm font-bold
+            text-black/80
+            shadow-sm
+            hover:bg-white
+            transition
+          "
+        >
+          <span aria-hidden>←</span> Back
+        </button>
       <SidebarMenu opened={sidebarOpened} setOpened={setSidebarOpened} />
 
       <main
@@ -154,7 +176,7 @@ export default function AllProductsPage() {
               All products
             </h1>
             <p className="mt-1 text-base text-slate-600">
-              Full list of available products and nutrition values
+              Full list of available products and nutrition values.
             </p>
           </div>
         </div>
@@ -190,50 +212,47 @@ export default function AllProductsPage() {
 
             {!loading && (
               <div className="relative max-h-[65vh] overflow-y-auto rounded-xl border border-slate-200">
-                <table className="min-w-full border-collapse text-base">
+                <table className="min-w-full border-separate border-spacing-0">
                   <thead className="sticky top-0 z-10 bg-slate-100">
                     <tr>
-                      <th className="px-3 py-2 border text-left">
+                      <th className="px-3 py-2 border text-left text-sm">
                         <SortHeader label="Product" column="productName" />
                       </th>
-                      <th className="px-3 py-2 border">
+                      <th className="px-3 py-2 border text-sm">
                         <SortHeader label="Kcal" column="kcal" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader label="Fat" column="fat" />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Fat (g)" column="fat" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader
-                          label="Saturated fat"
-                          column="satFat"
-                        />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Saturated fat (g)" column="satFat" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader label="Carbs" column="carbs" />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Carbs (g)" column="carbs" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader label="Sugars" column="sugars" />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Sugars (g)" column="sugars" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader label="Protein" column="protein" />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Protein (g)" column="protein" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader label="Dairy" column="dairyProt" />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Dairy protein (g)" column="dairyProt" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader label="Animal" column="animalProt" />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Animal protein (g)" column="animalProt" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader label="Plant" column="plantProt" />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Plant protein (g)" column="plantProt" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader label="Salt" column="salt" />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Salt (mg)" column="salt" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader label="€/kg" column="price1kg" />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Price (€/kg)" column="price1kg" />
                       </th>
-                      <th className="px-3 py-2 border">
-                        <SortHeader label="€/100g" column="price100g" />
+                      <th className="px-3 py-2 border text-sm">
+                        <SortHeader label="Price (€/100g)" column="price100g" />
                       </th>
                     </tr>
                   </thead>
@@ -264,8 +283,8 @@ export default function AllProductsPage() {
                           <td className="px-3 py-2 border">{p.animalProt ?? "-"}</td>
                           <td className="px-3 py-2 border">{p.plantProt ?? "-"}</td>
                           <td className="px-3 py-2 border">{p.salt ?? "-"}</td>
-                          <td className="px-3 py-2 border">{p.price1kg ?? "-"}</td>
-                          <td className="px-3 py-2 border">{p.price100g ?? "-"}</td>
+                          <td className="px-3 py-2 border">{Number(p.price1kg).toFixed(2) ?? "-"}</td>
+                          <td className="px-3 py-2 border">{Number(p.price100g).toFixed(2) ?? "-"}</td>
                         </tr>
                       );
                     })}
