@@ -19,9 +19,10 @@ export default function ResetPasswordPage() {
     setMessage("");
 
     try {
-      const res = await fetch("http://localhost:8000/auth/reset-password/confirm", {
+      const res = await fetch("/auth/reset-password/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           token: getToken(),
           new_password: password,

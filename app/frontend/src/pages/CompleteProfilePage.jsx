@@ -41,7 +41,7 @@ export default function CompleteProfilePage() {
       if (res.ok) {
         setMsgType("ok");
         setMsg("Saved. Redirecting...");
-        setTimeout(() => navigate("/new-page"), 800);
+        setTimeout(() => navigate("/"), 800);
       } else {
         setMsgType("err");
         setMsg(`Error ${res.status}: ${text}`);

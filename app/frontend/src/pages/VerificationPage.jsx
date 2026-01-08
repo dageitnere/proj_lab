@@ -27,9 +27,10 @@ export default function VerificationPage() {
     if (!email) return setMessageSend("Email not found.");
 
     try {
-      const res = await fetch("http://localhost:8000/auth/verification/start", {
+      const res = await fetch("/auth/verification/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email }),
       });
 
@@ -51,10 +52,10 @@ export default function VerificationPage() {
     if (!storedEmail) return setMessageConfirm("Email missing.");
 
     try {
-      const res = await fetch("http://localhost:8000/auth/verification/confirm", {
+      const res = await fetch("/auth/verification/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        credentials: "include", // (у тебя уже было)
         body: JSON.stringify({ email: storedEmail, code }),
       });
 
@@ -62,7 +63,9 @@ export default function VerificationPage() {
         setMessageConfirm("Email verified! Redirecting...");
         setTimeout(() => navigate("/complete"), 800);
       } else {
-        const data = await res.json().catch(() => ({ detail: "Invalid or expired code." }));
+        const data = await res
+          .json()
+          .catch(() => ({ detail: "Invalid or expired code." }));
         setMessageConfirm(data.detail || "Invalid or expired code.");
       }
     } catch (err) {
@@ -75,12 +78,19 @@ export default function VerificationPage() {
       <NavbarLogo />
 
       <div className="pt-32 max-w-md mx-auto">
-        <form onSubmit={handleConfirmCode} className="space-y-5 bg-white p-8 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-bold text-brandGreen text-center">Email Verification</h2>
+        <form
+          onSubmit={handleConfirmCode}
+          className="space-y-5 bg-white p-8 rounded-lg shadow-lg"
+        >
+          <h2 className="text-2xl font-bold text-brandGreen text-center">
+            Email Verification
+          </h2>
 
           <p className="text-sm text-gray-600 text-center">
             Enter the 6-digit code we sent to:<br />
-            <span className="font-semibold text-black">{email || "your email"}</span>
+            <span className="font-semibold text-black">
+              {email || "your email"}
+            </span>
           </p>
 
           <input
@@ -102,7 +112,13 @@ export default function VerificationPage() {
           </button>
 
           {messageConfirm && (
-            <p className={`text-sm text-center ${messageConfirm.includes("verified") ? "text-green-600" : "text-red-500"}`}>
+            <p
+              className={`text-sm text-center ${
+                messageConfirm.includes("verified")
+                  ? "text-green-600"
+                  : "text-red-500"
+              }`}
+            >
               {messageConfirm}
             </p>
           )}
@@ -118,13 +134,18 @@ export default function VerificationPage() {
             </button>
 
             {messageSend && (
-              <p className={`text-sm mt-1 ${messageSend.includes("sent") ? "text-green-600" : "text-red-500"}`}>
+              <p
+                className={`text-sm mt-1 ${
+                  messageSend.includes("sent")
+                    ? "text-green-600"
+                    : "text-red-500"
+                }`}
+              >
                 {messageSend}
               </p>
             )}
           </div>
         </form>
-
       </div>
 
       <Footer />
