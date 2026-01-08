@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-import os, json, requests
+import os, json, requests, base64, uuid
+from pathlib import Path
 from groq import Groq
 from app.backend.models.userMenus import UserMenu
 from app.backend.models.recipes import Recipe
@@ -20,6 +21,77 @@ SDXL_ENGINE_ID = "stable-diffusion-xl-1024-v1-0"
 
 if not SDXL_API_KEY:
     raise ValueError("STABILITY_API_KEY is not set in environment variables")
+
+# ---------------- Image Storage Configuration ----------------
+IMAGE_STORAGE_PATH = Path("/home/azureuser/uploads")
+BASE_IMAGE_URL = os.getenv("BASE_IMAGE_URL", "https://nutrimx.shop/uploads")
+
+# Create storage directory if it doesn't exist
+try:
+    IMAGE_STORAGE_PATH.mkdir(parents=True, exist_ok=True)
+    print(f"[INFO] Image storage directory ready: {IMAGE_STORAGE_PATH}")
+except Exception as e:
+    print(f"[ERROR] Could not create image storage directory: {e}")
+    raise RuntimeError(f"Failed to create image storage directory: {e}")
+
+
+# ---------------- Helper Functions ----------------
+def save_image_to_file(image_base64: str, recipe_name: str) -> str:
+    """
+        Save base64 image to disk and return the file path/URL.
+
+        Args:
+            image_base64: Base64 encoded image string
+            recipe_name: Name of the recipe (used for filename generation)
+
+        Returns:
+            URL/path to the saved image file
+    """
+    try:
+        # Validate input
+        if not image_base64:
+            raise ValueError("Empty base64 image data provided")
+
+        # Generate unique filename
+        unique_id = str(uuid.uuid4())
+        safe_name = "".join(c for c in recipe_name if c.isalnum() or c in (' ', '-', '_')).strip()
+        safe_name = safe_name.replace(' ', '_')[:50]  # Limit length
+        if not safe_name:
+            safe_name = "recipe"
+        filename = f"{safe_name}_{unique_id}.png"
+
+        # Full file path
+        file_path = IMAGE_STORAGE_PATH / filename
+        print(f"[DEBUG] Attempting to save image to: {file_path}")
+
+        # Decode and save image
+        try:
+            image_data = base64.b64decode(image_base64)
+            print(f"[DEBUG] Decoded {len(image_data)} bytes of image data")
+        except Exception as decode_error:
+            raise ValueError(f"Failed to decode base64 image: {decode_error}")
+
+        # Write file
+        try:
+            with open(file_path, 'wb') as f:
+                f.write(image_data)
+            # Set permissions so nginx can read the file
+            os.chmod(file_path, 0o644)
+            print(f"[DEBUG] Image file written successfully with correct permissions")
+        except Exception as write_error:
+            raise IOError(f"Failed to write image file: {write_error}")
+
+        # Return URL (not full path)
+        image_url = f"{BASE_IMAGE_URL}/{filename}"
+        print(f"[INFO] Image saved successfully - Path: {file_path}, URL: {image_url}")
+        return image_url
+
+    except Exception as e:
+        error_msg = f"Failed to save image for recipe '{recipe_name}': {str(e)}"
+        print(f"[ERROR] {error_msg}")
+        # Re-raise to be caught by the calling function
+        raise Exception(error_msg)
+
 
 # ---------------- AI Recipe Generation ----------------
 def call_ai_generate_recipes(products: list[RecipeProductItem]):
@@ -62,6 +134,7 @@ Output ONLY valid JSON (no markdown, no code blocks) in this exact format:
   }}
 ]"""
 
+    text = ""  # Initialize to prevent reference before assignment
     try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -199,27 +272,37 @@ def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[Reci
     for idx, r in enumerate(ai_recipes):
         print(f"[DEBUG] Processing recipe {idx + 1}/{len(ai_recipes)}: {r.get('name', 'Unknown')}")
         image_prompt = f"{r['name']}: {r.get('description', '')} - appetizing food, realistic, vibrant"
+        picture_url = None
+
+        # Try to generate and save image
         try:
+            print(f"[DEBUG] Generating image for recipe: {r['name']}")
             photo_base64 = generate_sdxl_image_base64(image_prompt)
-            print(f"[DEBUG] Image generated successfully for recipe: {r['name']}")
+            print(f"[DEBUG] Image generated, base64 length: {len(photo_base64) if photo_base64 else 0}")
+
+            if photo_base64:
+                # Save image to file and get URL
+                picture_url = save_image_to_file(photo_base64, r['name'])
+                print(f"[INFO] Image saved successfully with URL: {picture_url}")
+            else:
+                print(f"[WARNING] Image generation returned empty/None for recipe '{r['name']}'")
+
         except HTTPException as e:
             # If image generation fails, use None for the image but still save the recipe
-            print(f"[WARNING] Could not generate image for recipe '{r['name']}': {e.detail}")
-            photo_base64 = None
+            print(f"[WARNING] HTTPException generating/saving image for recipe '{r['name']}': {e.detail}")
         except Exception as e:
-            print(f"[WARNING] Unexpected error generating image for recipe '{r['name']}': {str(e)}")
-            photo_base64 = None
+            print(f"[WARNING] Unexpected error generating/saving image for recipe '{r['name']}': {type(e).__name__}: {str(e)}")
 
         recipe = Recipe(
             name=r["name"],
             description=r.get("description"),
             instructions=r["instructions"],
-            pictureBase64=photo_base64,
+            pictureBase64=picture_url,  # Now stores URL/path instead of base64
             calories=r.get("calories")
         )
         db.add(recipe)
         db.flush()
-        print(f"[DEBUG] Recipe saved to DB with ID: {recipe.id}")
+        print(f"[DEBUG] Recipe saved to DB with ID: {recipe.id}, pictureBase64: {picture_url}")
 
         link = UserMenuRecipes(
             userMenuId=menu.id,
@@ -235,7 +318,7 @@ def create_recipes_from_menu(db: Session, user_menu_id: int, products: list[Reci
                 name=r["name"],
                 description=r.get("description"),
                 instructions=r["instructions"],
-                pictureBase64=photo_base64,
+                pictureBase64=picture_url,  # Now contains URL instead of base64
                 calories=r.get("calories"),
                 recipeBatch=next_batch
             )

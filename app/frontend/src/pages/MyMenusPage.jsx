@@ -691,7 +691,7 @@ export default function MyMenusPage() {
                               {recipe.pictureBase64 && (
                                 <div className="w-full h-56 bg-slate-100">
                                   <img
-                                    src={`data:image/png;base64,${recipe.pictureBase64}`}
+                                    src={recipe.pictureBase64}
                                     alt={recipe.name || "Recipe"}
                                     className="w-full h-full object-cover"
                                   />

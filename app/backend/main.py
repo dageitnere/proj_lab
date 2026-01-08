@@ -1,6 +1,9 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+import os
+from pathlib import Path
 
 from app.backend.dependencies.getUserUuidFromToken import decode_access_token
 from app.backend.routers import consumedProductRouter, userRouter, mainPageRouter, statisticsRouter, productRouter, \
@@ -48,13 +51,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files for recipe images
+IMAGE_STORAGE_PATH = Path("/home/azureuser/uploads")
+
+# Ensure directory exists
+IMAGE_STORAGE_PATH.mkdir(parents=True, exist_ok=True)
+
+# Mount the static files
+app.mount(
+    "/uploads",
+    StaticFiles(directory="/home/azureuser/uploads"),
+    name="uploads"
+)
 
 # Authentication & public path config
 PUBLIC_PREFIXES = (
     "/auth/login", "/auth/register", "/auth/verify",
     "/auth/verification/start", "/auth/verification/confirm",
     "/auth/forgot-password", "/auth/reset-password",
-    "/static", "/docs", "/openapi.json",
+    "/static", "/uploads", "/docs", "/openapi.json",
 )
 COOKIE = "access_token"
 
