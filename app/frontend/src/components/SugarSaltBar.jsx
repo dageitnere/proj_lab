@@ -7,7 +7,7 @@ export default function SugarSaltBar({ stats }) {
     labels: ["Sugar (g)", "Salt (g)"],
     datasets: [
       {
-        data: [stats.averageSugar, stats.averageSalt],
+        data: [stats.averageSugar, stats.averageSalt/1000],
         backgroundColor: ["#f59e0b", "#64748b"],
         borderRadius: 6,
       },

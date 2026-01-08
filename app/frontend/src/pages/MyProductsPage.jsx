@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SidebarMenu from "../components/SidebarMenu.jsx";
 import Footer from "../components/Footer.jsx";
 
@@ -37,7 +38,6 @@ function EditModal({ product, onClose, onSubmit }) {
         ? "plant" : "",
       });
     }, [product]);
-
 
   const handleChange = (key, value) => {
     setFields((prev) => ({ ...prev, [key]: value }));
@@ -310,6 +310,7 @@ function EditModal({ product, onClose, onSubmit }) {
 }
 
 export default function MyProductsPage() {
+  const navigate = useNavigate();
   const [sidebarOpened, setSidebarOpened] = useState(false);
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
@@ -813,7 +814,26 @@ export default function MyProductsPage() {
   const canDelete = selectedIds.length > 0;
 
   return (
-    <div className="min-h-screen text-slate-900">
+    <div className="relative min-h-screen text-slate-900">
+      <button
+          type="button"
+          onClick={() => navigate("/new-page")}
+          className="
+            absolute right-8 top-8
+            inline-flex items-center gap-2
+            rounded-2xl
+            bg-white/85 backdrop-blur
+            border border-black/10
+            px-5 py-3
+            text-sm font-bold
+            text-black/80
+            shadow-sm
+            hover:bg-white
+            transition
+          "
+        >
+          <span aria-hidden>←</span> Back
+      </button>
       <SidebarMenu opened={sidebarOpened} setOpened={setSidebarOpened} />
 
       <main
@@ -876,8 +896,8 @@ export default function MyProductsPage() {
               </div>
             </div>
 
-            <div className="relative max-h-[65vh] overflow-y-auto rounded-xl border border-slate-200">
-              <table className="min-w-full border-collapse text-base">
+            <div className="relative rounded-xl border border-slate-200">
+              <table className="min-w-full border-separate text-base border-spacing-0">
                 <thead className="sticky top-0 z-10 bg-slate-100">
                   <tr>
                     <th className="px-3 py-2 border text-left text-sm">
@@ -886,7 +906,7 @@ export default function MyProductsPage() {
                         onClick={() => handleSort("productName")}
                         className="flex items-center gap-1"
                       >
-                        Name
+                        Product
                         {sortConfig.key === "productName" && (
                           <span>
                             {sortConfig.direction === "asc"
@@ -918,7 +938,7 @@ export default function MyProductsPage() {
                         onClick={() => handleSort("fat")}
                         className="flex items-center gap-1"
                       >
-                        Fat
+                        Fat (g)
                         {sortConfig.key === "fat" && (
                           <span>
                             {sortConfig.direction === "asc"
@@ -934,7 +954,7 @@ export default function MyProductsPage() {
                         onClick={() => handleSort("carbs")}
                         className="flex items-center gap-1"
                       >
-                        Carbs
+                        Carbs (g)
                         {sortConfig.key === "carbs" && (
                           <span>
                             {sortConfig.direction === "asc"
@@ -950,7 +970,7 @@ export default function MyProductsPage() {
                         onClick={() => handleSort("protein")}
                         className="flex items-center gap-1"
                       >
-                        Protein
+                        Protein (g)
                         {sortConfig.key === "protein" && (
                           <span>
                             {sortConfig.direction === "asc"
@@ -1312,7 +1332,15 @@ export default function MyProductsPage() {
                       <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                          className="h-4 w-4 appearance-none rounded border border-slate-300
+                                     checked:bg-green-500 checked:border-green-500
+                                     relative
+                                     focus:outline-none focus:ring-2 focus:ring-green-500
+                                     after:content-['']
+                                     after:absolute after:inset-0
+                                     after:flex after:items-center after:justify-center
+                                     checked:after:content-['✓']
+                                     checked:after:text-white checked:after:text-xs checked:after:font-bold"
                           checked={manual.vegan}
                           onChange={(e) =>
                             setManual((prev) => ({
@@ -1326,7 +1354,15 @@ export default function MyProductsPage() {
                       <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                          className="h-4 w-4 appearance-none rounded border border-slate-300
+                                     checked:bg-green-500 checked:border-green-500
+                                     relative
+                                     focus:outline-none focus:ring-2 focus:ring-green-500
+                                     after:content-['']
+                                     after:absolute after:inset-0
+                                     after:flex after:items-center after:justify-center
+                                     checked:after:content-['✓']
+                                     checked:after:text-white checked:after:text-xs checked:after:font-bold"
                           checked={manual.vegetarian}
                           onChange={(e) =>
                             setManual((prev) => ({
@@ -1340,7 +1376,15 @@ export default function MyProductsPage() {
                       <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                          className="h-4 w-4 appearance-none rounded border border-slate-300
+                                     checked:bg-green-500 checked:border-green-500
+                                     relative
+                                     focus:outline-none focus:ring-2 focus:ring-green-500
+                                     after:content-['']
+                                     after:absolute after:inset-0
+                                     after:flex after:items-center after:justify-center
+                                     checked:after:content-['✓']
+                                     checked:after:text-white checked:after:text-xs checked:after:font-bold"
                           checked={manual.dairyFree}
                           onChange={(e) =>
                             setManual((prev) => ({
@@ -1385,10 +1429,15 @@ export default function MyProductsPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 items-end">
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-slate-700">
                         Mass (g)
+                        <div className="text-[11px] text-slate-400 leading-tight">
+                          if not provided
+                          <br />
+                          (e.g. fruits, vegetables)
+                        </div>
                       </label>
                       <input
                         type="number"
@@ -1494,7 +1543,15 @@ export default function MyProductsPage() {
                       <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                          className="h-4 w-4 appearance-none rounded border border-slate-300
+                                     checked:bg-green-500 checked:border-green-500
+                                     relative
+                                     focus:outline-none focus:ring-2 focus:ring-green-500
+                                     after:content-['']
+                                     after:absolute after:inset-0
+                                     after:flex after:items-center after:justify-center
+                                     checked:after:content-['✓']
+                                     checked:after:text-white checked:after:text-xs checked:after:font-bold"
                           checked={rimi.vegan}
                           onChange={(e) =>
                             setRimi((prev) => ({
@@ -1508,7 +1565,15 @@ export default function MyProductsPage() {
                       <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                          className="h-4 w-4 appearance-none rounded border border-slate-300
+                                     checked:bg-green-500 checked:border-green-500
+                                     relative
+                                     focus:outline-none focus:ring-2 focus:ring-green-500
+                                     after:content-['']
+                                     after:absolute after:inset-0
+                                     after:flex after:items-center after:justify-center
+                                     checked:after:content-['✓']
+                                     checked:after:text-white checked:after:text-xs checked:after:font-bold"
                           checked={rimi.vegetarian}
                           onChange={(e) =>
                             setRimi((prev) => ({
@@ -1522,7 +1587,15 @@ export default function MyProductsPage() {
                       <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                          className="h-4 w-4 appearance-none rounded border border-slate-300
+                                     checked:bg-green-500 checked:border-green-500
+                                     relative
+                                     focus:outline-none focus:ring-2 focus:ring-green-500
+                                     after:content-['']
+                                     after:absolute after:inset-0
+                                     after:flex after:items-center after:justify-center
+                                     checked:after:content-['✓']
+                                     checked:after:text-white checked:after:text-xs checked:after:font-bold"
                           checked={rimi.dairyFree}
                           onChange={(e) =>
                             setRimi((prev) => ({
@@ -1583,7 +1656,7 @@ export default function MyProductsPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 items-end">
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-slate-700">
                         Price per 1kg (€)
@@ -1619,6 +1692,9 @@ export default function MyProductsPage() {
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-slate-700">
                         Mass per unit (g)
+                        <div className="text-[11px] text-slate-400 leading-tight">
+                          if price per unit is entered
+                        </div>
                       </label>
                       <input
                         type="number"
@@ -1709,7 +1785,15 @@ export default function MyProductsPage() {
                       <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                          className="h-4 w-4 appearance-none rounded border border-slate-300
+                                     checked:bg-green-500 checked:border-green-500
+                                     relative
+                                     focus:outline-none focus:ring-2 focus:ring-green-500
+                                     after:content-['']
+                                     after:absolute after:inset-0
+                                     after:flex after:items-center after:justify-center
+                                     checked:after:content-['✓']
+                                     checked:after:text-white checked:after:text-xs checked:after:font-bold"
                           checked={nv.vegan}
                           onChange={(e) =>
                             setNv((prev) => ({
@@ -1723,7 +1807,15 @@ export default function MyProductsPage() {
                       <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                          className="h-4 w-4 appearance-none rounded border border-slate-300
+                                     checked:bg-green-500 checked:border-green-500
+                                     relative
+                                     focus:outline-none focus:ring-2 focus:ring-green-500
+                                     after:content-['']
+                                     after:absolute after:inset-0
+                                     after:flex after:items-center after:justify-center
+                                     checked:after:content-['✓']
+                                     checked:after:text-white checked:after:text-xs checked:after:font-bold"
                           checked={nv.vegetarian}
                           onChange={(e) =>
                             setNv((prev) => ({
@@ -1737,7 +1829,15 @@ export default function MyProductsPage() {
                       <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                          className="h-4 w-4 appearance-none rounded border border-slate-300
+                                     checked:bg-green-500 checked:border-green-500
+                                     relative
+                                     focus:outline-none focus:ring-2 focus:ring-green-500
+                                     after:content-['']
+                                     after:absolute after:inset-0
+                                     after:flex after:items-center after:justify-center
+                                     checked:after:content-['✓']
+                                     checked:after:text-white checked:after:text-xs checked:after:font-bold"
                           checked={nv.dairyFree}
                           onChange={(e) =>
                             setNv((prev) => ({

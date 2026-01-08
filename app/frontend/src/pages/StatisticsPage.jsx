@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SidebarMenu from "../components/SidebarMenu.jsx";
 import Footer from "../components/Footer.jsx";
-
 import Kpi from "../components/Kpi.jsx";
 import AverageMacrosBar from "../components/AverageMacrosBar.jsx";
 import ProteinDonutChart from "../components/ProteinDonutChart.jsx";
@@ -17,6 +17,8 @@ export default function StatisticsPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   const [activePeriod, setActivePeriod] = useState(null);
 
@@ -61,7 +63,26 @@ export default function StatisticsPage() {
     }`;
 
   return (
-    <div className="min-h-screen bg-noise-light text-slate-900">
+    <div className="relative min-h-screen bg-noise-light text-slate-900">
+      <button
+          type="button"
+          onClick={() => navigate("/new-page")}
+          className="
+            absolute right-8 top-8
+            inline-flex items-center gap-2
+            rounded-2xl
+            bg-white/85 backdrop-blur
+            border border-black/10
+            px-5 py-3
+            text-sm font-bold
+            text-black/80
+            shadow-sm
+            hover:bg-white
+            transition
+          "
+        >
+          <span aria-hidden>←</span> Back
+      </button>
       <SidebarMenu opened={sidebarOpened} setOpened={setSidebarOpened} />
 
       <main

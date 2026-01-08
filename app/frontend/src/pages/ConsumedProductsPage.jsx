@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import SidebarMenu from "../components/SidebarMenu.jsx";
 import CalendarPopup from "../components/CalendarPopup.jsx";
 import Footer from "../components/Footer.jsx";
 
 const API_BASE = "/consumedProducts";
-const PRODUCTS_API = "/products";
-const USER_PRODUCTS_API = "/userProducts";
 
 export default function ConsumedProductsPage() {
   const [sidebarOpened, setSidebarOpened] = useState(false);
@@ -16,37 +15,30 @@ export default function ConsumedProductsPage() {
   const [success, setSuccess] = useState("");
 
   const todayISO = new Date().toISOString().split("T")[0];
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(todayISO);
-  const [showStartCalendar, setShowStartCalendar] = useState(false);
-  const [showEndCalendar, setShowEndCalendar] = useState(false);
 
   const [productName, setProductName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [showDateCalendar, setShowDateCalendar] = useState(false);
+  const [mass, setMass] = useState("");
 
-  const [productNames, setProductNames] = useState([]);
-  const [userProductNames, setUserProductNames] = useState([]);
+  const [addDate, setAddDate] = useState(todayISO);
+  const [filterDate, setFilterDate] = useState(todayISO);
+  const [showAddCalendar, setShowAddCalendar] = useState(false);
+  const [showFilterCalendar, setShowFilterCalendar] = useState(false);
 
-  const allProductNames = useMemo(
-    () => [...new Set([...productNames, ...userProductNames])],
-    [productNames, userProductNames]
-  );
-
+  const [allNames, setAllNames] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [currentFilter, setCurrentFilter] = useState("all");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
 
+  const navigate = useNavigate();
+
+  const inputRef = useRef(null);
+
   const [sortConfig, setSortConfig] = useState({
     key: "createdAt",
     direction: "desc",
   });
-
 
   const withAuth = async (path, options = {}) => {
     const res = await fetch(path, {
@@ -73,14 +65,15 @@ export default function ConsumedProductsPage() {
     return res;
   };
 
-  const formatDateDMY = (dateStr) => {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
+  const formatDateDMY = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
     const dd = String(d.getDate()).padStart(2, "0");
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const yyyy = d.getFullYear();
     return `${dd}/${mm}/${yyyy}`;
   };
+
 
   const showTempMessage = (setter, msg) => {
     setter(msg);
@@ -89,8 +82,7 @@ export default function ConsumedProductsPage() {
 
   useEffect(() => {
     loadAll();
-    loadProductNames();
-    loadUserProductNames();
+    loadNames()
   }, []);
 
   const loadAll = async () => {
@@ -108,6 +100,27 @@ export default function ConsumedProductsPage() {
           setLoading(false);
         }
       };
+
+    const loadNames = async () => {
+      try {
+        const [a, b] = await Promise.all([
+          withAuth("/products/productsNames"),
+          withAuth("/userProducts/userProductsNames"),
+        ]);
+
+        const aData = await a.json();
+        const bData = await b.json();
+
+        const all = [
+          ...(aData.products || []),
+          ...(bData.products || []),
+        ];
+
+        setAllNames([...new Set(all)]);
+      } catch (e) {
+        console.error("Failed to load product names", e);
+      }
+    };
 
       const loadProducts = async (endpoint) => {
         setLoading(true);
@@ -132,54 +145,42 @@ export default function ConsumedProductsPage() {
       }
     };
 
-  const loadByDateRange = async () => {
-      if (!startDate || !endDate) return;
-
-      setLoading(true);
-      setError("");
-      setCurrentFilter("byDate");
-
-      const start = `${startDate} 00:00:00`;
-      const end = `${endDate} 23:59:59`;
-
-      try {
-        const res = await withAuth(`${API_BASE}/byDate`, {
-          method: "POST",
-          body: JSON.stringify({
-            startDate: start,
-            endDate: end,
-          }),
-        });
-
-        const data = await res.json();
-        setProducts(Array.isArray(data) ? data : []);
-      } catch (err) {
-        setError(err.message);
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-  const loadProductNames = async () => {
-    try {
-      const res = await withAuth(`${PRODUCTS_API}/productsNames`);
-      const data = await res.json();
-      setProductNames(data.productNames || []);
-    } catch (e) {
-      console.error(e);
-    }
+  const toLocalISODate = (date) => {
+    const d = new Date(date);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   };
 
-  const loadUserProductNames = async () => {
-    try {
-      const res = await withAuth(`${USER_PRODUCTS_API}/userProductsNames`);
-      const data = await res.json();
-      setUserProductNames(data.productNames || []);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  const loadBySingleDate = async () => {
+  if (!filterDate) return;
+
+  setLoading(true);
+  setError("");
+  setCurrentFilter("byDate");
+
+  console.log("SENDING DATE:", filterDate);
+
+  try {
+    const res = await withAuth(`${API_BASE}/byDate`, {
+      method: "POST",
+      body: JSON.stringify({ date: filterDate }),
+    });
+
+    const data = await res.json();
+
+    console.log("RECEIVED:", data);
+
+    setProducts(Array.isArray(data) ? data : []);
+  } catch (err) {
+    setError(err.message);
+    setProducts([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const reloadCurrentFilter = () => {
     switch (currentFilter) {
@@ -193,7 +194,7 @@ export default function ConsumedProductsPage() {
         loadProducts("/last30days");
         break;
       case "byDate":
-        loadByDateRange();
+        loadBySingleDate();
         break;
       default:
         loadAll("/all");
@@ -201,67 +202,59 @@ export default function ConsumedProductsPage() {
   };
 
   const handleAdd = async () => {
-    if (!productName || !amount) {
+    if (!productName || !mass) {
       showTempMessage(setError, "Please fill in all fields");
       return;
     }
 
-    const fullDate = `${date} ${new Date().toLocaleTimeString("en-GB", {
+    const fullDate = `${addDate} ${new Date().toLocaleTimeString("en-GB", {
       hour12: false,
     })}`;
 
     try {
       setLoading(true);
+      setError("");
 
-      await withAuth(`${API_BASE}/saveConsumedProduct`, {
+      const res = await withAuth(`${API_BASE}/saveConsumedProduct`, {
         method: "POST",
         body: JSON.stringify({
-          productName,
-          amount: Number(amount),
+          productName: productName.trim(),
+          amount: Number(mass),
           date: fullDate,
         }),
       });
 
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to add product");
+      }
+
       setProductName("");
-      setAmount("");
+      setMass("");
       setSuggestions([]);
+
       showTempMessage(setSuccess, "Product added successfully");
       reloadCurrentFilter();
+
     } catch (err) {
-      setError(err.message);
+      showTempMessage(setError, err.message || "Unknown error");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this product?")) return;
-
-    try {
-      await withAuth(`${API_BASE}/deleteProduct`, {
-        method: "DELETE",
-        body: JSON.stringify({ productId: id }),
-      });
-
-      reloadCurrentFilter();
-    } catch (err) {
-      setError(err.message);
     }
   };
 
   const handleSuggest = (value) => {
     setProductName(value);
 
-    if (!value.trim()) {
-      setSuggestions([]);
+    const v = value.trim().toLowerCase();
+
+    if (!v) {
+      setSuggestions(allNames.slice(0, 10));
       return;
     }
 
-    setSuggestions(
-      allProductNames
-        .filter((p) => p.toLowerCase().includes(value.toLowerCase()))
-        .slice(0, 10)
-    );
+    setSuggestions(allNames.filter((p) => p.toLowerCase().includes(v)).slice(0, 10));
   };
 
   const filterButtonClass = (key) =>
@@ -352,16 +345,35 @@ export default function ConsumedProductsPage() {
 
   const columns = [
     { label: "Product", key: "productName" },
-    { label: "Amount", key: "amount" },
+    { label: "Mass", key: "mass" },
     { label: "Kcal", key: "kcal" },
-    { label: "Protein", key: "protein" },
-    { label: "Carbs", key: "carbs" },
-    { label: "Fat", key: "fat" },
+    { label: "Fat (g)", key: "fat" },
+    { label: "Carbs (g)", key: "carbs" },
+    { label: "Protein (g)", key: "protein" },
     { label: "Date", key: "createdAt" },
   ];
 
   return (
-    <div className="min-h-screen bg-noise-light text-slate-900">
+    <div className="relative min-h-screen bg-noise-light text-slate-900">
+      <button
+          type="button"
+          onClick={() => navigate("/new-page")}
+          className="
+            absolute right-8 top-8
+            inline-flex items-center gap-2
+            rounded-2xl
+            bg-white/85 backdrop-blur
+            border border-black/10
+            px-5 py-3
+            text-sm font-bold
+            text-black/80
+            shadow-sm
+            hover:bg-white
+            transition
+          "
+        >
+          <span aria-hidden>←</span> Back
+      </button>
       <SidebarMenu opened={sidebarOpened} setOpened={setSidebarOpened} />
 
       <main
@@ -395,21 +407,30 @@ export default function ConsumedProductsPage() {
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
             <div className="relative">
-              <input
-                className="w-full rounded-xl border px-3 py-2 text-sm"
+              <input ref={inputRef}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 placeholder="Product name"
                 value={productName}
                 onChange={(e) => handleSuggest(e.target.value)}
+                onFocus={() => {
+                  setSuggestions(allNames.slice(0, 10));
+                }}
+                onBlur={() => {
+                  setTimeout(() => setSuggestions([]), 150);
+                }}
               />
 
               {suggestions.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow">
+                <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white shadow max-h-64 overflow-y-auto">
                   {suggestions.map((s) => (
                     <div
                       key={s}
-                      onClick={() => {
+                      onMouseDown={(e) => {
+                        e.preventDefault();
                         setProductName(s);
                         setSuggestions([]);
+                        inputRef.current?.blur();
                       }}
                       className="cursor-pointer px-3 py-2 text-sm hover:bg-slate-100"
                     >
@@ -422,30 +443,31 @@ export default function ConsumedProductsPage() {
 
             <input
               type="number"
-              className="rounded-xl border px-3 py-2 text-sm"
-              placeholder="Amount (g)"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              className="rounded-xl border border-slate-300 px-3 py-2 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 "
+              placeholder="Mass (g)"
+              value={mass}
+              onChange={(e) => setMass(e.target.value)}
             />
 
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setShowDateCalendar(true)}
+                onClick={() => setShowAddCalendar(true)}
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-left hover:bg-slate-50"
               >
-                {formatDateDMY(date)}
+                {formatDateDMY(addDate)}
               </button>
 
-              {showDateCalendar && (
+              {showAddCalendar && (
                 <div className="absolute z-50 mt-2">
                   <CalendarPopup
-                    initialDate={new Date(date)}
+                    initialDate={new Date(addDate)}
                     onApply={(selectedDate) => {
-                      setDate(selectedDate.toISOString().split("T")[0]);
-                      setShowDateCalendar(false);
+                      setAddDate(toLocalISODate(selectedDate));
+                      setShowAddCalendar(false);
                     }}
-                    onCancel={() => setShowDateCalendar(false)}
+                    onCancel={() => setShowAddCalendar(false)}
                   />
                 </div>
               )}
@@ -461,106 +483,54 @@ export default function ConsumedProductsPage() {
         </section>
 
         <section className="mb-6 rounded-2xl border bg-white p-6 shadow-sm">
-          <h3 className="mb-3 font-semibold">Filters</h3>
-          <div className="flex flex-wrap gap-6 items-end">
+          <h3 className="mb-3 font-semibold">Filter by date</h3>
+
+          <div className="flex flex-wrap gap-4 items-end">
             <div className="relative">
-              <label className="block text-sm font-semibold text-slate-800 mb-1">
-                Start date
-              </label>
+              <label className="block text-sm font-semibold mb-1">Date</label>
+
               <button
                 type="button"
-                onClick={() => setShowStartCalendar(true)}
+                onClick={() => setShowFilterCalendar(true)}
                 className="w-[160px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-left hover:bg-slate-50"
               >
-                {startDate ? formatDateDMY(startDate) : "Select date"}
+                {filterDate ? formatDateDMY(filterDate) : "Select date"}
               </button>
 
-              {showStartCalendar && (
+              {showFilterCalendar && (
                 <div className="absolute z-50 mt-2">
                   <CalendarPopup
-                    initialDate={startDate ? new Date(startDate) : new Date()}
+                    initialDate={new Date(filterDate)}
                     onApply={(d) => {
-                      setStartDate(d.toISOString().split("T")[0]);
-                      setShowStartCalendar(false);
+                      setFilterDate(toLocalISODate(d));
+                      setShowFilterCalendar(false);
                     }}
-                    onCancel={() => setShowStartCalendar(false)}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <label className="block text-sm font-semibold text-slate-800 mb-1">
-                End date
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowEndCalendar(true)}
-                className="w-[160px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-left hover:bg-slate-50"
-              >
-                {endDate ? formatDateDMY(endDate) : "Select date"}
-              </button>
-
-              {showEndCalendar && (
-                <div className="absolute z-50 mt-2">
-                  <CalendarPopup
-                    initialDate={endDate ? new Date(endDate) : new Date()}
-                    onApply={(d) => {
-                      setEndDate(d.toISOString().split("T")[0]);
-                      setShowEndCalendar(false);
-                    }}
-                    onCancel={() => setShowEndCalendar(false)}
+                    onCancel={() => setShowFilterCalendar(false)}
                   />
                 </div>
               )}
             </div>
 
             <button
-              disabled={!startDate || !endDate || loading}
-              onClick={loadByDateRange}
+              onClick={loadBySingleDate}
+              disabled={!filterDate || loading}
               className={filterButtonClass("byDate")}
             >
-              Range
+              Search
             </button>
 
             <div className="flex gap-2">
-              <button onClick={loadAll} className={filterButtonClass("all")}>
-                All
-              </button>
-              <button
-                onClick={() => {
-                  setCurrentFilter("today");
-                  loadProducts("/today");
-                }}
-                className={filterButtonClass("today")}
-              >
-                Today
-              </button>
-              <button
-                onClick={() => {
-                  setCurrentFilter("last7");
-                  loadProducts("/last7days");
-                }}
-                className={filterButtonClass("last7")}
-              >
-                Last 7 days
-              </button>
-              <button
-                onClick={() => {
-                  setCurrentFilter("last30");
-                  loadProducts("/last30days");
-                }}
-                className={filterButtonClass("last30")}
-              >
-                Last 30 days
-              </button>
+              <button onClick={loadAll} className={filterButtonClass("all")}>All</button>
+              <button onClick={() => { setCurrentFilter("today"); loadProducts("/today"); }} className={filterButtonClass("today")}>Today</button>
+              <button onClick={() => { setCurrentFilter("last7"); loadProducts("/last7days"); }} className={filterButtonClass("last7")}>Last 7 days</button>
+              <button onClick={() => { setCurrentFilter("last30"); loadProducts("/last30days"); }} className={filterButtonClass("last30")}>Last 30 days</button>
             </div>
           </div>
         </section>
 
         <section className="rounded-2xl border bg-white p-6 shadow-sm">
           <div className="relative max-h-[65vh] overflow-y-auto border-slate-200">
-            <div className="mb-4 flex items-center gap-2">
+            <div className="ml-3 mt-2 mb-4 flex items-center gap-2">
               <input
                 type="text"
                 placeholder="Search in consumed products..."
@@ -633,7 +603,7 @@ export default function ConsumedProductsPage() {
                       cursor-pointer transition-colors
                       ${
                         isSelected
-                          ? "bg-green-100 hover:bg-green-100"
+                          ? "bg-green-100 hover:bg-green-100 "
                           : "odd:bg-white even:bg-slate-50 hover:bg-slate-100"
                       }
                     `;
@@ -649,9 +619,9 @@ export default function ConsumedProductsPage() {
                         </td>
                         <td className="px-3 py-2">{p.amount}</td>
                         <td className="px-3 py-2">{p.kcal?.toFixed(2)}</td>
-                        <td className="px-3 py-2">{p.protein?.toFixed(2)}</td>
-                        <td className="px-3 py-2">{p.carbs?.toFixed(2)}</td>
                         <td className="px-3 py-2">{p.fat?.toFixed(2)}</td>
+                        <td className="px-3 py-2">{p.carbs?.toFixed(2)}</td>
+                        <td className="px-3 py-2">{p.protein?.toFixed(2)}</td>
                         <td className="px-3 py-2">
                           {formatDateDMY(p.createdAt)}
                         </td>
