@@ -14,11 +14,12 @@ export default function ForgotPasswordPage() {
     setSuccess(null);
 
     try {
-      const res = await fetch("http://localhost:8000/auth/forgot-password/start", {
+      const res = await fetch("/auth/forgot-password/start", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ email: email.trim() }),
       });
 
@@ -29,7 +30,6 @@ export default function ForgotPasswordPage() {
         setSuccess(false);
         setMsg("Failed to send reset link.");
       }
-
     } catch {
       setSuccess(false);
       setMsg("Failed to send reset link.");
@@ -62,11 +62,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           {msg && (
-            <p
-              className={`text-sm ${
-                success ? "text-green-600" : "text-red-500"
-              }`}
-            >
+            <p className={`text-sm ${success ? "text-green-600" : "text-red-500"}`}>
               {msg}
             </p>
           )}

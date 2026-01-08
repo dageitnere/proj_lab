@@ -15,11 +15,12 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:8000/auth/register", {
+      const res = await fetch("/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ username, email, password }),
       });
 
@@ -40,7 +41,6 @@ export default function RegisterPage() {
       }
 
       navigate(`/verification?email=${encodeURIComponent(email)}`);
-
     } catch (err) {
       setError(err.message || "Registration failed");
     }
@@ -55,9 +55,7 @@ export default function RegisterPage() {
           onSubmit={handleSubmit}
           className="space-y-4 bg-white p-10 rounded-lg w-96 shadow-lg"
         >
-          <h2 className="text-2xl font-bold mb-2 text-brandGreen">
-            Register
-          </h2>
+          <h2 className="text-2xl font-bold mb-2 text-brandGreen">Register</h2>
 
           <div>
             <input
@@ -99,9 +97,7 @@ export default function RegisterPage() {
             At least 8 characters, 1 uppercase letter, 1 number, and 1 special symbol.
           </p>
 
-          {error && (
-            <p className="text-red-500 text-sm mb-1">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm mb-1">{error}</p>}
 
           <button
             type="submit"
@@ -119,7 +115,8 @@ export default function RegisterPage() {
           </p>
         </form>
       </div>
-      <Footer/>
+
+      <Footer />
     </>
   );
 }
