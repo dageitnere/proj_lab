@@ -1,6 +1,174 @@
-// src/pages/ProfilePage.jsx
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+
+const Card = memo(function Card({ title, children, className = "" }) {
+  return (
+    <section
+      className={`rounded-2xl bg-white/85 backdrop-blur border border-black/10 shadow-sm p-6 ${className}`}
+    >
+      <h2 className="text-lg sm:text-xl font-bold text-black">{title}</h2>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+});
+
+const Row = memo(function Row({ label, value }) {
+  return (
+    <div className="flex items-center justify-between gap-6 py-3 border-b border-black/5 last:border-b-0">
+      <div className="text-sm sm:text-base text-black/80">{label}</div>
+      <div className="text-sm sm:text-base font-semibold text-black/80 text-right">
+        {value}
+      </div>
+    </div>
+  );
+});
+
+const Pill = memo(function Pill({ children, tone = "neutral", onClick, disabled = false }) {
+  const toneClass =
+    tone === "green"
+      ? "border-brandGreen/30 bg-brandGreen/10 text-brandGreen"
+      : "border-black/10 bg-white text-black/80";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={[
+        "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition",
+        toneClass,
+        disabled ? "opacity-60 cursor-not-allowed" : "hover:opacity-90",
+      ].join(" ")}
+    >
+      {children}
+    </button>
+  );
+});
+
+const MetricCard = memo(function MetricCard({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm text-center">
+      <div className="text-3xl font-extrabold text-black/80">{value}</div>
+      <div className="mt-1 text-xs font-semibold text-black/80">{label}</div>
+    </div>
+  );
+});
+
+const Bar = memo(function Bar({ label, value, unit }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between">
+        <div className="text-sm font-semibold text-black/80">{label}</div>
+        <div className="text-sm font-semibold text-black/80">
+          {value} {unit}
+        </div>
+      </div>
+
+      <div className="h-3 w-full rounded-full bg-black/10 overflow-hidden">
+        <div className="h-full rounded-full bg-brandGreen" style={{ width: "100%" }} />
+      </div>
+    </div>
+  );
+});
+
+const InputRow = memo(function InputRow({
+  label,
+  name,
+  placeholder,
+  value,
+  onValueChange,
+}) {
+  return (
+    <div className="flex items-center justify-between gap-6 py-3 border-b border-black/5 last:border-b-0">
+      <div className="text-sm sm:text-base text-black/80">{label}</div>
+      <input
+        name={name}
+        value={value}
+        onChange={(e) => onValueChange(name, e.target.value)}
+        placeholder={placeholder}
+        inputMode="numeric"
+        className="
+          w-44 sm:w-56
+          rounded
+          border border-black/30
+          bg-white
+          px-3 py-1.5
+          text-sm text-black/80
+          focus:outline-none focus:ring-2 focus:ring-brandGreen/60
+        "
+      />
+    </div>
+  );
+});
+
+const InputRowProfile = memo(function InputRowProfile({
+  label,
+  name,
+  type = "text",
+  step,
+  min,
+  max,
+  value,
+  onValueChange,
+}) {
+  return (
+    <div className="flex items-center justify-between gap-6 py-3 border-b border-black/5 last:border-b-0">
+      <div className="text-sm sm:text-base text-black/80">{label}</div>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onValueChange(name, e.target.value)}
+        step={step}
+        min={min}
+        max={max}
+        className="
+          w-44 sm:w-56
+          rounded
+          border border-black/30
+          bg-white
+          px-3 py-1.5
+          text-sm text-black/80
+          focus:outline-none focus:ring-2 focus:ring-brandGreen/60
+        "
+      />
+    </div>
+  );
+});
+
+const SelectRowProfile = memo(function SelectRowProfile({
+  label,
+  name,
+  options,
+  value,
+  onValueChange,
+}) {
+  return (
+    <div className="flex items-center justify-between gap-6 py-3 border-b border-black/5 last:border-b-0">
+      <div className="text-sm sm:text-base text-black/80">{label}</div>
+      <select
+        value={value}
+        onChange={(e) => onValueChange(name, e.target.value)}
+        className="
+          w-44 sm:w-56
+          rounded
+          border border-black/30
+          bg-white
+          px-3 py-1.5
+          text-sm text-black/80
+          focus:outline-none focus:ring-2 focus:ring-brandGreen/60
+        "
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+});
+
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -161,6 +329,15 @@ export default function ProfilePage() {
     void loadProfile();
   }, []);
 
+
+  const onTargetChange = useCallback((name, value) => {
+    setEditTargets((p) => ({ ...p, [name]: value }));
+  }, []);
+
+  const onProfileFieldChange = useCallback((name, value) => {
+    setEditProfile((p) => ({ ...p, [name]: value }));
+  }, []);
+
   // --- Edit profile ---
   const onEditProfile = () => {
     setError("");
@@ -190,11 +367,11 @@ export default function ProfilePage() {
       if (key === "isVegan") {
         const nextVegan = !p.isVegan;
         return {
-            ...p,
-            isVegan: nextVegan,
-            isVegetarian: nextVegan ? true : false,
-            isDairyInt: nextVegan ? true : false,
-          };
+          ...p,
+          isVegan: nextVegan,
+          isVegetarian: nextVegan ? true : false,
+          isDairyInt: nextVegan ? true : false,
+        };
       }
       if (key === "isVegetarian") {
         if (p.isVegan) return p;
@@ -216,8 +393,10 @@ export default function ProfilePage() {
     const nextHeight = parseNumOrNull(editProfile.height);
 
     if (nextAge !== null && nextAge !== originalProfile.age) payload.age = nextAge;
-    if (nextWeight !== null && nextWeight !== originalProfile.weight) payload.weight = nextWeight;
-    if (nextHeight !== null && nextHeight !== originalProfile.height) payload.height = nextHeight;
+    if (nextWeight !== null && nextWeight !== originalProfile.weight)
+      payload.weight = nextWeight;
+    if (nextHeight !== null && nextHeight !== originalProfile.height)
+      payload.height = nextHeight;
 
     if (
       editProfile.activityLevel &&
@@ -342,137 +521,6 @@ export default function ProfilePage() {
     }
   };
 
-  const Card = ({ title, children, className = "" }) => (
-    <section
-      className={`rounded-2xl bg-white/85 backdrop-blur border border-black/10 shadow-sm p-6 ${className}`}
-    >
-      <h2 className="text-lg sm:text-xl font-bold text-black">{title}</h2>
-      <div className="mt-4">{children}</div>
-    </section>
-  );
-
-  const Row = ({ label, value }) => (
-    <div className="flex items-center justify-between gap-6 py-3 border-b border-black/5 last:border-b-0">
-      <div className="text-sm sm:text-base text-black/80">{label}</div>
-      <div className="text-sm sm:text-base font-semibold text-black/80 text-right">
-        {value}
-      </div>
-    </div>
-  );
-
-  const Pill = ({ children, tone = "neutral", onClick, disabled = false }) => {
-    const toneClass =
-      tone === "green"
-        ? "border-brandGreen/30 bg-brandGreen/10 text-brandGreen"
-        : "border-black/10 bg-white text-black/80";
-
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        className={[
-          "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition",
-          toneClass,
-          disabled ? "opacity-60 cursor-not-allowed" : "hover:opacity-90",
-        ].join(" ")}
-      >
-        {children}
-      </button>
-    );
-  };
-
-  const MetricCard = ({ label, value }) => (
-    <div className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm text-center">
-      <div className="text-3xl font-extrabold text-black/80">{value}</div>
-      <div className="mt-1 text-xs font-semibold text-black/80">{label}</div>
-    </div>
-  );
-
-  const Bar = ({ label, value, unit }) => (
-    <div className="space-y-2">
-      <div className="flex items-baseline justify-between">
-        <div className="text-sm font-semibold text-black/80">{label}</div>
-        <div className="text-sm font-semibold text-black/80">
-          {value} {unit}
-        </div>
-      </div>
-
-      <div className="h-3 w-full rounded-full bg-black/10 overflow-hidden">
-        <div className="h-full rounded-full bg-brandGreen" style={{ width: "100%" }} />
-      </div>
-    </div>
-  );
-
-  const InputRow = ({ label, name, placeholder }) => (
-    <div className="flex items-center justify-between gap-6 py-3 border-b border-black/5 last:border-b-0">
-      <div className="text-sm sm:text-base text-black/80">{label}</div>
-      <input
-        name={name}
-        value={editTargets[name]}
-        onChange={(e) => setEditTargets((p) => ({ ...p, [name]: e.target.value }))}
-        placeholder={placeholder}
-        className="
-          w-44 sm:w-56
-          rounded
-          border border-black/30
-          bg-white
-          px-3 py-1.5
-          text-sm text-black/80
-          focus:outline-none focus:ring-2 focus:ring-brandGreen/60
-        "
-      />
-    </div>
-  );
-
-  const InputRowProfile = ({ label, name, type = "text", step, min, max }) => (
-    <div className="flex items-center justify-between gap-6 py-3 border-b border-black/5 last:border-b-0">
-      <div className="text-sm sm:text-base text-black/80">{label}</div>
-      <input
-        type={type}
-        value={editProfile[name]}
-        onChange={(e) => setEditProfile((p) => ({ ...p, [name]: e.target.value }))}
-        step={step}
-        min={min}
-        max={max}
-        className="
-          w-44 sm:w-56
-          rounded
-          border border-black/30
-          bg-white
-          px-3 py-1.5
-          text-sm text-black/80
-          focus:outline-none focus:ring-2 focus:ring-brandGreen/60
-        "
-      />
-    </div>
-  );
-
-  const SelectRowProfile = ({ label, name, options }) => (
-    <div className="flex items-center justify-between gap-6 py-3 border-b border-black/5 last:border-b-0">
-      <div className="text-sm sm:text-base text-black/80">{label}</div>
-      <select
-        value={editProfile[name]}
-        onChange={(e) => setEditProfile((p) => ({ ...p, [name]: e.target.value }))}
-        className="
-          w-44 sm:w-56
-          rounded
-          border border-black/30
-          bg-white
-          px-3 py-1.5
-          text-sm text-black/80
-          focus:outline-none focus:ring-2 focus:ring-brandGreen/60
-        "
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-
   const targets = {
     kcal: profile.calculatedKcal ?? "—",
     carbs: profile.calculatedCarbs ?? "—",
@@ -529,7 +577,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Header closer to top */}
+        {/* Header */}
         <div className="flex flex-col items-center text-center pt-2">
           <div className="h-36 w-36 sm:h-44 sm:w-44 rounded-full bg-brandGreen text-white flex items-center justify-center text-5xl sm:text-6xl font-extrabold border-4 border-white shadow-md">
             {initials}
@@ -549,7 +597,6 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Only Edit profile button stays */}
             <div className="mt-3 flex justify-center">
               <button
                 type="button"
@@ -562,12 +609,19 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Bring cards closer to avatar */}
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <Card title="Personal Information" className="lg:col-span-2">
             {editMode ? (
               <>
-                <InputRowProfile label="Age" name="age" type="number" min={1} max={120} />
+                <InputRowProfile
+                  label="Age"
+                  name="age"
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={editProfile.age}
+                  onValueChange={onProfileFieldChange}
+                />
                 <Row label="Gender" value={profile.gender ?? "—"} />
                 <InputRowProfile
                   label="Weight (kg)"
@@ -576,6 +630,8 @@ export default function ProfilePage() {
                   step="0.1"
                   min={1}
                   max={500}
+                  value={editProfile.weight}
+                  onValueChange={onProfileFieldChange}
                 />
                 <InputRowProfile
                   label="Height (cm)"
@@ -584,13 +640,23 @@ export default function ProfilePage() {
                   step="0.1"
                   min={50}
                   max={300}
+                  value={editProfile.height}
+                  onValueChange={onProfileFieldChange}
                 />
                 <SelectRowProfile
                   label="Activity Level"
                   name="activityLevel"
                   options={activityOptions}
+                  value={editProfile.activityLevel}
+                  onValueChange={onProfileFieldChange}
                 />
-                <SelectRowProfile label="Goal" name="goal" options={goalOptions} />
+                <SelectRowProfile
+                  label="Goal"
+                  name="goal"
+                  options={goalOptions}
+                  value={editProfile.goal}
+                  onValueChange={onProfileFieldChange}
+                />
 
                 <div className="pt-4 flex flex-col gap-3">
                   <div className="text-sm font-bold text-black">Dietary Preferences</div>
@@ -741,13 +807,55 @@ export default function ProfilePage() {
           <Card title="Edit Daily Nutrition">
             <form onSubmit={onSaveEditTargets}>
               <div className="divide-y divide-black/5">
-                <InputRow label="Calories (kcal)" name="kcal" placeholder="—" />
-                <InputRow label="Carbohydrates (g)" name="carbs" placeholder="—" />
-                <InputRow label="Protein (g)" name="protein" placeholder="—" />
-                <InputRow label="Fat (g)" name="fat" placeholder="—" />
-                <InputRow label="Saturated Fat (g)" name="satFat" placeholder="—" />
-                <InputRow label="Sugar (g)" name="sugar" placeholder="—" />
-                <InputRow label="Salt (g)" name="salt" placeholder="—" />
+                <InputRow
+                  label="Calories (kcal)"
+                  name="kcal"
+                  placeholder="—"
+                  value={editTargets.kcal}
+                  onValueChange={onTargetChange}
+                />
+                <InputRow
+                  label="Carbohydrates (g)"
+                  name="carbs"
+                  placeholder="—"
+                  value={editTargets.carbs}
+                  onValueChange={onTargetChange}
+                />
+                <InputRow
+                  label="Protein (g)"
+                  name="protein"
+                  placeholder="—"
+                  value={editTargets.protein}
+                  onValueChange={onTargetChange}
+                />
+                <InputRow
+                  label="Fat (g)"
+                  name="fat"
+                  placeholder="—"
+                  value={editTargets.fat}
+                  onValueChange={onTargetChange}
+                />
+                <InputRow
+                  label="Saturated Fat (g)"
+                  name="satFat"
+                  placeholder="—"
+                  value={editTargets.satFat}
+                  onValueChange={onTargetChange}
+                />
+                <InputRow
+                  label="Sugar (g)"
+                  name="sugar"
+                  placeholder="—"
+                  value={editTargets.sugar}
+                  onValueChange={onTargetChange}
+                />
+                <InputRow
+                  label="Salt (g)"
+                  name="salt"
+                  placeholder="—"
+                  value={editTargets.salt}
+                  onValueChange={onTargetChange}
+                />
               </div>
 
               <div className="pt-5">
