@@ -593,3 +593,5 @@ Novērtēšanas mērķis ir analizēt un pārbaudīt, kā izstrādātā diētas 
   * Nepieciešams uzlabot algoritmu, lai palielinātu precizitāti ļoti aktīviem lietotājiem un uzlabotu piesātināto tauku un sāls kontroli;
   * Recepšu un bilžu ģenerēšanas laiks (14.53-35.74 sekundes) ir relatīvi ilgs, tāpēc ir jāapsver kešošana, vienādu bilžu izmantošana vai vairāku AI rīku paralēla izmantošana;
   * Produktu datubāzes paplašināšana, lai nodrošinātu plašāku iespējāmo algoritma risinājumu klāstu.
+## Plakāts
+![plakats.jpg](pictures/plakats.jpg)
