@@ -29,19 +29,31 @@ export default function CompleteProfilePage() {
 
     try {
       const res = await fetch("/profile/completeInfo", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(body),
-    });
-
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body),
+      });
 
       const text = await res.text();
       console.log(res.status, text);
+
       if (res.ok) {
         setMsgType("ok");
         setMsg("Saved. Redirecting...");
-        setTimeout(() => navigate("/"), 800);
+
+        const pRes = await fetch("/profile/getProfileInfo", {
+          credentials: "include",
+        });
+
+        if (pRes.ok) {
+          const profile = await pRes.json().catch(() => ({}));
+          if (profile.username) {
+            localStorage.setItem("username", profile.username);
+          }
+        }
+
+        setTimeout(() => navigate("/new-page"), 800);
       } else {
         setMsgType("err");
         setMsg(`Error ${res.status}: ${text}`);
