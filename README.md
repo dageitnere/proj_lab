@@ -594,4 +594,5 @@ Novērtēšanas mērķis ir analizēt un pārbaudīt, kā izstrādātā diētas 
   * Recepšu un bilžu ģenerēšanas laiks (14.53-35.74 sekundes) ir relatīvi ilgs, tāpēc ir jāapsver kešošana, vienādu bilžu izmantošana vai vairāku AI rīku paralēla izmantošana;
   * Produktu datubāzes paplašināšana, lai nodrošinātu plašāku iespējāmo algoritma risinājumu klāstu.
 ## Plakāts
+Risinājuma vietne: https://nutrimx.shop
 ![plakats.jpg](pictures/plakats.jpg)
